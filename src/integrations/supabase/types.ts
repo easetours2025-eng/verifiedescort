@@ -14,7 +14,116 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      celebrity_media: {
+        Row: {
+          celebrity_id: string
+          description: string | null
+          file_path: string
+          file_type: string
+          id: string
+          is_premium: boolean | null
+          is_public: boolean | null
+          price: number | null
+          title: string | null
+          upload_date: string
+        }
+        Insert: {
+          celebrity_id: string
+          description?: string | null
+          file_path: string
+          file_type: string
+          id?: string
+          is_premium?: boolean | null
+          is_public?: boolean | null
+          price?: number | null
+          title?: string | null
+          upload_date?: string
+        }
+        Update: {
+          celebrity_id?: string
+          description?: string | null
+          file_path?: string
+          file_type?: string
+          id?: string
+          is_premium?: boolean | null
+          is_public?: boolean | null
+          price?: number | null
+          title?: string | null
+          upload_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "celebrity_media_celebrity_id_fkey"
+            columns: ["celebrity_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      celebrity_profiles: {
+        Row: {
+          base_price: number
+          bio: string | null
+          created_at: string
+          email: string | null
+          gender: string | null
+          hourly_rate: number | null
+          id: string
+          is_available: boolean | null
+          is_verified: boolean | null
+          location: string | null
+          phone_number: string | null
+          real_name: string | null
+          social_instagram: string | null
+          social_tiktok: string | null
+          social_twitter: string | null
+          stage_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_price?: number
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          gender?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_available?: boolean | null
+          is_verified?: boolean | null
+          location?: string | null
+          phone_number?: string | null
+          real_name?: string | null
+          social_instagram?: string | null
+          social_tiktok?: string | null
+          social_twitter?: string | null
+          stage_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_price?: number
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          gender?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_available?: boolean | null
+          is_verified?: boolean | null
+          location?: string | null
+          phone_number?: string | null
+          real_name?: string | null
+          social_instagram?: string | null
+          social_tiktok?: string | null
+          social_twitter?: string | null
+          stage_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
