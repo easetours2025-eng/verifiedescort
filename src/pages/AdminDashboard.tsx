@@ -21,6 +21,7 @@ interface PaymentRecord {
   celebrity_profiles: {
     stage_name: string;
     email: string;
+    is_verified?: boolean;
   } | null;
 }
 
@@ -30,6 +31,7 @@ interface CelebrityProfile {
   email: string;
   created_at: string;
   is_available: boolean;
+  is_verified?: boolean;
   base_price?: number;
   location?: string;
   celebrity_subscriptions: Array<{
@@ -58,36 +60,43 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch payment records
+      // Fetch payment records with celebrity info
       const { data: payments, error: paymentsError } = await supabase
         .from('payment_verification')
         .select(`
           *,
-          celebrity_profiles!celebrity_id (
+          celebrity_profiles (
             stage_name,
-            email
+            email,
+            is_verified
           )
         `)
         .order('created_at', { ascending: false });
 
-      if (paymentsError) throw paymentsError;
+      if (paymentsError) {
+        console.error('Error fetching payments:', paymentsError);
+        throw paymentsError;
+      }
 
-      // Fetch celebrity profiles with subscription status
+      // Fetch celebrity profiles with subscription status  
       const { data: celebs, error: celebsError } = await supabase
         .from('celebrity_profiles')
         .select(`
           *,
-          celebrity_subscriptions!celebrity_id (
+          celebrity_subscriptions (
             is_active,
             subscription_end
           )
         `)
         .order('created_at', { ascending: false });
 
-      if (celebsError) throw celebsError;
+      if (celebsError) {
+        console.error('Error fetching celebrities:', celebsError);
+        throw celebsError;
+      }
 
-      setPaymentRecords((payments as any) || []);
-      setCelebrities((celebs as any) || []);
+      setPaymentRecords(payments || []);
+      setCelebrities(celebs || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -176,6 +185,14 @@ const AdminDashboard = () => {
 
       if (paymentError) throw paymentError;
 
+      // Mark celebrity as verified
+      const { error: celebrityError } = await supabase
+        .from('celebrity_profiles')
+        .update({ is_verified: true })
+        .eq('id', celebrityId);
+
+      if (celebrityError) throw celebrityError;
+
       // Create or update celebrity subscription
       const subscriptionStart = new Date();
       const subscriptionEnd = new Date();
@@ -194,7 +211,7 @@ const AdminDashboard = () => {
 
       toast({
         title: "Payment Verified",
-        description: "Celebrity subscription activated for 1 month",
+        description: "Celebrity subscription activated and profile verified for 1 month",
       });
 
       fetchData();
@@ -203,6 +220,31 @@ const AdminDashboard = () => {
       toast({
         title: "Error",
         description: "Failed to verify payment",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleCelebrityVerification = async (celebrityId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('celebrity_profiles')
+        .update({ is_verified: !currentStatus })
+        .eq('id', celebrityId);
+
+      if (error) throw error;
+
+      toast({
+        title: currentStatus ? "Celebrity Unverified" : "Celebrity Verified",
+        description: `Celebrity has been ${currentStatus ? 'unverified' : 'verified'} successfully.`,
+      });
+
+      fetchData();
+    } catch (error) {
+      console.error('Error toggling celebrity verification:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update celebrity verification status",
         variant: "destructive",
       });
     }
@@ -547,9 +589,15 @@ const AdminDashboard = () => {
                                 <Badge variant={subscriptionInfo.variant}>
                                   {subscriptionInfo.status}
                                 </Badge>
-                                <Badge variant={celebrity.is_available ? "default" : "secondary"}>
-                                  {celebrity.is_available ? "Available" : "Disabled"}
-                                </Badge>
+                                 <Badge variant={celebrity.is_available ? "default" : "secondary"}>
+                                   {celebrity.is_available ? "Available" : "Disabled"}
+                                 </Badge>
+                                 {celebrity.is_verified && (
+                                   <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+                                     <CheckCircle className="h-3 w-3 mr-1" />
+                                     Verified
+                                   </Badge>
+                                 )}
                               </div>
                               <div className="text-sm text-muted-foreground space-y-1">
                                 <p><strong>Email:</strong> {celebrity.email}</p>
@@ -564,51 +612,69 @@ const AdminDashboard = () => {
                               </div>
                             </div>
                             
-                            <div className="flex items-center gap-2 ml-4">
-                              <Button
-                                size="sm"
-                                variant={celebrity.is_available ? "destructive" : "default"}
-                                onClick={() => toggleCelebrityAvailability(celebrity.id, celebrity.is_available)}
-                              >
-                                {celebrity.is_available ? (
-                                  <>
-                                    <UserX className="h-4 w-4 mr-1" />
-                                    Disable
-                                  </>
-                                ) : (
-                                  <>
-                                    <UserCheck className="h-4 w-4 mr-1" />
-                                    Enable
-                                  </>
-                                )}
-                              </Button>
-                              
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button size="sm" variant="destructive">
-                                    <Trash2 className="h-4 w-4 mr-1" />
-                                    Delete
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Celebrity Profile</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      This action cannot be undone. This will permanently delete {celebrity.stage_name}'s profile and remove all their data from our servers.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => deleteCelebrity(celebrity.id)}
-                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                    >
-                                      Delete Profile
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
+                             <div className="flex items-center gap-2 ml-4">
+                               <Button
+                                 size="sm"
+                                 variant={celebrity.is_verified ? "secondary" : "default"}
+                                 onClick={() => toggleCelebrityVerification(celebrity.id, celebrity.is_verified || false)}
+                               >
+                                 {celebrity.is_verified ? (
+                                   <>
+                                     <XCircle className="h-4 w-4 mr-1" />
+                                     Unverify
+                                   </>
+                                 ) : (
+                                   <>
+                                     <CheckCircle className="h-4 w-4 mr-1" />
+                                     Verify
+                                   </>
+                                 )}
+                               </Button>
+                               
+                               <Button
+                                 size="sm"
+                                 variant={celebrity.is_available ? "destructive" : "default"}
+                                 onClick={() => toggleCelebrityAvailability(celebrity.id, celebrity.is_available)}
+                               >
+                                 {celebrity.is_available ? (
+                                   <>
+                                     <UserX className="h-4 w-4 mr-1" />
+                                     Disable
+                                   </>
+                                 ) : (
+                                   <>
+                                     <UserCheck className="h-4 w-4 mr-1" />
+                                     Enable
+                                   </>
+                                 )}
+                               </Button>
+                               
+                               <AlertDialog>
+                                 <AlertDialogTrigger asChild>
+                                   <Button size="sm" variant="destructive">
+                                     <Trash2 className="h-4 w-4 mr-1" />
+                                     Delete
+                                   </Button>
+                                 </AlertDialogTrigger>
+                                 <AlertDialogContent>
+                                   <AlertDialogHeader>
+                                     <AlertDialogTitle>Delete Celebrity Profile</AlertDialogTitle>
+                                     <AlertDialogDescription>
+                                       This action cannot be undone. This will permanently delete {celebrity.stage_name}'s profile and remove all their data from our servers.
+                                     </AlertDialogDescription>
+                                   </AlertDialogHeader>
+                                   <AlertDialogFooter>
+                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                     <AlertDialogAction
+                                       onClick={() => deleteCelebrity(celebrity.id)}
+                                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                     >
+                                       Delete Profile
+                                     </AlertDialogAction>
+                                   </AlertDialogFooter>
+                                 </AlertDialogContent>
+                               </AlertDialog>
+                             </div>
                           </div>
                         </Card>
                       );

@@ -59,6 +59,13 @@ export type Database = {
             referencedRelation: "celebrity_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_celebrity_media_celebrity_id"
+            columns: ["celebrity_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       celebrity_profiles: {
@@ -163,6 +170,13 @@ export type Database = {
             referencedRelation: "payment_verification"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_celebrity_subscriptions_celebrity_id"
+            columns: ["celebrity_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       conversations: {
@@ -187,7 +201,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_conversations_celebrity_id"
+            columns: ["celebrity_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -218,6 +240,13 @@ export type Database = {
           sender_type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_messages_conversation_id"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_conversation_id_fkey"
             columns: ["conversation_id"]
@@ -267,7 +296,15 @@ export type Database = {
           verified_at?: string | null
           verified_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_payment_verification_celebrity_id"
+            columns: ["celebrity_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
