@@ -108,14 +108,14 @@ const CelebrityDashboard = () => {
   };
 
   const fetchSubscriptionStatus = async () => {
-    if (!user) return;
+    if (!user || !profile?.id) return;
     
     try {
       const { data, error } = await supabase
         .from('celebrity_subscriptions')
         .select('*')
-        .eq('celebrity_id', profile?.id || '')
-        .single();
+        .eq('celebrity_id', profile.id)
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
       setSubscriptionStatus(data);
@@ -123,6 +123,12 @@ const CelebrityDashboard = () => {
       console.error('Error fetching subscription status:', error);
     }
   };
+
+  useEffect(() => {
+    if (profile?.id) {
+      fetchSubscriptionStatus();
+    }
+  }, [profile?.id]);
 
   const fetchMedia = async () => {
     try {
@@ -253,6 +259,14 @@ const CelebrityDashboard = () => {
       </header>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Visibility Status Banner */}
+        <div className="mb-6">
+          <VisibilityStatusBanner 
+            subscriptionStatus={subscriptionStatus} 
+            profile={profile} 
+          />
+        </div>
+
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center space-x-2">
@@ -306,6 +320,54 @@ const CelebrityDashboard = () => {
         celebrityId={profile?.id || ''}
       />
     </div>
+  );
+};
+
+// Visibility Status Banner Component
+const VisibilityStatusBanner = ({ 
+  subscriptionStatus, 
+  profile 
+}: {
+  subscriptionStatus: SubscriptionStatus | null;
+  profile: CelebrityProfile;
+}) => {
+  const isPubliclyVisible = subscriptionStatus?.is_active && 
+    subscriptionStatus.subscription_end && 
+    new Date(subscriptionStatus.subscription_end) > new Date();
+
+  return (
+    <Card className={`border-2 ${isPubliclyVisible ? 'border-green-200 bg-green-50' : 'border-yellow-200 bg-yellow-50'}`}>
+      <CardContent className="p-4">
+        <div className="flex items-center space-x-3">
+          {isPubliclyVisible ? (
+            <>
+              <CheckCircle className="h-6 w-6 text-green-600" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-green-800">Your Profile is Publicly Visible</h3>
+                <p className="text-sm text-green-700">
+                  Users can discover and book you. Subscription expires on{' '}
+                  {subscriptionStatus.subscription_end && new Date(subscriptionStatus.subscription_end).toLocaleDateString()}
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <AlertCircle className="h-6 w-6 text-yellow-600" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-yellow-800">Profile Not Publicly Visible</h3>
+                <p className="text-sm text-yellow-700">
+                  Your profile is hidden from public view. Submit payment verification to become visible to users.
+                </p>
+              </div>
+              <Badge variant="secondary" className="text-yellow-800 bg-yellow-100">
+                <Clock className="h-3 w-3 mr-1" />
+                Pending Payment
+              </Badge>
+            </>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

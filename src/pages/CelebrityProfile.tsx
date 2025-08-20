@@ -75,14 +75,37 @@ const CelebrityProfile = () => {
 
   const fetchProfile = async () => {
     try {
-      const { data, error } = await supabase
+      // First check if this celebrity has an active subscription
+      const { data: subscriptionData, error: subscriptionError } = await supabase
+        .from('celebrity_subscriptions')
+        .select('is_active, subscription_end')
+        .eq('celebrity_id', id)
+        .eq('is_active', true)
+        .gte('subscription_end', new Date().toISOString())
+        .maybeSingle();
+
+      // Check if current user is the celebrity themselves
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: celebrityData, error: celebrityError } = await supabase
         .from('celebrity_profiles')
         .select('*')
         .eq('id', id)
         .single();
 
-      if (error) throw error;
-      setProfile(data);
+      if (celebrityError) throw celebrityError;
+
+      // If no active subscription and user is not the celebrity themselves, deny access
+      if (!subscriptionData && (!user || celebrityData.user_id !== user.id)) {
+        toast({
+          title: "Profile Not Available",
+          description: "This celebrity profile is not currently available for public viewing.",
+          variant: "destructive",
+        });
+        navigate('/');
+        return;
+      }
+
+      setProfile(celebrityData);
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
