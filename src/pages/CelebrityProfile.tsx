@@ -61,6 +61,7 @@ const CelebrityProfile = () => {
   const [loading, setLoading] = useState(true);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [showMessaging, setShowMessaging] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -68,6 +69,7 @@ const CelebrityProfile = () => {
     if (id) {
       fetchProfile();
       fetchMedia();
+      fetchProfileImage();
     }
   }, [id]);
 
@@ -93,6 +95,8 @@ const CelebrityProfile = () => {
   };
 
   const fetchMedia = async () => {
+    if (!id) return;
+    
     try {
       const { data, error } = await supabase
         .from('celebrity_media')
@@ -107,6 +111,31 @@ const CelebrityProfile = () => {
       console.error('Error fetching media:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProfileImage = async () => {
+    if (!id) return;
+    
+    try {
+      const { data } = await supabase
+        .from('celebrity_media')
+        .select('file_path')
+        .eq('celebrity_id', id)
+        .eq('is_public', true)
+        .eq('file_type', 'image')
+        .order('upload_date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (data?.file_path) {
+        const { data: urlData } = supabase.storage
+          .from('celebrity-photos')
+          .getPublicUrl(data.file_path);
+        setProfileImage(urlData.publicUrl);
+      }
+    } catch (error) {
+      console.error('Error fetching profile image:', error);
     }
   };
 
@@ -194,7 +223,7 @@ const CelebrityProfile = () => {
                 <div className="flex justify-center mb-4">
                   <div className="relative">
                     <Avatar className="h-32 w-32 border-4 border-primary/20 shadow-lg">
-                      <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.stage_name}`} />
+                      <AvatarImage src={profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.stage_name}`} />
                       <AvatarFallback className="bg-gradient-to-br from-primary to-primary-glow text-primary-foreground text-2xl font-bold">
                         {getInitials(profile.stage_name)}
                       </AvatarFallback>

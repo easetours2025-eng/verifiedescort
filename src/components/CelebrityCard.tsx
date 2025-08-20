@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, MapPin, Phone, Instagram, Twitter, Video, Image as ImageIcon, Verified } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CelebrityProfile {
   id: string;
@@ -27,6 +28,35 @@ interface CelebrityCardProps {
 }
 
 const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile }) => {
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchProfileImage();
+  }, [celebrity.id]);
+
+  const fetchProfileImage = async () => {
+    try {
+      const { data } = await supabase
+        .from('celebrity_media')
+        .select('file_path')
+        .eq('celebrity_id', celebrity.id)
+        .eq('is_public', true)
+        .eq('file_type', 'image')
+        .order('upload_date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (data?.file_path) {
+        const { data: urlData } = supabase.storage
+          .from('celebrity-photos')
+          .getPublicUrl(data.file_path);
+        setProfileImage(urlData.publicUrl);
+      }
+    } catch (error) {
+      console.error('Error fetching profile image:', error);
+    }
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -39,7 +69,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
         <div className="flex justify-center">
           <div className="relative">
             <Avatar className="h-20 w-20 border-4 border-primary/20 shadow-lg">
-              <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${celebrity.stage_name}`} />
+              <AvatarImage src={profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${celebrity.stage_name}`} />
               <AvatarFallback className="bg-gradient-to-br from-primary to-primary-glow text-primary-foreground text-lg font-bold">
                 {getInitials(celebrity.stage_name)}
               </AvatarFallback>
