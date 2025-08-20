@@ -41,9 +41,18 @@ const Index = () => {
 
   const fetchCelebrities = async () => {
     try {
+      // Only fetch celebrities with active subscriptions
       const { data, error } = await supabase
         .from('celebrity_profiles')
-        .select('*')
+        .select(`
+          *,
+          celebrity_subscriptions!inner(
+            is_active,
+            subscription_end
+          )
+        `)
+        .eq('celebrity_subscriptions.is_active', true)
+        .gte('celebrity_subscriptions.subscription_end', new Date().toISOString())
         .order('created_at', { ascending: false });
 
       if (error) throw error;

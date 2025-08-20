@@ -124,12 +124,160 @@ export type Database = {
         }
         Relationships: []
       }
+      celebrity_subscriptions: {
+        Row: {
+          celebrity_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          last_payment_id: string | null
+          subscription_end: string | null
+          subscription_start: string | null
+          updated_at: string
+        }
+        Insert: {
+          celebrity_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_payment_id?: string | null
+          subscription_end?: string | null
+          subscription_start?: string | null
+          updated_at?: string
+        }
+        Update: {
+          celebrity_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_payment_id?: string | null
+          subscription_end?: string | null
+          subscription_start?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "celebrity_subscriptions_last_payment_id_fkey"
+            columns: ["last_payment_id"]
+            isOneToOne: false
+            referencedRelation: "payment_verification"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          celebrity_id: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          celebrity_id: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          celebrity_id?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          is_read: boolean
+          sender_id: string
+          sender_type: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          sender_id: string
+          sender_type: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          sender_id?: string
+          sender_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_verification: {
+        Row: {
+          amount: number
+          celebrity_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          is_verified: boolean
+          mpesa_code: string
+          payment_date: string
+          phone_number: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          amount?: number
+          celebrity_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_verified?: boolean
+          mpesa_code: string
+          payment_date?: string
+          phone_number: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          amount?: number
+          celebrity_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_verified?: boolean
+          mpesa_code?: string
+          payment_date?: string
+          phone_number?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_celebrity_subscription_active: {
+        Args: { celebrity_profile_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

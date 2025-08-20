@@ -10,6 +10,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import MediaUpload from '@/components/MediaUpload';
+import PaymentVerificationModal from '@/components/PaymentVerificationModal';
+import SubscriptionTab from '@/components/SubscriptionTab';
 import { 
   User, 
   Settings, 
@@ -21,7 +23,11 @@ import {
   Twitter,
   Save,
   Eye,
-  Trash2
+  Trash2,
+  CreditCard,
+  CheckCircle,
+  AlertCircle,
+  Clock
 } from 'lucide-react';
 
 interface CelebrityProfile {
@@ -52,11 +58,19 @@ interface MediaItem {
   upload_date: string;
 }
 
+interface SubscriptionStatus {
+  is_active: boolean;
+  subscription_end?: string;
+  subscription_start?: string;
+}
+
 const CelebrityDashboard = () => {
   const [profile, setProfile] = useState<CelebrityProfile | null>(null);
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -68,6 +82,7 @@ const CelebrityDashboard = () => {
     }
     fetchProfile();
     fetchMedia();
+    fetchSubscriptionStatus();
   }, [user]);
 
   const fetchProfile = async () => {
@@ -89,6 +104,23 @@ const CelebrityDashboard = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSubscriptionStatus = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('celebrity_subscriptions')
+        .select('*')
+        .eq('celebrity_id', profile?.id || '')
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      setSubscriptionStatus(data);
+    } catch (error) {
+      console.error('Error fetching subscription status:', error);
     }
   };
 
@@ -222,10 +254,14 @@ const CelebrityDashboard = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center space-x-2">
               <User className="h-4 w-4" />
               <span>Profile</span>
+            </TabsTrigger>
+            <TabsTrigger value="subscription" className="flex items-center space-x-2">
+              <CreditCard className="h-4 w-4" />
+              <span>Subscription</span>
             </TabsTrigger>
             <TabsTrigger value="media" className="flex items-center space-x-2">
               <Upload className="h-4 w-4" />
@@ -239,6 +275,14 @@ const CelebrityDashboard = () => {
 
           <TabsContent value="profile">
             <ProfileTab profile={profile} onUpdate={handleProfileUpdate} saving={saving} />
+          </TabsContent>
+
+          <TabsContent value="subscription">
+            <SubscriptionTab 
+              profile={profile} 
+              subscriptionStatus={subscriptionStatus}
+              onOpenPaymentModal={() => setShowPaymentModal(true)}
+            />
           </TabsContent>
 
           <TabsContent value="media">
@@ -255,6 +299,12 @@ const CelebrityDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <PaymentVerificationModal
+        open={showPaymentModal}
+        onOpenChange={setShowPaymentModal}
+        celebrityId={profile?.id || ''}
+      />
     </div>
   );
 };

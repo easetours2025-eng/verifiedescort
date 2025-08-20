@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import MessagingModal from '@/components/MessagingModal';
 import { 
   ArrowLeft,
   Star, 
@@ -59,6 +60,7 @@ const CelebrityProfile = () => {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [showMessaging, setShowMessaging] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -314,9 +316,13 @@ const CelebrityProfile = () => {
                   </div>
                 )}
 
-                <Button className="w-full bg-gradient-to-r from-primary to-accent" size="lg">
+                <Button 
+                  className="w-full bg-gradient-to-r from-primary to-accent" 
+                  size="lg"
+                  onClick={() => setShowMessaging(true)}
+                >
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  Book Meeting
+                  Message Celebrity
                 </Button>
               </CardContent>
             </Card>
@@ -397,6 +403,13 @@ const CelebrityProfile = () => {
           </div>
         </div>
       </div>
+
+      <MessagingModal
+        open={showMessaging}
+        onOpenChange={setShowMessaging}
+        celebrityId={id || ''}
+        celebrityName={profile?.stage_name || ''}
+      />
     </div>
   );
 };
