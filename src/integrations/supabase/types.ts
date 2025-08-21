@@ -311,6 +311,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_celebrity_subscription_active: {
         Args: { celebrity_profile_id: string }
         Returns: boolean
