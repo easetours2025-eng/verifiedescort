@@ -1,15 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, Clock, Users, DollarSign, Eye, Search, Filter, RefreshCw, Trash2, UserCheck, UserX } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from '@/hooks/use-toast';
+import { CheckCircle, XCircle, Clock, Users, CreditCard, TrendingUp, RefreshCw, Search, Eye, EyeOff, Trash2, Shield, ShieldCheck, LayoutGrid, Table2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
+// Data Interfaces
 interface PaymentRecord {
   id: string;
   celebrity_id: string;
@@ -17,69 +36,72 @@ interface PaymentRecord {
   mpesa_code: string;
   amount: number;
   is_verified: boolean;
-  created_at: string;
-  celebrity_profiles: {
+  payment_date: string;
+  verified_at?: string;
+  celebrity?: {
+    id: string;
     stage_name: string;
+    real_name?: string;
     email: string;
-    is_verified?: boolean;
-  } | null;
+    is_verified: boolean;
+  };
 }
 
 interface CelebrityProfile {
   id: string;
+  user_id: string;
   stage_name: string;
+  real_name?: string;
   email: string;
-  created_at: string;
-  is_available: boolean;
-  is_verified?: boolean;
-  base_price?: number;
   location?: string;
-  celebrity_subscriptions: Array<{
-    is_active: boolean;
-    subscription_end: string;
-  }> | null;
+  base_price: number;
+  hourly_rate?: number;
+  is_verified: boolean;
+  is_available: boolean;
+  created_at: string;
+  subscription_status: 'active' | 'inactive' | 'expired';
+  subscription_end?: string;
 }
 
 const AdminDashboard = () => {
-  const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([]);
+  const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [celebrities, setCelebrities] = useState<CelebrityProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [refreshing, setRefreshing] = useState(false);
-  const { toast } = useToast();
+  const [searchPayment, setSearchPayment] = useState('');
+  const [searchCelebrity, setSearchCelebrity] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
 
+  // Core Component Logic and Data Fetching
   useEffect(() => {
     fetchData();
     setupRealtimeSubscriptions();
-    
-    return () => {
-      supabase.removeAllChannels();
-    };
   }, []);
 
   const fetchData = async () => {
     try {
-      // Fetch payment records with celebrity info
-      const { data: payments, error: paymentsError } = await supabase
+      setLoading(true);
+      
+      // Fetch payment records with celebrity details
+      const { data: paymentsData, error: paymentsError } = await supabase
         .from('payment_verification')
         .select(`
           *,
-          celebrity_profiles (
+          celebrity_profiles!inner (
+            id,
             stage_name,
+            real_name,
             email,
             is_verified
           )
         `)
         .order('created_at', { ascending: false });
 
-      if (paymentsError) {
-        console.error('Error fetching payments:', paymentsError);
-        throw paymentsError;
-      }
+      if (paymentsError) throw paymentsError;
 
-      // Fetch celebrity profiles with subscription status  
-      const { data: celebs, error: celebsError } = await supabase
+      // Fetch celebrity profiles with subscription status
+      const { data: celebritiesData, error: celebritiesError } = await supabase
         .from('celebrity_profiles')
         .select(`
           *,
@@ -90,18 +112,34 @@ const AdminDashboard = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (celebsError) {
-        console.error('Error fetching celebrities:', celebsError);
-        throw celebsError;
-      }
+      if (celebritiesError) throw celebritiesError;
 
-      setPaymentRecords(payments || []);
-      setCelebrities(celebs || []);
+      // Process payments data
+      const processedPayments = paymentsData?.map(payment => ({
+        ...payment,
+        celebrity: payment.celebrity_profiles
+      })) || [];
+
+      // Process celebrities data with subscription status
+      const processedCelebrities = celebritiesData?.map(celebrity => {
+        const activeSubscription = celebrity.celebrity_subscriptions?.find(
+          (sub: any) => sub.is_active && new Date(sub.subscription_end) > new Date()
+        );
+        
+        return {
+          ...celebrity,
+          subscription_status: (activeSubscription ? 'active' : 'inactive') as 'active' | 'inactive' | 'expired',
+          subscription_end: activeSubscription?.subscription_end
+        };
+      }) || [];
+
+      setPayments(processedPayments);
+      setCelebrities(processedCelebrities as CelebrityProfile[]);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch admin data",
+        description: "Failed to load admin data. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -110,7 +148,7 @@ const AdminDashboard = () => {
   };
 
   const setupRealtimeSubscriptions = () => {
-    // Listen for payment verification changes
+    // Listen for payment changes
     const paymentChannel = supabase
       .channel('payment-changes')
       .on(
@@ -219,32 +257,32 @@ const AdminDashboard = () => {
       console.error('Error verifying payment:', error);
       toast({
         title: "Error",
-        description: "Failed to verify payment",
+        description: "Failed to verify payment. Please try again.",
         variant: "destructive",
       });
     }
   };
 
-  const toggleCelebrityVerification = async (celebrityId: string, currentStatus: boolean) => {
+  const toggleCelebrityVerification = async (celebrityId: string, isVerified: boolean) => {
     try {
       const { error } = await supabase
         .from('celebrity_profiles')
-        .update({ is_verified: !currentStatus })
+        .update({ is_verified: isVerified })
         .eq('id', celebrityId);
 
       if (error) throw error;
 
       toast({
-        title: currentStatus ? "Celebrity Unverified" : "Celebrity Verified",
-        description: `Celebrity has been ${currentStatus ? 'unverified' : 'verified'} successfully.`,
+        title: isVerified ? "Celebrity Verified" : "Celebrity Unverified",
+        description: `Celebrity has been ${isVerified ? 'verified' : 'unverified'} successfully.`,
       });
 
       fetchData();
     } catch (error) {
-      console.error('Error toggling celebrity verification:', error);
+      console.error('Error toggling verification:', error);
       toast({
         title: "Error",
-        description: "Failed to update celebrity verification status",
+        description: "Failed to update celebrity verification status.",
         variant: "destructive",
       });
     }
@@ -261,7 +299,7 @@ const AdminDashboard = () => {
 
       toast({
         title: "Payment Rejected",
-        description: "Payment record has been removed",
+        description: "Payment has been rejected and removed.",
       });
 
       fetchData();
@@ -269,62 +307,46 @@ const AdminDashboard = () => {
       console.error('Error rejecting payment:', error);
       toast({
         title: "Error",
-        description: "Failed to reject payment",
+        description: "Failed to reject payment. Please try again.",
         variant: "destructive",
       });
     }
   };
 
-  const getStatusIcon = (isVerified: boolean) => {
-    return isVerified ? (
-      <CheckCircle className="h-4 w-4 text-green-500" />
-    ) : (
-      <Clock className="h-4 w-4 text-yellow-500" />
-    );
-  };
-
-  const getSubscriptionStatus = (celebrity: CelebrityProfile): {
-    status: string;
-    variant: "default" | "destructive" | "secondary" | "outline";
-    endDate: string | null;
-  } => {
-    const activeSubscription = celebrity.celebrity_subscriptions?.find(sub => sub.is_active);
-    if (activeSubscription) {
-      const endDate = new Date(activeSubscription.subscription_end);
-      const isExpired = endDate < new Date();
-      return {
-        status: isExpired ? 'Expired' : 'Active',
-        variant: isExpired ? 'destructive' : 'default',
-        endDate: endDate.toLocaleDateString()
-      };
+  const getStatusIcon = (payment: PaymentRecord) => {
+    if (payment.is_verified) {
+      return <CheckCircle className="h-5 w-5 text-green-600" />;
     }
-    return {
-      status: 'Inactive',
-      variant: 'secondary',
-      endDate: null
-    };
+    return <Clock className="h-5 w-5 text-yellow-600" />;
   };
 
-  const toggleCelebrityAvailability = async (celebrityId: string, currentStatus: boolean) => {
+  const getSubscriptionStatus = (celebrity: CelebrityProfile) => {
+    if (celebrity.subscription_status === 'active') {
+      return { text: 'Active', variant: 'default' as const };
+    }
+    return { text: 'Inactive', variant: 'secondary' as const };
+  };
+
+  const toggleCelebrityAvailability = async (celebrityId: string, isAvailable: boolean) => {
     try {
       const { error } = await supabase
         .from('celebrity_profiles')
-        .update({ is_available: !currentStatus })
+        .update({ is_available: isAvailable })
         .eq('id', celebrityId);
 
       if (error) throw error;
 
       toast({
-        title: currentStatus ? "Celebrity Disabled" : "Celebrity Enabled",
-        description: `Celebrity has been ${currentStatus ? 'disabled' : 'enabled'} successfully.`,
+        title: isAvailable ? "Celebrity Enabled" : "Celebrity Disabled",
+        description: `Celebrity has been ${isAvailable ? 'enabled' : 'disabled'} successfully.`,
       });
 
       fetchData();
     } catch (error) {
-      console.error('Error toggling celebrity status:', error);
+      console.error('Error toggling availability:', error);
       toast({
         title: "Error",
-        description: "Failed to update celebrity status",
+        description: "Failed to update celebrity availability.",
         variant: "destructive",
       });
     }
@@ -349,338 +371,460 @@ const AdminDashboard = () => {
       console.error('Error deleting celebrity:', error);
       toast({
         title: "Error",
-        description: "Failed to delete celebrity profile",
+        description: "Failed to delete celebrity profile.",
         variant: "destructive",
       });
     }
   };
 
   // Filter functions
-  const filteredPayments = paymentRecords.filter(payment => {
-    const matchesSearch = payment.celebrity_profiles?.stage_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         payment.celebrity_profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         payment.phone_number.includes(searchTerm) ||
-                         payment.mpesa_code.toLowerCase().includes(searchTerm.toLowerCase());
-    
+  const filteredPayments = payments.filter(payment => {
+    const matchesSearch = !searchPayment || 
+      payment.celebrity?.stage_name?.toLowerCase().includes(searchPayment.toLowerCase()) ||
+      payment.celebrity?.email?.toLowerCase().includes(searchPayment.toLowerCase()) ||
+      payment.phone_number.includes(searchPayment) ||
+      payment.mpesa_code.toLowerCase().includes(searchPayment.toLowerCase());
+
     const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'verified' && payment.is_verified) ||
-                         (statusFilter === 'pending' && !payment.is_verified);
-    
+      (statusFilter === 'verified' && payment.is_verified) ||
+      (statusFilter === 'pending' && !payment.is_verified);
+
     return matchesSearch && matchesStatus;
   });
 
-  const filteredCelebrities = celebrities.filter(celebrity => 
-    celebrity.stage_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    celebrity.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCelebrities = celebrities.filter(celebrity =>
+    !searchCelebrity ||
+    celebrity.stage_name.toLowerCase().includes(searchCelebrity.toLowerCase()) ||
+    celebrity.email.toLowerCase().includes(searchCelebrity.toLowerCase())
   );
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading admin dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading admin dashboard...</p>
         </div>
       </div>
     );
   }
 
-  const stats = {
-    totalCelebrities: celebrities.length,
-    activeCelebrities: celebrities.filter(c => 
-      c.celebrity_subscriptions?.some(sub => 
-        sub.is_active && new Date(sub.subscription_end) > new Date()
-      )
-    ).length,
-    pendingPayments: paymentRecords.filter(p => !p.is_verified).length,
-    totalRevenue: paymentRecords.filter(p => p.is_verified).reduce((sum, p) => sum + Number(p.amount), 0)
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Manage celebrity payments and profiles</p>
-          </div>
-          <Button onClick={refreshData} disabled={refreshing} variant="outline">
-            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh Data
+    <div className="min-h-screen bg-gray-50 py-4 md:py-8">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 md:mb-8 space-y-4 md:space-y-0">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <Button
+            onClick={refreshData}
+            disabled={refreshing}
+            className="flex items-center space-x-2 w-full md:w-auto"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
           </Button>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* Summary Statistics */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Celebrities</CardTitle>
+              <CardTitle className="text-xs md:text-sm font-medium">Total Celebrities</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalCelebrities}</div>
+              <div className="text-xl md:text-2xl font-bold">{celebrities.length}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium">Active Subscriptions</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl md:text-2xl font-bold">
+                {celebrities.filter(c => c.subscription_status === 'active').length}
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Subscriptions</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs md:text-sm font-medium">Pending Payments</CardTitle>
+              <Clock className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.activeCelebrities}</div>
+              <div className="text-xl md:text-2xl font-bold">
+                {payments.filter(p => !p.is_verified).length}
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
-              <Clock className="h-4 w-4 text-muted-forerange" />
+              <CardTitle className="text-xs md:text-sm font-medium">Total Revenue</CardTitle>
+              <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.pendingPayments}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">KSh {stats.totalRevenue}</div>
+              <div className="text-xl md:text-2xl font-bold">
+                KSh {payments.filter(p => p.is_verified).reduce((sum, p) => sum + (p.amount || 0), 0).toFixed(0)}
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="payments" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="payments">Payment Verification</TabsTrigger>
-            <TabsTrigger value="celebrities">Celebrity Management</TabsTrigger>
+        <Tabs defaultValue="payments" className="space-y-4 md:space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="payments" className="flex items-center space-x-2 text-xs md:text-sm">
+              <CreditCard className="h-4 w-4" />
+              <span className="hidden sm:inline">Payment Verification</span>
+              <span className="sm:hidden">Payments</span>
+            </TabsTrigger>
+            <TabsTrigger value="celebrities" className="flex items-center space-x-2 text-xs md:text-sm">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Celebrity Management</span>
+              <span className="sm:hidden">Celebrities</span>
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="payments">
+          <TabsContent value="payments" className="space-y-4 md:space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Payment Verification</CardTitle>
-                <CardDescription>
-                  Review and verify M-Pesa payments from celebrities
-                </CardDescription>
+                <CardTitle className="text-lg md:text-xl">Payment Verification</CardTitle>
+                <p className="text-xs md:text-sm text-gray-600">Review and verify M-Pesa payments from celebrities</p>
               </CardHeader>
               <CardContent>
-                {/* Search and Filter Controls */}
-                <div className="flex flex-col md:flex-row gap-4 mb-6">
-                  <div className="flex-1">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                      <Input
-                        placeholder="Search by celebrity name, email, phone, or M-Pesa code..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
+                <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4 mb-4 md:mb-6">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Search by celebrity name, email, phone, or M-Pesa code..."
+                      value={searchPayment}
+                      onChange={(e) => setSearchPayment(e.target.value)}
+                      className="pl-10 text-sm"
+                    />
                   </div>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full md:w-48">
+                    <SelectTrigger className="w-full md:w-[200px]">
                       <SelectValue placeholder="Filter by status" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Payments</SelectItem>
-                      <SelectItem value="pending">Pending Only</SelectItem>
-                      <SelectItem value="verified">Verified Only</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="verified">Verified</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-4">
-                  {filteredPayments.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">
-                      {searchTerm || statusFilter !== 'all' ? 'No payments match your search criteria' : 'No payment records found'}
-                    </p>
-                  ) : (
-                    filteredPayments.map((payment) => (
-                      <Card key={payment.id} className="p-4">
-                        <div className="flex items-center justify-between">
+                  {filteredPayments.map((payment) => (
+                    <Card key={payment.id} className="border-l-4 border-l-blue-500">
+                      <CardContent className="p-4 md:p-6">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
                           <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                              {getStatusIcon(payment.is_verified)}
-                              <h3 className="font-medium">
-                                {payment.celebrity_profiles?.stage_name}
+                            <div className="flex items-center space-x-2">
+                              {getStatusIcon(payment)}
+                              <h3 className="font-semibold text-sm md:text-base">
+                                {payment.celebrity?.stage_name} ({payment.celebrity?.real_name})
                               </h3>
-                              <Badge variant={payment.is_verified ? "default" : "secondary"}>
-                                {payment.is_verified ? "Verified" : "Pending"}
-                              </Badge>
+                              {payment.celebrity?.is_verified && (
+                                <Badge variant="default" className="bg-blue-100 text-blue-800">
+                                  <ShieldCheck className="h-3 w-3 mr-1" />
+                                  Verified
+                                </Badge>
+                              )}
                             </div>
-                            <div className="text-sm text-muted-foreground space-y-1">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs md:text-sm text-gray-600">
                               <p><strong>Phone:</strong> {payment.phone_number}</p>
                               <p><strong>M-Pesa Code:</strong> {payment.mpesa_code}</p>
                               <p><strong>Amount:</strong> KSh {payment.amount}</p>
-                              <p><strong>Email:</strong> {payment.celebrity_profiles?.email}</p>
-                              <p><strong>Submitted:</strong> {new Date(payment.created_at).toLocaleDateString()}</p>
+                              <p><strong>Date:</strong> {new Date(payment.payment_date).toLocaleDateString()}</p>
                             </div>
+                            {payment.celebrity?.email && (
+                              <p className="text-xs md:text-sm text-gray-600">
+                                <strong>Email:</strong> {payment.celebrity.email}
+                              </p>
+                            )}
                           </div>
-                          {!payment.is_verified && (
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() => verifyPayment(payment.id, payment.celebrity_id)}
-                              >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Verify
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => rejectPayment(payment.id)}
-                              >
-                                <XCircle className="h-4 w-4 mr-1" />
-                                Reject
-                              </Button>
-                            </div>
-                          )}
+                          
+                          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
+                            {!payment.is_verified ? (
+                              <>
+                                <Button
+                                  onClick={() => verifyPayment(payment.id, payment.celebrity_id)}
+                                  className="bg-green-600 hover:bg-green-700 text-white w-full md:w-auto"
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Verify
+                                </Button>
+                                <Button
+                                  onClick={() => rejectPayment(payment.id)}
+                                  variant="destructive"
+                                  className="w-full md:w-auto"
+                                >
+                                  <XCircle className="h-4 w-4 mr-2" />
+                                  Reject
+                                </Button>
+                              </>
+                            ) : (
+                              <Badge variant="default" className="bg-green-100 text-green-800 justify-center md:justify-start">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Verified on {new Date(payment.verified_at!).toLocaleDateString()}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                      </Card>
-                    ))
+                      </CardContent>
+                    </Card>
+                  ))}
+                  
+                  {filteredPayments.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>No payments found matching your criteria.</p>
+                    </div>
                   )}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="celebrities">
+          <TabsContent value="celebrities" className="space-y-4 md:space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Celebrity Management</CardTitle>
-                <CardDescription>
-                  View and manage celebrity profiles and subscriptions
-                </CardDescription>
+                <CardTitle className="text-lg md:text-xl">Celebrity Management</CardTitle>
+                <p className="text-xs md:text-sm text-gray-600">View and manage celebrity profiles and subscriptions</p>
               </CardHeader>
               <CardContent>
-                {/* Search Control */}
-                <div className="flex gap-4 mb-6">
-                  <div className="flex-1">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                      <Input
-                        placeholder="Search celebrities by name or email..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
+                <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mb-4 md:mb-6">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Search celebrities by name or email..."
+                      value={searchCelebrity}
+                      onChange={(e) => setSearchCelebrity(e.target.value)}
+                      className="pl-10 text-sm"
+                    />
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant={viewMode === 'cards' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode('cards')}
+                      className="flex items-center space-x-1"
+                    >
+                      <LayoutGrid className="h-4 w-4" />
+                      <span className="hidden sm:inline">Cards</span>
+                    </Button>
+                    <Button
+                      variant={viewMode === 'table' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode('table')}
+                      className="flex items-center space-x-1"
+                    >
+                      <Table2 className="h-4 w-4" />
+                      <span className="hidden sm:inline">Table</span>
+                    </Button>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  {filteredCelebrities.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">
-                      {searchTerm ? 'No celebrities match your search criteria' : 'No celebrities found'}
-                    </p>
-                  ) : (
-                    filteredCelebrities.map((celebrity) => {
-                      const subscriptionInfo = getSubscriptionStatus(celebrity);
-                      return (
-                        <Card key={celebrity.id} className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="space-y-2 flex-1">
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-medium">{celebrity.stage_name}</h3>
-                                <Badge variant={subscriptionInfo.variant}>
-                                  {subscriptionInfo.status}
-                                </Badge>
-                                 <Badge variant={celebrity.is_available ? "default" : "secondary"}>
-                                   {celebrity.is_available ? "Available" : "Disabled"}
-                                 </Badge>
-                                 {celebrity.is_verified && (
-                                   <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
-                                     <CheckCircle className="h-3 w-3 mr-1" />
-                                     Verified
-                                   </Badge>
-                                 )}
+                {viewMode === 'cards' ? (
+                  <div className="space-y-4">
+                    {filteredCelebrities.map((celebrity) => (
+                      <Card key={celebrity.id} className="border-l-4 border-l-purple-500">
+                        <CardContent className="p-4 md:p-6">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
+                            <div className="space-y-2">
+                              <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-2">
+                                <h3 className="font-semibold text-sm md:text-base">{celebrity.stage_name}</h3>
+                                <div className="flex flex-wrap gap-1">
+                                  <Badge variant={celebrity.subscription_status === 'active' ? 'default' : 'secondary'}>
+                                    {celebrity.subscription_status === 'active' ? 'Active' : 'Inactive'}
+                                  </Badge>
+                                  <Badge variant={celebrity.is_available ? 'default' : 'secondary'}>
+                                    {celebrity.is_available ? 'Available' : 'Unavailable'}
+                                  </Badge>
+                                  {celebrity.is_verified && (
+                                    <Badge variant="default" className="bg-blue-100 text-blue-800">
+                                      <ShieldCheck className="h-3 w-3 mr-1" />
+                                      Verified
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
-                              <div className="text-sm text-muted-foreground space-y-1">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs md:text-sm text-gray-600">
                                 <p><strong>Email:</strong> {celebrity.email}</p>
                                 <p><strong>Joined:</strong> {new Date(celebrity.created_at).toLocaleDateString()}</p>
-                                {subscriptionInfo.endDate && (
-                                  <p><strong>Subscription ends:</strong> {subscriptionInfo.endDate}</p>
-                                )}
-                                <p><strong>Base Price:</strong> KSh {celebrity.base_price || 0}</p>
-                                {celebrity.location && (
-                                  <p><strong>Location:</strong> {celebrity.location}</p>
-                                )}
+                                <p><strong>Base Price:</strong> KSh {celebrity.base_price}</p>
+                                <p><strong>Location:</strong> {celebrity.location}</p>
                               </div>
                             </div>
                             
-                             <div className="flex items-center gap-2 ml-4">
-                               <Button
-                                 size="sm"
-                                 variant={celebrity.is_verified ? "secondary" : "default"}
-                                 onClick={() => toggleCelebrityVerification(celebrity.id, celebrity.is_verified || false)}
-                               >
-                                 {celebrity.is_verified ? (
-                                   <>
-                                     <XCircle className="h-4 w-4 mr-1" />
-                                     Unverify
-                                   </>
-                                 ) : (
-                                   <>
-                                     <CheckCircle className="h-4 w-4 mr-1" />
-                                     Verify
-                                   </>
-                                 )}
-                               </Button>
-                               
-                               <Button
-                                 size="sm"
-                                 variant={celebrity.is_available ? "destructive" : "default"}
-                                 onClick={() => toggleCelebrityAvailability(celebrity.id, celebrity.is_available)}
-                               >
-                                 {celebrity.is_available ? (
-                                   <>
-                                     <UserX className="h-4 w-4 mr-1" />
-                                     Disable
-                                   </>
-                                 ) : (
-                                   <>
-                                     <UserCheck className="h-4 w-4 mr-1" />
-                                     Enable
-                                   </>
-                                 )}
-                               </Button>
-                               
-                               <AlertDialog>
-                                 <AlertDialogTrigger asChild>
-                                   <Button size="sm" variant="destructive">
-                                     <Trash2 className="h-4 w-4 mr-1" />
-                                     Delete
-                                   </Button>
-                                 </AlertDialogTrigger>
-                                 <AlertDialogContent>
-                                   <AlertDialogHeader>
-                                     <AlertDialogTitle>Delete Celebrity Profile</AlertDialogTitle>
-                                     <AlertDialogDescription>
-                                       This action cannot be undone. This will permanently delete {celebrity.stage_name}'s profile and remove all their data from our servers.
-                                     </AlertDialogDescription>
-                                   </AlertDialogHeader>
-                                   <AlertDialogFooter>
-                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                     <AlertDialogAction
-                                       onClick={() => deleteCelebrity(celebrity.id)}
-                                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                     >
-                                       Delete Profile
-                                     </AlertDialogAction>
-                                   </AlertDialogFooter>
-                                 </AlertDialogContent>
-                               </AlertDialog>
-                             </div>
+                            <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+                              <Button
+                                onClick={() => toggleCelebrityVerification(celebrity.id, !celebrity.is_verified)}
+                                variant={celebrity.is_verified ? "secondary" : "default"}
+                                size="sm"
+                                className="w-full md:w-auto"
+                              >
+                                <Shield className="h-4 w-4 mr-2" />
+                                {celebrity.is_verified ? 'Unverify' : 'Verify'}
+                              </Button>
+                              <Button
+                                onClick={() => toggleCelebrityAvailability(celebrity.id, !celebrity.is_available)}
+                                variant={celebrity.is_available ? "destructive" : "default"}
+                                size="sm"
+                                className="w-full md:w-auto"
+                              >
+                                {celebrity.is_available ? (
+                                  <>
+                                    <EyeOff className="h-4 w-4 mr-2" />
+                                    Disable
+                                  </>
+                                ) : (
+                                  <>
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    Enable
+                                  </>
+                                )}
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="destructive" size="sm" className="w-full md:w-auto">
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Celebrity Profile</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete {celebrity.stage_name}'s profile? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => deleteCelebrity(celebrity.id)}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                           </div>
-                        </Card>
-                      );
-                    })
-                  )}
-                </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                    
+                    {filteredCelebrities.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No celebrities found matching your criteria.</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead className="hidden md:table-cell">Email</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="hidden lg:table-cell">Subscription</TableHead>
+                          <TableHead className="hidden lg:table-cell">Price</TableHead>
+                          <TableHead className="hidden md:table-cell">Joined</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredCelebrities.map((celebrity) => (
+                          <TableRow key={celebrity.id}>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span className="font-medium text-sm">{celebrity.stage_name}</span>
+                                <span className="text-xs text-gray-500 md:hidden">{celebrity.email}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell text-sm">
+                              {celebrity.email}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col space-y-1">
+                                <Badge 
+                                  variant={celebrity.is_available ? 'default' : 'secondary'}
+                                  className="text-xs"
+                                >
+                                  {celebrity.is_available ? 'Available' : 'Unavailable'}
+                                </Badge>
+                                {celebrity.is_verified && (
+                                  <Badge variant="default" className="bg-blue-100 text-blue-800 text-xs">
+                                    Verified
+                                  </Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell">
+                              <Badge 
+                                variant={celebrity.subscription_status === 'active' ? 'default' : 'secondary'}
+                                className="text-xs"
+                              >
+                                {celebrity.subscription_status === 'active' ? 'Active' : 'Inactive'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell text-sm">
+                              KSh {celebrity.base_price}
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell text-sm">
+                              {new Date(celebrity.created_at).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col md:flex-row space-y-1 md:space-y-0 md:space-x-1">
+                                <Button
+                                  onClick={() => toggleCelebrityVerification(celebrity.id, !celebrity.is_verified)}
+                                  variant={celebrity.is_verified ? "secondary" : "default"}
+                                  size="sm"
+                                  className="text-xs px-2 py-1"
+                                >
+                                  <Shield className="h-3 w-3 mr-1" />
+                                  {celebrity.is_verified ? 'Unverify' : 'Verify'}
+                                </Button>
+                                <Button
+                                  onClick={() => toggleCelebrityAvailability(celebrity.id, !celebrity.is_available)}
+                                  variant={celebrity.is_available ? "destructive" : "default"}
+                                  size="sm"
+                                  className="text-xs px-2 py-1"
+                                >
+                                  {celebrity.is_available ? (
+                                    <>
+                                      <EyeOff className="h-3 w-3 mr-1" />
+                                      Disable
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Eye className="h-3 w-3 mr-1" />
+                                      Enable
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    
+                    {filteredCelebrities.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No celebrities found matching your criteria.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
