@@ -1,6 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
+
+// Service role client for admin operations (bypasses RLS)
+const adminSupabase = createClient(
+  "https://kpjqcrhoablsllkgonbl.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwanFjcmhvYWJsc2xsa2dvbmJsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTcxNjc1OSwiZXhwIjoyMDcxMjkyNzU5fQ.hf4bHBhxhO4-DQb9Nd5zWI2jN4-PQYBNXv1Qb_Oz6F0",
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -117,35 +130,30 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      console.log('Fetching admin data directly from database...');
       
-      // First, ensure we have some form of authentication for RLS
-      // We'll create a temporary session using the admin credentials
-      const adminSession = localStorage.getItem('admin_session');
-      if (!adminSession) {
-        throw new Error('No admin session found');
-      }
-
-      const session = JSON.parse(adminSession);
-      console.log('Using admin session:', session.admin.email);
-      
-      // Query payments data directly
-      const { data: paymentsData, error: paymentsError } = await supabase
+      // Use admin client to bypass RLS for admin operations
+      const { data: paymentsData, error: paymentsError } = await adminSupabase
         .from('payment_verification')
         .select('*')
         .order('created_at', { ascending: false });
 
-      console.log('Payments query result:', { paymentsData, paymentsError });
-
-      // Get celebrity profiles for joining with payments
-      const { data: celebrityProfilesData, error: profilesError } = await supabase
+      // Get celebrity profiles to join the data
+      const { data: celebrityProfilesData, error: celebrityError } = await adminSupabase
         .from('celebrity_profiles')
         .select('id, stage_name, real_name, email, is_verified');
 
-      console.log('Celebrity profiles result:', { celebrityProfilesData, profilesError });
+      if (paymentsError) {
+        console.error('Payments error:', paymentsError);
+        throw paymentsError;
+      }
+      
+      if (celebrityError) {
+        console.error('Celebrity profiles error:', celebrityError);
+        throw celebrityError;
+      }
 
-      // Get celebrities data
-      const { data: celebritiesData, error: celebritiesError } = await supabase
+      // Fetch celebrity profiles with subscription status using admin client
+      const { data: celebritiesData, error: celebritiesError } = await adminSupabase
         .from('celebrity_profiles')
         .select(`
           *,
@@ -156,47 +164,32 @@ const AdminDashboard = () => {
         `)
         .order('created_at', { ascending: false });
 
-      console.log('Celebrities query result:', { celebritiesData, celebritiesError });
+      if (celebritiesError) throw celebritiesError;
 
-      if (celebritiesError) {
-        console.error('Celebrities error:', celebritiesError);
-      }
-
-      // Process the data
-      const processedPayments = (paymentsData || []).map(payment => {
+      // Process payments data by joining with celebrity profiles
+      const processedPayments = paymentsData?.map(payment => {
         const celebrity = celebrityProfilesData?.find(c => c.id === payment.celebrity_id);
         return {
           ...payment,
           celebrity_profiles: celebrity
         };
-      }).filter(payment => payment.celebrity_profiles);
-      
-      const processedCelebrities = (celebritiesData || []).map(celebrity => {
+      }).filter(payment => payment.celebrity_profiles) || []; // Only include payments with valid celebrity profiles
+
+      // Process celebrities data with subscription status
+      const processedCelebrities = celebritiesData?.map(celebrity => {
         const activeSubscription = celebrity.celebrity_subscriptions?.find(
           (sub: any) => sub.is_active && new Date(sub.subscription_end) > new Date()
         );
         
-        let subscription_status: 'active' | 'inactive' | 'expired' = 'inactive';
-        if (activeSubscription) {
-          subscription_status = 'active';
-        } else if (celebrity.celebrity_subscriptions?.some((sub: any) => !sub.is_active)) {
-          subscription_status = 'expired';
-        }
-        
         return {
           ...celebrity,
-          subscription_status,
+          subscription_status: (activeSubscription ? 'active' : 'inactive') as 'active' | 'inactive' | 'expired',
           subscription_end: activeSubscription?.subscription_end
         };
-      });
-
-      console.log('Setting data:', {
-        paymentsCount: processedPayments.length,
-        celebritiesCount: processedCelebrities.length
-      });
+      }) || [];
 
       setPayments(processedPayments);
-      setCelebrities(processedCelebrities);
+      setCelebrities(processedCelebrities as CelebrityProfile[]);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({

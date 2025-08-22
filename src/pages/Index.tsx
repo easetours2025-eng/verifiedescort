@@ -123,6 +123,13 @@ const Index = () => {
             </div>
             
             <div className="flex items-center space-x-4">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/admin-auth')}
+                className="border-primary/20 hover:bg-primary/10"
+              >
+                Admin Portal
+              </Button>
               {user ? (
                 <div className="flex items-center space-x-3">
                   <Button 
