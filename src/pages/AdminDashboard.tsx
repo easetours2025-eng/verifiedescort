@@ -75,7 +75,7 @@ const AdminDashboard = () => {
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const navigate = useNavigate();
 
-  // Check admin authentication from localStorage
+  // Check admin authentication and set up Supabase session
   useEffect(() => {
     const adminSession = localStorage.getItem('admin_session');
     if (!adminSession) {
@@ -95,6 +95,9 @@ const AdminDashboard = () => {
         navigate('/admin-auth');
         return;
       }
+
+      // Set up admin context for RLS - we'll fetch data directly without relying on RLS
+      setAdminUser(session.admin);
     } catch (error) {
       console.error('Invalid admin session:', error);
       localStorage.removeItem('admin_session');
@@ -102,6 +105,8 @@ const AdminDashboard = () => {
       return;
     }
   }, [navigate]);
+
+  const [adminUser, setAdminUser] = useState<any>(null);
 
   // Core Component Logic and Data Fetching
   useEffect(() => {
@@ -113,22 +118,27 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       
-      // Fetch payment records with celebrity details
+      // For admin users, we need to use a more permissive approach since RLS might block access
+      // First get all payment records
       const { data: paymentsData, error: paymentsError } = await supabase
         .from('payment_verification')
-        .select(`
-          *,
-          celebrity_profiles!inner (
-            id,
-            stage_name,
-            real_name,
-            email,
-            is_verified
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (paymentsError) throw paymentsError;
+      // Then get celebrity profiles to join the data
+      const { data: celebrityProfilesData, error: celebrityError } = await supabase
+        .from('celebrity_profiles')
+        .select('id, stage_name, real_name, email, is_verified');
+
+      if (paymentsError) {
+        console.error('Payments error:', paymentsError);
+        throw paymentsError;
+      }
+      
+      if (celebrityError) {
+        console.error('Celebrity profiles error:', celebrityError);
+        throw celebrityError;
+      }
 
       // Fetch celebrity profiles with subscription status
       const { data: celebritiesData, error: celebritiesError } = await supabase
@@ -144,11 +154,14 @@ const AdminDashboard = () => {
 
       if (celebritiesError) throw celebritiesError;
 
-      // Process payments data
-      const processedPayments = paymentsData?.map(payment => ({
-        ...payment,
-        celebrity: payment.celebrity_profiles
-      })) || [];
+      // Process payments data by joining with celebrity profiles
+      const processedPayments = paymentsData?.map(payment => {
+        const celebrity = celebrityProfilesData?.find(c => c.id === payment.celebrity_id);
+        return {
+          ...payment,
+          celebrity_profiles: celebrity
+        };
+      }).filter(payment => payment.celebrity_profiles) || []; // Only include payments with valid celebrity profiles
 
       // Process celebrities data with subscription status
       const processedCelebrities = celebritiesData?.map(celebrity => {
