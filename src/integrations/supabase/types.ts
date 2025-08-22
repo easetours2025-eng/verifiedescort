@@ -398,6 +398,10 @@ export type Database = {
         Args: { celebrity_profile_id: string }
         Returns: boolean
       }
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
