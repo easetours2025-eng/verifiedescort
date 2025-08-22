@@ -1,6 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
+
+// Service role client for admin operations (bypasses RLS)
+const adminSupabase = createClient(
+  "https://kpjqcrhoablsllkgonbl.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwanFjcmhvYWJsc2xsa2dvbmJsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTcxNjc1OSwiZXhwIjoyMDcxMjkyNzU5fQ.hf4bHBhxhO4-DQb9Nd5zWI2jN4-PQYBNXv1Qb_Oz6F0",
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -118,15 +131,14 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       
-      // For admin users, we need to use a more permissive approach since RLS might block access
-      // First get all payment records
-      const { data: paymentsData, error: paymentsError } = await supabase
+      // Use admin client to bypass RLS for admin operations
+      const { data: paymentsData, error: paymentsError } = await adminSupabase
         .from('payment_verification')
         .select('*')
         .order('created_at', { ascending: false });
 
-      // Then get celebrity profiles to join the data
-      const { data: celebrityProfilesData, error: celebrityError } = await supabase
+      // Get celebrity profiles to join the data
+      const { data: celebrityProfilesData, error: celebrityError } = await adminSupabase
         .from('celebrity_profiles')
         .select('id, stage_name, real_name, email, is_verified');
 
@@ -140,8 +152,8 @@ const AdminDashboard = () => {
         throw celebrityError;
       }
 
-      // Fetch celebrity profiles with subscription status
-      const { data: celebritiesData, error: celebritiesError } = await supabase
+      // Fetch celebrity profiles with subscription status using admin client
+      const { data: celebritiesData, error: celebritiesError } = await adminSupabase
         .from('celebrity_profiles')
         .select(`
           *,
