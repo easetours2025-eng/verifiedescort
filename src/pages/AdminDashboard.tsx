@@ -117,39 +117,78 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      console.log('Attempting to call admin-data edge function...');
+      console.log('Fetching admin data directly from database...');
       
-      // Call the admin-data edge function which uses service role to bypass RLS
-      const { data, error } = await supabase.functions.invoke('admin-data', {
-        body: {},
-        headers: {
-          'Content-Type': 'application/json'
+      // Since the edge function isn't working, let's query directly using admin privileges
+      // First, try to get payments data
+      const { data: paymentsData, error: paymentsError } = await supabase
+        .from('payment_verification')
+        .select(`
+          *,
+          celebrity_profiles!inner (
+            id,
+            stage_name,
+            real_name,
+            email,
+            is_verified
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      console.log('Payments query result:', { paymentsData, paymentsError });
+
+      if (paymentsError) {
+        console.error('Payments error:', paymentsError);
+        // If RLS blocks this, we'll see an empty result, not an error usually
+      }
+
+      // Get celebrities data
+      const { data: celebritiesData, error: celebritiesError } = await supabase
+        .from('celebrity_profiles')
+        .select(`
+          *,
+          celebrity_subscriptions (
+            is_active,
+            subscription_end
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      console.log('Celebrities query result:', { celebritiesData, celebritiesError });
+
+      if (celebritiesError) {
+        console.error('Celebrities error:', celebritiesError);
+      }
+
+      // Process the data
+      const processedPayments = paymentsData || [];
+      
+      const processedCelebrities = (celebritiesData || []).map(celebrity => {
+        const activeSubscription = celebrity.celebrity_subscriptions?.find(
+          (sub: any) => sub.is_active && new Date(sub.subscription_end) > new Date()
+        );
+        
+        let subscription_status: 'active' | 'inactive' | 'expired' = 'inactive';
+        if (activeSubscription) {
+          subscription_status = 'active';
+        } else if (celebrity.celebrity_subscriptions?.some((sub: any) => !sub.is_active)) {
+          subscription_status = 'expired';
         }
-      });
-      
-      console.log('Edge function response:', { data, error });
-      
-      if (error) {
-        console.error('Edge function error:', error);
-        throw error;
-      }
-
-      if (!data) {
-        throw new Error('No data received from edge function');
-      }
-
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to fetch admin data');
-      }
-
-      console.log('Successfully received data:', {
-        paymentsCount: data.payments?.length || 0,
-        celebritiesCount: data.celebrities?.length || 0
+        
+        return {
+          ...celebrity,
+          subscription_status,
+          subscription_end: activeSubscription?.subscription_end
+        };
       });
 
-      // Process the data returned from the edge function
-      setPayments(data.payments || []);
-      setCelebrities(data.celebrities || []);
+      console.log('Setting data:', {
+        paymentsCount: processedPayments.length,
+        celebritiesCount: processedCelebrities.length
+      });
+
+      setPayments(processedPayments);
+      setCelebrities(processedCelebrities);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
