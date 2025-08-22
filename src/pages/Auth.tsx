@@ -13,6 +13,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [stageName, setStageName] = useState('');
+  const [age, setAge] = useState<number>(18);
   const [loading, setLoading] = useState(false);
   const { signIn, signUp, user } = useAuth();
   const { toast } = useToast();
@@ -55,10 +56,10 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !stageName) {
+    if (!email || !password || !stageName || age < 18) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: age < 18 ? "You must be 18 or older to register" : "Please fill in all fields",
         variant: "destructive",
       });
       return;
@@ -175,6 +176,20 @@ const Auth = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-age">Age</Label>
+                    <Input
+                      id="signup-age"
+                      type="number"
+                      min="18"
+                      max="100"
+                      placeholder="Your age"
+                      value={age}
+                      onChange={(e) => setAge(parseInt(e.target.value) || 18)}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">Must be 18 or older</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>

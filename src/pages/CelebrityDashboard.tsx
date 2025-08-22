@@ -10,6 +10,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import MediaUpload from '@/components/MediaUpload';
+import BulkMediaUpload from '@/components/BulkMediaUpload';
+import CelebrityServices from '@/components/CelebrityServices';
 import PaymentVerificationModal from '@/components/PaymentVerificationModal';
 import SubscriptionTab from '@/components/SubscriptionTab';
 import { 
@@ -27,7 +29,9 @@ import {
   CreditCard,
   CheckCircle,
   AlertCircle,
-  Clock
+  Clock,
+  Camera,
+  Briefcase
 } from 'lucide-react';
 
 interface CelebrityProfile {
@@ -38,6 +42,9 @@ interface CelebrityProfile {
   phone_number?: string;
   location?: string;
   gender?: string;
+  age?: number;
+  date_of_birth?: string;
+  profile_picture_path?: string;
   base_price: number;
   hourly_rate?: number;
   social_instagram?: string;
@@ -64,9 +71,19 @@ interface SubscriptionStatus {
   subscription_start?: string;
 }
 
+interface Service {
+  id: string;
+  service_name: string;
+  description?: string;
+  price: number;
+  duration_minutes: number;
+  is_active: boolean;
+}
+
 const CelebrityDashboard = () => {
   const [profile, setProfile] = useState<CelebrityProfile | null>(null);
   const [media, setMedia] = useState<MediaItem[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
@@ -82,6 +99,7 @@ const CelebrityDashboard = () => {
     }
     fetchProfile();
     fetchMedia();
+    fetchServices();
     fetchSubscriptionStatus();
   }, [user]);
 
@@ -127,6 +145,7 @@ const CelebrityDashboard = () => {
   useEffect(() => {
     if (profile?.id) {
       fetchSubscriptionStatus();
+      fetchServices();
     }
   }, [profile?.id]);
 
@@ -142,6 +161,23 @@ const CelebrityDashboard = () => {
       setMedia(data || []);
     } catch (error) {
       console.error('Error fetching media:', error);
+    }
+  };
+
+  const fetchServices = async () => {
+    if (!profile?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('celebrity_services')
+        .select('*')
+        .eq('celebrity_id', profile.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setServices(data || []);
+    } catch (error) {
+      console.error('Error fetching services:', error);
     }
   };
 
@@ -268,7 +304,7 @@ const CelebrityDashboard = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="profile" className="flex items-center space-x-2">
               <User className="h-4 w-4" />
               <span>Profile</span>
@@ -280,6 +316,10 @@ const CelebrityDashboard = () => {
             <TabsTrigger value="media" className="flex items-center space-x-2">
               <Upload className="h-4 w-4" />
               <span>Media</span>
+            </TabsTrigger>
+            <TabsTrigger value="services" className="flex items-center space-x-2">
+              <Briefcase className="h-4 w-4" />
+              <span>Services</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center space-x-2">
               <Settings className="h-4 w-4" />
@@ -305,6 +345,15 @@ const CelebrityDashboard = () => {
               media={media} 
               onUpload={handleMediaUpload}
               onDelete={deleteMedia}
+            />
+          </TabsContent>
+
+          <TabsContent value="services">
+            <CelebrityServices
+              celebrityId={profile?.id || ''}
+              services={services}
+              onServicesUpdate={fetchServices}
+              isEditable={true}
             />
           </TabsContent>
 
@@ -384,6 +433,7 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
     location: profile.location || '',
     gender: profile.gender || '',
     phone_number: profile.phone_number || '',
+    age: profile.age || 18,
     social_instagram: profile.social_instagram || '',
     social_twitter: profile.social_twitter || '',
   });
@@ -455,6 +505,26 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Age *</label>
+              <Input
+                type="number"
+                min="18"
+                max="100"
+                value={formData.age}
+                onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || 18 })}
+                placeholder="25"
+                required
+              />
+              <p className="text-xs text-muted-foreground">Must be 18 or older</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Profile Picture</label>
+              <p className="text-xs text-muted-foreground">Profile picture upload coming soon</p>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center space-x-2">
               <Phone className="h-4 w-4" />
@@ -512,7 +582,17 @@ const MediaTab = ({ profile, media, onUpload, onDelete }: {
 }) => {
   return (
     <div className="space-y-6">
-      <MediaUpload celebrityId={profile.id} onUpload={onUpload} />
+      {/* Bulk Upload */}
+      <BulkMediaUpload 
+        celebrityId={profile.id} 
+        onUpload={onUpload}
+      />
+      
+      {/* Individual Upload */}
+      <MediaUpload 
+        celebrityId={profile.id} 
+        onUpload={onUpload}
+      />
       
       <Card>
         <CardHeader>

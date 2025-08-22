@@ -353,6 +353,8 @@ const AdminDashboard = () => {
   };
 
   const deleteCelebrity = async (celebrityId: string) => {
+    if (!confirm('Are you sure? This will permanently delete the celebrity profile and all associated data.')) return;
+    
     try {
       const { error } = await supabase
         .from('celebrity_profiles')
