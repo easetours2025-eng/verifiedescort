@@ -19,8 +19,41 @@ const AdminAuth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    checkMachineAccess();
     checkExistingAdmins();
   }, []);
+
+  const getMachineFingerprint = () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx!.textBaseline = 'top';
+    ctx!.font = '14px Arial';
+    ctx!.fillText('Machine fingerprint', 2, 2);
+    
+    return btoa(JSON.stringify({
+      screen: `${screen.width}x${screen.height}`,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      platform: navigator.platform,
+      userAgent: navigator.userAgent.substring(0, 100),
+      canvas: canvas.toDataURL(),
+      language: navigator.language
+    }));
+  };
+
+  const checkMachineAccess = () => {
+    const currentFingerprint = getMachineFingerprint();
+    const allowedFingerprint = localStorage.getItem('admin_machine_fingerprint');
+    
+    if (allowedFingerprint && allowedFingerprint !== currentFingerprint) {
+      toast({
+        title: "Access Denied",
+        description: "Admin access is restricted to authorized machine only.",
+        variant: "destructive",
+      });
+      navigate('/');
+      return;
+    }
+  };
 
   const checkExistingAdmins = async () => {
     try {
@@ -63,6 +96,10 @@ const AdminAuth = () => {
       if (error) throw error;
 
       if (data.success) {
+        // Store machine fingerprint on first successful login
+        const machineFingerprint = getMachineFingerprint();
+        localStorage.setItem('admin_machine_fingerprint', machineFingerprint);
+        
         // Store admin session in localStorage
         localStorage.setItem('admin_session', JSON.stringify({
           email: data.admin.email,
@@ -114,6 +151,10 @@ const AdminAuth = () => {
       if (error) throw error;
 
       if (data.success) {
+        // Store machine fingerprint for this machine only
+        const machineFingerprint = getMachineFingerprint();
+        localStorage.setItem('admin_machine_fingerprint', machineFingerprint);
+        
         // Store admin session in localStorage
         localStorage.setItem('admin_session', JSON.stringify({
           email: data.admin.email,
