@@ -8,15 +8,27 @@ const corsHeaders = {
 }
 
 Deno.serve(async (req) => {
+  console.log('Admin-data function called with method:', req.method)
+  
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    console.log('Starting admin-data function...')
+    
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    
+    console.log('Environment check:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!serviceRoleKey,
+      urlPrefix: supabaseUrl?.substring(0, 20)
+    })
     // Create service role client
     const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      supabaseUrl ?? '',
+      serviceRoleKey ?? '',
       {
         auth: {
           autoRefreshToken: false,
@@ -24,27 +36,38 @@ Deno.serve(async (req) => {
         }
       }
     )
+    
+    console.log('Supabase client created successfully')
 
     // Fetch payment verification data with celebrity profiles
+    console.log('Fetching payment verification data...');
     const { data: paymentsData, error: paymentsError } = await supabaseAdmin
       .from('payment_verification')
       .select('*')
       .order('created_at', { ascending: false })
 
+    console.log('Payment query result:', { paymentsData, paymentsError });
+    
     if (paymentsError) {
+      console.error('Payment error:', paymentsError);
       throw paymentsError
     }
 
     // Fetch celebrity profiles
+    console.log('Fetching celebrity profiles...');
     const { data: celebrityProfilesData, error: celebrityError } = await supabaseAdmin
       .from('celebrity_profiles')
       .select('id, stage_name, real_name, email, is_verified')
 
+    console.log('Celebrity profiles result:', { celebrityProfilesData, celebrityError });
+
     if (celebrityError) {
+      console.error('Celebrity error:', celebrityError);
       throw celebrityError
     }
 
     // Fetch celebrity profiles with subscription status
+    console.log('Fetching celebrities with subscriptions...');
     const { data: celebritiesData, error: celebritiesError } = await supabaseAdmin
       .from('celebrity_profiles')
       .select(`
@@ -56,10 +79,15 @@ Deno.serve(async (req) => {
       `)
       .order('created_at', { ascending: false })
 
+    console.log('Celebrities with subscriptions result:', { celebritiesData, celebritiesError });
+
     if (celebritiesError) {
+      console.error('Celebrities with subscriptions error:', celebritiesError);
       throw celebritiesError
     }
 
+    console.log('Processing data...');
+    
     // Process payments data by joining with celebrity profiles
     const processedPayments = paymentsData?.map(payment => {
       const celebrity = celebrityProfilesData?.find(c => c.id === payment.celebrity_id)
@@ -68,6 +96,8 @@ Deno.serve(async (req) => {
         celebrity_profiles: celebrity
       }
     }).filter(payment => payment.celebrity_profiles) || []
+
+    console.log('Processed payments:', processedPayments.length);
 
     // Process celebrities data with subscription status
     const processedCelebrities = celebritiesData?.map(celebrity => {
@@ -82,11 +112,17 @@ Deno.serve(async (req) => {
       }
     }) || []
 
-    return new Response(JSON.stringify({
+    console.log('Processed celebrities:', processedCelebrities.length);
+
+    const response = {
       success: true,
       payments: processedPayments,
       celebrities: processedCelebrities
-    }), {
+    };
+    
+    console.log('Returning response:', response);
+
+    return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
 

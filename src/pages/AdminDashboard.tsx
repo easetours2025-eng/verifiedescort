@@ -117,18 +117,35 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      console.log('Attempting to call admin-data edge function...');
       
       // Call the admin-data edge function which uses service role to bypass RLS
-      const { data, error } = await supabase.functions.invoke('admin-data');
+      const { data, error } = await supabase.functions.invoke('admin-data', {
+        body: {},
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('Edge function response:', { data, error });
       
       if (error) {
         console.error('Edge function error:', error);
         throw error;
       }
 
+      if (!data) {
+        throw new Error('No data received from edge function');
+      }
+
       if (!data.success) {
         throw new Error(data.error || 'Failed to fetch admin data');
       }
+
+      console.log('Successfully received data:', {
+        paymentsCount: data.payments?.length || 0,
+        celebritiesCount: data.celebrities?.length || 0
+      });
 
       // Process the data returned from the edge function
       setPayments(data.payments || []);
