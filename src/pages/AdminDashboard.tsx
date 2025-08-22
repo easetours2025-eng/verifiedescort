@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -75,43 +74,34 @@ const AdminDashboard = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const navigate = useNavigate();
-  const { user, session, loading: authLoading } = useAuth();
 
-  // Check authentication and admin status
+  // Check admin authentication from localStorage
   useEffect(() => {
-    if (!authLoading) {
-      if (!session || !user) {
-        navigate('/admin-auth');
-        return;
-      }
-      
-      // Check if user is admin
-      checkAdminStatus();
+    const adminSession = localStorage.getItem('admin_session');
+    if (!adminSession) {
+      navigate('/admin-auth');
+      return;
     }
-  }, [session, user, authLoading, navigate]);
 
-  const checkAdminStatus = async () => {
     try {
-      const { data, error } = await supabase
-        .from('admin_users')
-        .select('id')
-        .eq('email', user?.email)
-        .single();
-
-      if (error || !data) {
-        toast({
-          title: "Access Denied",
-          description: "You don't have admin privileges.",
-          variant: "destructive",
-        });
+      const session = JSON.parse(adminSession);
+      // Check if session is not too old (optional security measure)
+      const loginTime = new Date(session.loginTime);
+      const now = new Date();
+      const hoursSinceLogin = (now.getTime() - loginTime.getTime()) / (1000 * 60 * 60);
+      
+      if (hoursSinceLogin > 24) { // Session expires after 24 hours
+        localStorage.removeItem('admin_session');
         navigate('/admin-auth');
         return;
       }
     } catch (error) {
-      console.error('Error checking admin status:', error);
+      console.error('Invalid admin session:', error);
+      localStorage.removeItem('admin_session');
       navigate('/admin-auth');
+      return;
     }
-  };
+  }, [navigate]);
 
   // Core Component Logic and Data Fetching
   useEffect(() => {
@@ -467,7 +457,10 @@ const AdminDashboard = () => {
             </Button>
             <Button
               variant="outline"
-              onClick={() => navigate('/admin-auth')}
+              onClick={() => {
+                localStorage.removeItem('admin_session');
+                navigate('/admin-auth');
+              }}
               className="flex items-center space-x-2 w-full md:w-auto"
             >
               <LogOut className="h-4 w-4" />
