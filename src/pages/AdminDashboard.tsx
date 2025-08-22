@@ -1,19 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { createClient } from '@supabase/supabase-js';
-
-// Service role client for admin operations (bypasses RLS)
-const adminSupabase = createClient(
-  "https://kpjqcrhoablsllkgonbl.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwanFjcmhvYWJsc2xsa2dvbmJsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTcxNjc1OSwiZXhwIjoyMDcxMjkyNzU5fQ.hf4bHBhxhO4-DQb9Nd5zWI2jN4-PQYBNXv1Qb_Oz6F0",
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -131,65 +118,21 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       
-      // Use admin client to bypass RLS for admin operations
-      const { data: paymentsData, error: paymentsError } = await adminSupabase
-        .from('payment_verification')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      // Get celebrity profiles to join the data
-      const { data: celebrityProfilesData, error: celebrityError } = await adminSupabase
-        .from('celebrity_profiles')
-        .select('id, stage_name, real_name, email, is_verified');
-
-      if (paymentsError) {
-        console.error('Payments error:', paymentsError);
-        throw paymentsError;
-      }
+      // Call the admin-data edge function which uses service role to bypass RLS
+      const { data, error } = await supabase.functions.invoke('admin-data');
       
-      if (celebrityError) {
-        console.error('Celebrity profiles error:', celebrityError);
-        throw celebrityError;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
       }
 
-      // Fetch celebrity profiles with subscription status using admin client
-      const { data: celebritiesData, error: celebritiesError } = await adminSupabase
-        .from('celebrity_profiles')
-        .select(`
-          *,
-          celebrity_subscriptions (
-            is_active,
-            subscription_end
-          )
-        `)
-        .order('created_at', { ascending: false });
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch admin data');
+      }
 
-      if (celebritiesError) throw celebritiesError;
-
-      // Process payments data by joining with celebrity profiles
-      const processedPayments = paymentsData?.map(payment => {
-        const celebrity = celebrityProfilesData?.find(c => c.id === payment.celebrity_id);
-        return {
-          ...payment,
-          celebrity_profiles: celebrity
-        };
-      }).filter(payment => payment.celebrity_profiles) || []; // Only include payments with valid celebrity profiles
-
-      // Process celebrities data with subscription status
-      const processedCelebrities = celebritiesData?.map(celebrity => {
-        const activeSubscription = celebrity.celebrity_subscriptions?.find(
-          (sub: any) => sub.is_active && new Date(sub.subscription_end) > new Date()
-        );
-        
-        return {
-          ...celebrity,
-          subscription_status: (activeSubscription ? 'active' : 'inactive') as 'active' | 'inactive' | 'expired',
-          subscription_end: activeSubscription?.subscription_end
-        };
-      }) || [];
-
-      setPayments(processedPayments);
-      setCelebrities(processedCelebrities as CelebrityProfile[]);
+      // Process the data returned from the edge function
+      setPayments(data.payments || []);
+      setCelebrities(data.celebrities || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
