@@ -214,6 +214,16 @@ const Auth = () => {
             </Tabs>
           </CardContent>
         </Card>
+        
+        <div className="text-center mt-6">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/')}
+            className="w-full"
+          >
+            Go to Homepage
+          </Button>
+        </div>
       </div>
     </div>
   );
