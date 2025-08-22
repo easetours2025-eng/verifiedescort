@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -74,6 +75,43 @@ const AdminDashboard = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const navigate = useNavigate();
+  const { user, session, loading: authLoading } = useAuth();
+
+  // Check authentication and admin status
+  useEffect(() => {
+    if (!authLoading) {
+      if (!session || !user) {
+        navigate('/admin-auth');
+        return;
+      }
+      
+      // Check if user is admin
+      checkAdminStatus();
+    }
+  }, [session, user, authLoading, navigate]);
+
+  const checkAdminStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('email', user?.email)
+        .single();
+
+      if (error || !data) {
+        toast({
+          title: "Access Denied",
+          description: "You don't have admin privileges.",
+          variant: "destructive",
+        });
+        navigate('/admin-auth');
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      navigate('/admin-auth');
+    }
+  };
 
   // Core Component Logic and Data Fetching
   useEffect(() => {
