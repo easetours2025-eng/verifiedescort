@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_super_admin: boolean | null
+          password_hash: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_super_admin?: boolean | null
+          password_hash: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_super_admin?: boolean | null
+          password_hash?: string
+        }
+        Relationships: []
+      }
       celebrity_media: {
         Row: {
           celebrity_id: string
@@ -70,9 +94,11 @@ export type Database = {
       }
       celebrity_profiles: {
         Row: {
+          age: number | null
           base_price: number
           bio: string | null
           created_at: string
+          date_of_birth: string | null
           email: string | null
           gender: string | null
           hourly_rate: number | null
@@ -81,6 +107,7 @@ export type Database = {
           is_verified: boolean | null
           location: string | null
           phone_number: string | null
+          profile_picture_path: string | null
           real_name: string | null
           social_instagram: string | null
           social_tiktok: string | null
@@ -90,9 +117,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          age?: number | null
           base_price?: number
           bio?: string | null
           created_at?: string
+          date_of_birth?: string | null
           email?: string | null
           gender?: string | null
           hourly_rate?: number | null
@@ -101,6 +130,7 @@ export type Database = {
           is_verified?: boolean | null
           location?: string | null
           phone_number?: string | null
+          profile_picture_path?: string | null
           real_name?: string | null
           social_instagram?: string | null
           social_tiktok?: string | null
@@ -110,9 +140,11 @@ export type Database = {
           user_id: string
         }
         Update: {
+          age?: number | null
           base_price?: number
           bio?: string | null
           created_at?: string
+          date_of_birth?: string | null
           email?: string | null
           gender?: string | null
           hourly_rate?: number | null
@@ -121,6 +153,7 @@ export type Database = {
           is_verified?: boolean | null
           location?: string | null
           phone_number?: string | null
+          profile_picture_path?: string | null
           real_name?: string | null
           social_instagram?: string | null
           social_tiktok?: string | null
@@ -131,8 +164,45 @@ export type Database = {
         }
         Relationships: []
       }
+      celebrity_services: {
+        Row: {
+          celebrity_id: string
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          is_active: boolean | null
+          price: number
+          service_name: string
+          updated_at: string
+        }
+        Insert: {
+          celebrity_id: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          price?: number
+          service_name: string
+          updated_at?: string
+        }
+        Update: {
+          celebrity_id?: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          price?: number
+          service_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       celebrity_subscriptions: {
         Row: {
+          amount_paid: number | null
           celebrity_id: string
           created_at: string
           id: string
@@ -140,9 +210,11 @@ export type Database = {
           last_payment_id: string | null
           subscription_end: string | null
           subscription_start: string | null
+          subscription_tier: string | null
           updated_at: string
         }
         Insert: {
+          amount_paid?: number | null
           celebrity_id: string
           created_at?: string
           id?: string
@@ -150,9 +222,11 @@ export type Database = {
           last_payment_id?: string | null
           subscription_end?: string | null
           subscription_start?: string | null
+          subscription_tier?: string | null
           updated_at?: string
         }
         Update: {
+          amount_paid?: number | null
           celebrity_id?: string
           created_at?: string
           id?: string
@@ -160,6 +234,7 @@ export type Database = {
           last_payment_id?: string | null
           subscription_end?: string | null
           subscription_start?: string | null
+          subscription_tier?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -313,6 +388,10 @@ export type Database = {
     Functions: {
       is_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_admin_user: {
+        Args: { user_email: string }
         Returns: boolean
       }
       is_celebrity_subscription_active: {
