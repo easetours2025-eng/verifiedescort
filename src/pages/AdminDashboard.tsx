@@ -120,27 +120,20 @@ const AdminDashboard = () => {
       console.log('Fetching admin data directly from database...');
       
       // Since the edge function isn't working, let's query directly using admin privileges
-      // First, try to get payments data
+      // First, try to get payments data - query without joins to avoid RLS complexity
       const { data: paymentsData, error: paymentsError } = await supabase
         .from('payment_verification')
-        .select(`
-          *,
-          celebrity_profiles!inner (
-            id,
-            stage_name,
-            real_name,
-            email,
-            is_verified
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       console.log('Payments query result:', { paymentsData, paymentsError });
 
-      if (paymentsError) {
-        console.error('Payments error:', paymentsError);
-        // If RLS blocks this, we'll see an empty result, not an error usually
-      }
+      // Get celebrity profiles for joining with payments
+      const { data: celebrityProfilesData, error: profilesError } = await supabase
+        .from('celebrity_profiles')
+        .select('id, stage_name, real_name, email, is_verified');
+
+      console.log('Celebrity profiles result:', { celebrityProfilesData, profilesError });
 
       // Get celebrities data
       const { data: celebritiesData, error: celebritiesError } = await supabase
@@ -161,7 +154,13 @@ const AdminDashboard = () => {
       }
 
       // Process the data
-      const processedPayments = paymentsData || [];
+      const processedPayments = (paymentsData || []).map(payment => {
+        const celebrity = celebrityProfilesData?.find(c => c.id === payment.celebrity_id);
+        return {
+          ...payment,
+          celebrity_profiles: celebrity
+        };
+      }).filter(payment => payment.celebrity_profiles);
       
       const processedCelebrities = (celebritiesData || []).map(celebrity => {
         const activeSubscription = celebrity.celebrity_subscriptions?.find(
