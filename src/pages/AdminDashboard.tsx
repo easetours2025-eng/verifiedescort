@@ -119,8 +119,17 @@ const AdminDashboard = () => {
       setLoading(true);
       console.log('Fetching admin data directly from database...');
       
-      // Since the edge function isn't working, let's query directly using admin privileges
-      // First, try to get payments data - query without joins to avoid RLS complexity
+      // First, ensure we have some form of authentication for RLS
+      // We'll create a temporary session using the admin credentials
+      const adminSession = localStorage.getItem('admin_session');
+      if (!adminSession) {
+        throw new Error('No admin session found');
+      }
+
+      const session = JSON.parse(adminSession);
+      console.log('Using admin session:', session.admin.email);
+      
+      // Query payments data directly
       const { data: paymentsData, error: paymentsError } = await supabase
         .from('payment_verification')
         .select('*')
