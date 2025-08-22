@@ -47,7 +47,7 @@ const Index = () => {
 
   const fetchCelebrities = async () => {
     try {
-      // Fetch celebrities with active subscriptions, ordered by subscription tier for FIFO priority
+      // Fetch celebrities with active subscriptions
       const { data, error } = await supabase
         .from('celebrity_profiles')
         .select(`
@@ -61,8 +61,7 @@ const Index = () => {
         `)
         .eq('celebrity_subscriptions.is_active', true)
         .gte('celebrity_subscriptions.subscription_end', new Date().toISOString())
-        .order('celebrity_subscriptions.subscription_tier', { ascending: false }) // Premium first
-        .order('celebrity_subscriptions.subscription_start', { ascending: true }); // FIFO within tier
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setCelebrities(data || []);
