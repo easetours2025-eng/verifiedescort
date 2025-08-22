@@ -22,7 +22,9 @@ import {
   Clock,
   Heart,
   Share2,
-  MessageCircle
+  MessageCircle,
+  Briefcase,
+  MessageSquare
 } from 'lucide-react';
 
 interface CelebrityProfile {
@@ -58,6 +60,7 @@ const CelebrityProfile = () => {
   const { id } = useParams<{ id: string }>();
   const [profile, setProfile] = useState<CelebrityProfile | null>(null);
   const [media, setMedia] = useState<MediaItem[]>([]);
+  const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [showMessaging, setShowMessaging] = useState(false);
@@ -69,6 +72,7 @@ const CelebrityProfile = () => {
     if (id) {
       fetchProfile();
       fetchMedia();
+      fetchServices();
       fetchProfileImage();
     }
   }, [id]);
@@ -132,6 +136,24 @@ const CelebrityProfile = () => {
       setMedia(data || []);
     } catch (error) {
       console.error('Error fetching media:', error);
+    }
+  };
+
+  const fetchServices = async () => {
+    if (!id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('celebrity_services')
+        .select('*')
+        .eq('celebrity_id', id)
+        .eq('is_active', true)
+        .order('price', { ascending: true });
+
+      if (error) throw error;
+      setServices(data || []);
+    } catch (error) {
+      console.error('Error fetching services:', error);
     } finally {
       setLoading(false);
     }
@@ -165,6 +187,20 @@ const CelebrityProfile = () => {
   const handleContact = () => {
     if (profile?.phone_number) {
       window.open(`tel:${profile.phone_number}`, '_self');
+    } else {
+      toast({
+        title: "Contact Info",
+        description: "Phone number not available for this celebrity",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleWhatsApp = () => {
+    if (profile?.phone_number) {
+      const cleanPhone = profile.phone_number.replace(/[^\d+]/g, '');
+      const message = encodeURIComponent(`Hi ${profile.stage_name}, I'm interested in booking you through Celebrity Connect.`);
+      window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
     } else {
       toast({
         title: "Contact Info",
@@ -302,36 +338,86 @@ const CelebrityProfile = () => {
                   )}
                   
                   {profile.phone_number && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleContact}
-                      className="w-full justify-start"
-                    >
-                      <Phone className="h-4 w-4 mr-2" />
-                      Call Now
-                    </Button>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2 text-sm font-medium">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <span>{profile.phone_number}</span>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleContact}
+                          className="flex-1"
+                        >
+                          <Phone className="h-4 w-4 mr-2" />
+                          Call
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleWhatsApp}
+                          className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          WhatsApp
+                        </Button>
+                      </div>
+                    </div>
                   )}
                 </div>
 
                 <Separator />
 
+                {/* Services */}
+                {services.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="font-semibold flex items-center space-x-2">
+                      <Briefcase className="h-4 w-4" />
+                      <span>Services Offered</span>
+                    </h3>
+                    
+                    <div className="space-y-2">
+                      {services.slice(0, 3).map((service) => (
+                        <div key={service.id} className="flex justify-between items-center p-2 bg-muted/50 rounded">
+                          <div>
+                            <p className="text-sm font-medium">{service.service_name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {service.duration_minutes} minutes
+                            </p>
+                          </div>
+                          <span className="font-bold text-primary text-sm">
+                            KSh {service.price}
+                          </span>
+                        </div>
+                      ))}
+                      {services.length > 3 && (
+                        <p className="text-xs text-muted-foreground text-center">
+                          +{services.length - 3} more services
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {services.length > 0 && <Separator />}
+
                 {/* Pricing */}
                 <div className="space-y-3">
                   <h3 className="font-semibold flex items-center space-x-2">
                     <DollarSign className="h-4 w-4" />
-                    <span>Pricing</span>
+                    <span>Base Pricing</span>
                   </h3>
                   
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-sm">Base Price:</span>
-                      <span className="font-bold text-primary">${profile.base_price}</span>
+                      <span className="text-sm">Starting Price:</span>
+                      <span className="font-bold text-primary">KSh {profile.base_price}</span>
                     </div>
                     {profile.hourly_rate && (
                       <div className="flex justify-between">
                         <span className="text-sm">Per Hour:</span>
-                        <span className="font-bold text-accent">${profile.hourly_rate}</span>
+                        <span className="font-bold text-accent">KSh {profile.hourly_rate}</span>
                       </div>
                     )}
                   </div>

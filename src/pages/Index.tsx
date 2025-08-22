@@ -18,6 +18,7 @@ interface CelebrityProfile {
   phone_number?: string;
   location?: string;
   gender?: string;
+  age?: number;
   base_price: number;
   hourly_rate?: number;
   social_instagram?: string;
@@ -30,6 +31,11 @@ const Index = () => {
   const [celebrities, setCelebrities] = useState<CelebrityProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [locationFilter, setLocationFilter] = useState('');
+  const [minPrice, setMinPrice] = useState<number>(0);
+  const [maxPrice, setMaxPrice] = useState<number>(10000);
+  const [minAge, setMinAge] = useState<number>(18);
+  const [maxAge, setMaxAge] = useState<number>(65);
   const [genderFilter, setGenderFilter] = useState<string>('all');
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -41,19 +47,22 @@ const Index = () => {
 
   const fetchCelebrities = async () => {
     try {
-      // Only fetch celebrities with active subscriptions
+      // Fetch celebrities with active subscriptions, ordered by subscription tier for FIFO priority
       const { data, error } = await supabase
         .from('celebrity_profiles')
         .select(`
           *,
           celebrity_subscriptions!inner(
             is_active,
-            subscription_end
+            subscription_end,
+            subscription_tier,
+            subscription_start
           )
         `)
         .eq('celebrity_subscriptions.is_active', true)
         .gte('celebrity_subscriptions.subscription_end', new Date().toISOString())
-        .order('created_at', { ascending: false });
+        .order('celebrity_subscriptions.subscription_tier', { ascending: false }) // Premium first
+        .order('celebrity_subscriptions.subscription_start', { ascending: true }); // FIFO within tier
 
       if (error) throw error;
       setCelebrities(data || []);
@@ -73,8 +82,17 @@ const Index = () => {
     const matchesSearch = celebrity.stage_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          celebrity.real_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          celebrity.bio?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesLocation = !locationFilter || 
+                           celebrity.location?.toLowerCase().includes(locationFilter.toLowerCase());
+    
+    const matchesPrice = celebrity.base_price >= minPrice && celebrity.base_price <= maxPrice;
+    
+    const matchesAge = !celebrity.age || (celebrity.age >= minAge && celebrity.age <= maxAge);
+    
     const matchesGender = genderFilter === 'all' || celebrity.gender === genderFilter;
-    return matchesSearch && matchesGender;
+    
+    return matchesSearch && matchesLocation && matchesPrice && matchesAge && matchesGender;
   });
 
   const handleViewProfile = (id: string) => {
@@ -106,6 +124,13 @@ const Index = () => {
             </div>
             
             <div className="flex items-center space-x-4">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/admin-auth')}
+                className="border-primary/20 hover:bg-primary/10"
+              >
+                Admin Portal
+              </Button>
               {user ? (
                 <div className="flex items-center space-x-3">
                   <Button 
@@ -180,7 +205,8 @@ const Index = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+              <div className="space-y-4">
+                {/* Main Search */}
                 <div className="flex-1">
                   <Input
                     placeholder="Search by name, bio, or specialty..."
@@ -189,27 +215,112 @@ const Index = () => {
                     className="h-12"
                   />
                 </div>
-                <div className="flex space-x-2">
+
+                {/* Advanced Filters */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Location Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Location</label>
+                    <Input
+                      placeholder="City or area..."
+                      value={locationFilter}
+                      onChange={(e) => setLocationFilter(e.target.value)}
+                      className="h-10"
+                    />
+                  </div>
+
+                  {/* Price Range */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Price Range (KSh)</label>
+                    <div className="flex space-x-2">
+                      <Input
+                        type="number"
+                        placeholder="Min"
+                        value={minPrice}
+                        onChange={(e) => setMinPrice(parseInt(e.target.value) || 0)}
+                        className="h-10"
+                      />
+                      <Input
+                        type="number"
+                        placeholder="Max"
+                        value={maxPrice}
+                        onChange={(e) => setMaxPrice(parseInt(e.target.value) || 10000)}
+                        className="h-10"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Age Range */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Age Range</label>
+                    <div className="flex space-x-2">
+                      <Input
+                        type="number"
+                        placeholder="Min"
+                        value={minAge}
+                        onChange={(e) => setMinAge(parseInt(e.target.value) || 18)}
+                        className="h-10"
+                        min="18"
+                      />
+                      <Input
+                        type="number"
+                        placeholder="Max"
+                        value={maxAge}
+                        onChange={(e) => setMaxAge(parseInt(e.target.value) || 65)}
+                        className="h-10"
+                        max="100"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Gender Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Gender</label>
+                    <div className="flex space-x-1">
+                      <Button
+                        variant={genderFilter === 'all' ? 'default' : 'outline'}
+                        onClick={() => setGenderFilter('all')}
+                        size="sm"
+                        className="flex-1"
+                      >
+                        All
+                      </Button>
+                      <Button
+                        variant={genderFilter === 'male' ? 'default' : 'outline'}
+                        onClick={() => setGenderFilter('male')}
+                        size="sm"
+                        className="flex-1"
+                      >
+                        Male
+                      </Button>
+                      <Button
+                        variant={genderFilter === 'female' ? 'default' : 'outline'}
+                        onClick={() => setGenderFilter('female')}
+                        size="sm"
+                        className="flex-1"
+                      >
+                        Female
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Clear Filters */}
+                <div className="flex justify-end">
                   <Button
-                    variant={genderFilter === 'all' ? 'default' : 'outline'}
-                    onClick={() => setGenderFilter('all')}
+                    variant="ghost"
                     size="sm"
+                    onClick={() => {
+                      setSearchTerm('');
+                      setLocationFilter('');
+                      setMinPrice(0);
+                      setMaxPrice(10000);
+                      setMinAge(18);
+                      setMaxAge(65);
+                      setGenderFilter('all');
+                    }}
                   >
-                    All
-                  </Button>
-                  <Button
-                    variant={genderFilter === 'male' ? 'default' : 'outline'}
-                    onClick={() => setGenderFilter('male')}
-                    size="sm"
-                  >
-                    Male
-                  </Button>
-                  <Button
-                    variant={genderFilter === 'female' ? 'default' : 'outline'}
-                    onClick={() => setGenderFilter('female')}
-                    size="sm"
-                  >
-                    Female
+                    Clear All Filters
                   </Button>
                 </div>
               </div>

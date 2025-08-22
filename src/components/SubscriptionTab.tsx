@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   CreditCard, 
   CheckCircle, 
@@ -11,6 +13,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+import SubscriptionTierModal from './SubscriptionTierModal';
 
 interface CelebrityProfile {
   id: string;
@@ -30,6 +33,38 @@ interface SubscriptionTabProps {
 }
 
 const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: SubscriptionTabProps) => {
+  const [showTierModal, setShowTierModal] = useState(false);
+  const { toast } = useToast();
+
+  const handleTierSubmission = async (tier: 'basic' | 'premium', mpesaCode: string, phoneNumber: string) => {
+    try {
+      const { error } = await supabase
+        .from('payment_verification')
+        .insert({
+          celebrity_id: profile?.id,
+          phone_number: phoneNumber,
+          mpesa_code: mpesaCode,
+          amount: tier === 'premium' ? 2500 : 2000,
+          is_verified: false,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Payment Verification Submitted",
+        description: `Your ${tier} plan payment verification has been submitted. An admin will review it shortly.`,
+      });
+    } catch (error: any) {
+      console.error('Error submitting payment:', error);
+      toast({
+        title: "Submission Failed",
+        description: error.message || "Failed to submit payment verification",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString([], {
       year: 'numeric',
@@ -134,25 +169,41 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Smartphone className="h-5 w-5 text-accent" />
-            <span>M-Pesa Payment</span>
+            <span>Choose Your Plan</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="bg-muted p-4 rounded-lg">
-            <h4 className="font-semibold mb-3">Monthly Subscription - KSH 1,000</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div>
-                <span className="font-medium">Paybill:</span> 2727278
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Basic Plan */}
+            <div className="bg-muted p-4 rounded-lg border">
+              <h4 className="font-semibold mb-2 text-blue-600">Basic Plan</h4>
+              <div className="text-2xl font-bold mb-2">KSh 2,000</div>
+              <p className="text-sm text-muted-foreground mb-3">per month</p>
+              <ul className="text-sm space-y-1">
+                <li>• Profile visibility</li>
+                <li>• Basic messaging</li>
+                <li>• Media uploads</li>
+                <li>• Verification badge</li>
+              </ul>
+            </div>
+
+            {/* Premium Plan */}
+            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-4 rounded-lg border-2 border-yellow-200">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-semibold text-orange-600">Premium Plan</h4>
+                <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
+                  Popular
+                </Badge>
               </div>
-              <div>
-                <span className="font-medium">Account:</span> {profile?.stage_name || 'Celebrity Name'}
-              </div>
-              <div>
-                <span className="font-medium">Amount:</span> KSH 1,000
-              </div>
-              <div>
-                <span className="font-medium">Frequency:</span> Monthly
-              </div>
+              <div className="text-2xl font-bold mb-2">KSh 2,500</div>
+              <p className="text-sm text-muted-foreground mb-3">per month</p>
+              <ul className="text-sm space-y-1">
+                <li>• Priority placement (FIFO)</li>
+                <li>• Enhanced messaging</li>
+                <li>• Unlimited uploads</li>
+                <li>• Premium badge</li>
+                <li>• Advanced analytics</li>
+              </ul>
             </div>
           </div>
 
@@ -167,15 +218,22 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
           </div>
 
           <Button 
-            onClick={onOpenPaymentModal}
+            onClick={() => setShowTierModal(true)}
             className="w-full bg-gradient-to-r from-primary to-accent"
             size="lg"
           >
             <CreditCard className="h-4 w-4 mr-2" />
-            Manage Subscription
+            Choose Subscription Plan
           </Button>
         </CardContent>
       </Card>
+
+      <SubscriptionTierModal
+        open={showTierModal}
+        onOpenChange={setShowTierModal}
+        celebrityId={profile?.id || ''}
+        onSubmit={handleTierSubmission}
+      />
     </div>
   );
 };
