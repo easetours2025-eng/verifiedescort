@@ -86,6 +86,8 @@ const AdminDashboard = () => {
 
       try {
         const session = JSON.parse(adminSession);
+        console.log('Admin session:', session);
+        
         // Check if session is not too old (optional security measure)
         const loginTime = new Date(session.loginTime);
         const now = new Date();
@@ -97,25 +99,20 @@ const AdminDashboard = () => {
           return;
         }
 
-        // Create a temporary user session for admin operations
-        // This will allow RLS policies to work correctly
-        const tempUserData = {
-          id: '00000000-0000-0000-0000-000000000000', // Temporary admin user ID
-          email: session.admin.email,
-          user_metadata: { role: 'admin' },
-          app_metadata: { role: 'admin' }
-        };
+        // Validate session structure
+        if (!session.email || !session.id) {
+          console.error('Invalid session structure:', session);
+          localStorage.removeItem('admin_session');
+          navigate('/admin-auth');
+          return;
+        }
 
-        // Sign in as an admin user with temporary session
-        // This allows RLS policies that check auth.uid() to work
-        const { error } = await supabase.auth.signInWithPassword({
-          email: session.admin.email,
-          password: 'temp-admin-pass' // This will fail but we'll handle it
+        // Set admin user data
+        setAdminUser({
+          id: session.id,
+          email: session.email,
+          loginTime: session.loginTime
         });
-
-        // Since the password will fail, we'll work around this by setting auth manually
-        // For now, we'll proceed with the admin functionality
-        setAdminUser(session.admin);
       } catch (error) {
         console.error('Invalid admin session:', error);
         localStorage.removeItem('admin_session');
