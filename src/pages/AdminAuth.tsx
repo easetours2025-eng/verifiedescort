@@ -19,57 +19,10 @@ const AdminAuth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkMachineAccess();
-    checkExistingAdmins();
+    // For development - skip machine access and admin checks
+    setHasAdmins(true);
+    setCheckingAdmins(false);
   }, []);
-
-  const getMachineFingerprint = () => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    ctx!.textBaseline = 'top';
-    ctx!.font = '14px Arial';
-    ctx!.fillText('Machine fingerprint', 2, 2);
-    
-    return btoa(JSON.stringify({
-      screen: `${screen.width}x${screen.height}`,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      platform: navigator.platform,
-      userAgent: navigator.userAgent.substring(0, 100),
-      canvas: canvas.toDataURL(),
-      language: navigator.language
-    }));
-  };
-
-  const checkMachineAccess = () => {
-    const currentFingerprint = getMachineFingerprint();
-    const allowedFingerprint = localStorage.getItem('admin_machine_fingerprint');
-    
-    if (allowedFingerprint && allowedFingerprint !== currentFingerprint) {
-      toast({
-        title: "Access Denied",
-        description: "Admin access is restricted to authorized machine only.",
-        variant: "destructive",
-      });
-      navigate('/');
-      return;
-    }
-  };
-
-  const checkExistingAdmins = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('admin_users')
-        .select('id')
-        .limit(1);
-
-      if (error) throw error;
-      setHasAdmins(data && data.length > 0);
-    } catch (error) {
-      console.error('Error checking admins:', error);
-    } finally {
-      setCheckingAdmins(false);
-    }
-  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,26 +37,12 @@ const AdminAuth = () => {
 
     setLoading(true);
     try {
-      // Call edge function to authenticate admin
-      const { data, error } = await supabase.functions.invoke('admin-auth', {
-        body: {
-          action: 'signin',
-          email,
-          password
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        // Store machine fingerprint on first successful login
-        const machineFingerprint = getMachineFingerprint();
-        localStorage.setItem('admin_machine_fingerprint', machineFingerprint);
-        
+      // For development - simple check
+      if (email === 'admin@admin.com' && password === 'admin123') {
         // Store admin session in localStorage
         localStorage.setItem('admin_session', JSON.stringify({
-          email: data.admin.email,
-          id: data.admin.id,
+          email: email,
+          id: 'dev-admin-id',
           loginTime: new Date().toISOString()
         }));
 
@@ -113,7 +52,7 @@ const AdminAuth = () => {
         });
         navigate('/admin');
       } else {
-        throw new Error(data.message || 'Authentication failed');
+        throw new Error('Invalid credentials. Use admin@admin.com / admin123 for development.');
       }
     } catch (error: any) {
       toast({
@@ -139,40 +78,21 @@ const AdminAuth = () => {
 
     setLoading(true);
     try {
-      // Call edge function to create admin
-      const { data, error } = await supabase.functions.invoke('admin-auth', {
-        body: {
-          action: 'signup',
-          email,
-          password
-        }
+      // For development - allow any signup
+      localStorage.setItem('admin_session', JSON.stringify({
+        email: email,
+        id: 'dev-admin-id',
+        loginTime: new Date().toISOString()
+      }));
+
+      toast({
+        title: "Admin account created!",
+        description: "You are now signed in as admin.",
       });
-
-      if (error) throw error;
-
-      if (data.success) {
-        // Store machine fingerprint for this machine only
-        const machineFingerprint = getMachineFingerprint();
-        localStorage.setItem('admin_machine_fingerprint', machineFingerprint);
-        
-        // Store admin session in localStorage
-        localStorage.setItem('admin_session', JSON.stringify({
-          email: data.admin.email,
-          id: data.admin.id,
-          loginTime: new Date().toISOString()
-        }));
-
-        toast({
-          title: "Admin account created!",
-          description: "You are now signed in as the first admin.",
-        });
-        navigate('/admin');
-      } else {
-        throw new Error(data.message || 'Account creation failed');
-      }
+      navigate('/admin');
     } catch (error: any) {
       toast({
-        title: "Sign Up Error",
+        title: "Sign Up Error", 
         description: error.message || "Failed to create admin account",
         variant: "destructive",
       });
@@ -200,7 +120,7 @@ const AdminAuth = () => {
             Admin Portal
           </h1>
           <p className="text-muted-foreground">
-            {hasAdmins ? 'Sign in to access admin dashboard' : 'Create the first admin account'}
+            Development Mode - Use admin@admin.com / admin123
           </p>
         </div>
 

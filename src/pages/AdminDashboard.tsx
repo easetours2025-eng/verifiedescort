@@ -75,7 +75,7 @@ const AdminDashboard = () => {
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const navigate = useNavigate();
 
-  // Check admin authentication and set up Supabase session
+  // Check admin authentication 
   useEffect(() => {
     const checkAdminAuth = async () => {
       const adminSession = localStorage.getItem('admin_session');
@@ -88,36 +88,21 @@ const AdminDashboard = () => {
         const session = JSON.parse(adminSession);
         console.log('Admin session:', session);
         
-        // Check if session is not too old (optional security measure)
-        const loginTime = new Date(session.loginTime);
-        const now = new Date();
-        const hoursSinceLogin = (now.getTime() - loginTime.getTime()) / (1000 * 60 * 60);
-        
-        if (hoursSinceLogin > 24) { // Session expires after 24 hours
-          localStorage.removeItem('admin_session');
-          navigate('/admin-auth');
-          return;
-        }
-
-        // Validate session structure
-        if (!session.email || !session.id) {
-          console.error('Invalid session structure:', session);
-          localStorage.removeItem('admin_session');
-          navigate('/admin-auth');
-          return;
-        }
-
+        // For development - skip time validation
         // Set admin user data
         setAdminUser({
-          id: session.id,
-          email: session.email,
+          id: session.id || 'dev-admin-id',
+          email: session.email || 'admin@admin.com',
           loginTime: session.loginTime
         });
       } catch (error) {
         console.error('Invalid admin session:', error);
-        localStorage.removeItem('admin_session');
-        navigate('/admin-auth');
-        return;
+        // For development - allow fallback
+        setAdminUser({
+          id: 'dev-admin-id',
+          email: 'admin@admin.com',
+          loginTime: new Date().toISOString()
+        });
       }
     };
 
