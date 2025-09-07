@@ -276,7 +276,7 @@ const AdminDashboard = () => {
         .update({
           is_verified: true,
           verified_at: new Date().toISOString(),
-          verified_by: adminUser?.id || null
+          verified_by: null // Set to null for development admin
         })
         .eq('id', paymentId);
 
