@@ -9,26 +9,15 @@ import { supabase } from '@/integrations/supabase/client';
 import CelebrityCard from '@/components/CelebrityCard';
 import { Crown, Sparkles, Search, Filter, Star, Users, Trophy, Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-interface CelebrityProfile {
-  id: string;
-  stage_name: string;
-  real_name?: string;
-  bio?: string;
-  phone_number?: string;
-  location?: string;
-  gender?: string;
-  age?: number;
-  base_price: number;
-  hourly_rate?: number;
-  social_instagram?: string;
-  social_twitter?: string;
-  is_verified: boolean;
-  is_available: boolean;
-}
+import { 
+  filterCelebrityDataArray, 
+  PublicCelebrityProfile, 
+  PrivateCelebrityProfile,
+  CelebrityProfile as FullCelebrityProfile
+} from '@/lib/celebrity-utils';
 
 const Index = () => {
-  const [celebrities, setCelebrities] = useState<CelebrityProfile[]>([]);
+  const [celebrities, setCelebrities] = useState<(PublicCelebrityProfile | PrivateCelebrityProfile)[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
@@ -87,7 +76,11 @@ const Index = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setCelebrities(data || []);
+      
+      // Filter sensitive data based on user permissions
+      const rawProfiles = data || [];
+      const filteredProfiles = await filterCelebrityDataArray(rawProfiles as FullCelebrityProfile[]);
+      setCelebrities(filteredProfiles);
     } catch (error) {
       console.error('Error fetching celebrities:', error);
       toast({
@@ -102,7 +95,6 @@ const Index = () => {
 
   const filteredCelebrities = celebrities.filter(celebrity => {
     const matchesSearch = celebrity.stage_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         celebrity.real_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          celebrity.bio?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesLocation = !locationFilter || 

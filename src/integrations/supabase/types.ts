@@ -386,6 +386,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_celebrity_sensitive_data: {
+        Args: { profile_user_id: string }
+        Returns: boolean
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean

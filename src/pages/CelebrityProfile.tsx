@@ -9,6 +9,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import MessagingModal from '@/components/MessagingModal';
 import { 
+  filterCelebrityData, 
+  PublicCelebrityProfile, 
+  PrivateCelebrityProfile, 
+  CelebrityProfile as FullCelebrityProfile,
+  isPrivateProfile 
+} from '@/lib/celebrity-utils';
+import { 
   ArrowLeft,
   Star, 
   MapPin, 
@@ -27,23 +34,6 @@ import {
   MessageSquare
 } from 'lucide-react';
 
-interface CelebrityProfile {
-  id: string;
-  stage_name: string;
-  real_name?: string;
-  bio?: string;
-  phone_number?: string;
-  location?: string;
-  gender?: string;
-  base_price: number;
-  hourly_rate?: number;
-  social_instagram?: string;
-  social_twitter?: string;
-  is_verified: boolean;
-  is_available: boolean;
-  created_at: string;
-}
-
 interface MediaItem {
   id: string;
   title?: string;
@@ -58,7 +48,7 @@ interface MediaItem {
 
 const CelebrityProfile = () => {
   const { id } = useParams<{ id: string }>();
-  const [profile, setProfile] = useState<CelebrityProfile | null>(null);
+  const [profile, setProfile] = useState<PublicCelebrityProfile | PrivateCelebrityProfile | null>(null);
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,7 +99,9 @@ const CelebrityProfile = () => {
         return;
       }
 
-      setProfile(celebrityData);
+      // Filter sensitive data based on user permissions
+      const filteredProfile = await filterCelebrityData(celebrityData as FullCelebrityProfile);
+      setProfile(filteredProfile);
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
@@ -185,7 +177,7 @@ const CelebrityProfile = () => {
   };
 
   const handleContact = () => {
-    if (profile?.phone_number) {
+    if (isPrivateProfile(profile) && profile?.phone_number) {
       window.open(`tel:${profile.phone_number}`, '_self');
     } else {
       toast({
@@ -197,7 +189,7 @@ const CelebrityProfile = () => {
   };
 
   const handleWhatsApp = () => {
-    if (profile?.phone_number) {
+    if (isPrivateProfile(profile) && profile?.phone_number) {
       const cleanPhone = profile.phone_number.replace(/[^\d+]/g, '');
       const message = encodeURIComponent(`Hi ${profile.stage_name}, I'm interested in booking you through Celebrity Connect.`);
       window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
@@ -299,7 +291,8 @@ const CelebrityProfile = () => {
                   <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                     {profile.stage_name}
                   </h1>
-                  {profile.real_name && (
+                  {/* Only show real name if user has access to private data */}
+                  {isPrivateProfile(profile) && profile.real_name && (
                     <p className="text-muted-foreground">({profile.real_name})</p>
                   )}
                   
@@ -326,48 +319,67 @@ const CelebrityProfile = () => {
 
                 <Separator />
 
-                {/* Contact Info */}
-                <div className="space-y-3">
-                  <h3 className="font-semibold">Contact Information</h3>
-                  
-                  {profile.location && (
-                    <div className="flex items-center space-x-2 text-sm">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span>{profile.location}</span>
+                {/* Contact Info - Only show if user has access to private data */}
+                {isPrivateProfile(profile) && (
+                  <>
+                    <div className="space-y-3">
+                      <h3 className="font-semibold">Contact Information</h3>
+                      
+                      {profile.location && (
+                        <div className="flex items-center space-x-2 text-sm">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span>{profile.location}</span>
+                        </div>
+                      )}
+                      
+                      {profile.phone_number && (
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2 text-sm font-medium">
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                            <span>{profile.phone_number}</span>
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleContact}
+                              className="flex-1"
+                            >
+                              <Phone className="h-4 w-4 mr-2" />
+                              Call
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleWhatsApp}
+                              className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+                            >
+                              <MessageSquare className="h-4 w-4 mr-2" />
+                              WhatsApp
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  
-                  {profile.phone_number && (
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2 text-sm font-medium">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span>{profile.phone_number}</span>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleContact}
-                          className="flex-1"
-                        >
-                          <Phone className="h-4 w-4 mr-2" />
-                          Call
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleWhatsApp}
-                          className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
-                        >
-                          <MessageSquare className="h-4 w-4 mr-2" />
-                          WhatsApp
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
 
-                <Separator />
+                    <Separator />
+                  </>
+                )}
+
+                {/* Location for public users (sanitized) */}
+                {!isPrivateProfile(profile) && profile.location && (
+                  <>
+                    <div className="space-y-3">
+                      <h3 className="font-semibold">Location</h3>
+                      <div className="flex items-center space-x-2 text-sm">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <span>{profile.location}</span>
+                      </div>
+                    </div>
+
+                    <Separator />
+                  </>
+                )}
 
                 {/* Services */}
                 {services.length > 0 && (

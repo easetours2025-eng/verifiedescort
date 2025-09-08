@@ -5,25 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, MapPin, Phone, Instagram, Twitter, Video, Image as ImageIcon, Verified } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-
-interface CelebrityProfile {
-  id: string;
-  stage_name: string;
-  real_name?: string;
-  bio?: string;
-  phone_number?: string;
-  location?: string;
-  gender?: string;
-  base_price: number;
-  hourly_rate?: number;
-  social_instagram?: string;
-  social_twitter?: string;
-  is_verified: boolean;
-  is_available: boolean;
-}
+import { 
+  PublicCelebrityProfile, 
+  PrivateCelebrityProfile, 
+  isPrivateProfile 
+} from '@/lib/celebrity-utils';
 
 interface CelebrityCardProps {
-  celebrity: CelebrityProfile;
+  celebrity: PublicCelebrityProfile | PrivateCelebrityProfile;
   onViewProfile: (id: string) => void;
 }
 
@@ -86,7 +75,8 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
           <h3 className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             {celebrity.stage_name}
           </h3>
-          {celebrity.real_name && (
+          {/* Only show real name if user has access to private data */}
+          {isPrivateProfile(celebrity) && celebrity.real_name && (
             <p className="text-sm text-muted-foreground">({celebrity.real_name})</p>
           )}
           <div className="flex items-center justify-center space-x-2">
@@ -142,7 +132,8 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
               <Twitter className="h-4 w-4 text-blue-500" />
             </Button>
           )}
-          {celebrity.phone_number && (
+          {/* Only show phone icon if user has access to private data */}
+          {isPrivateProfile(celebrity) && celebrity.phone_number && (
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
               <Phone className="h-4 w-4 text-green-500" />
             </Button>
