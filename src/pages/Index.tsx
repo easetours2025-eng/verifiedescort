@@ -37,13 +37,36 @@ const Index = () => {
   const [minAge, setMinAge] = useState<number>(18);
   const [maxAge, setMaxAge] = useState<number>(65);
   const [genderFilter, setGenderFilter] = useState<string>('all');
+  const [userPaymentStatus, setUserPaymentStatus] = useState<any>(null);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     fetchCelebrities();
-  }, []);
+    if (user) {
+      checkUserPaymentStatus();
+    }
+  }, [user]);
+
+  const checkUserPaymentStatus = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('payment_verification')
+        .select('*')
+        .eq('phone_number', user.email) // Assuming email is used as phone number for now
+        .eq('is_verified', true)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      if (error) throw error;
+      setUserPaymentStatus(data?.[0] || null);
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+    }
+  };
 
   const fetchCelebrities = async () => {
     try {
@@ -125,6 +148,11 @@ const Index = () => {
             <div className="flex items-center space-x-4">
               {user ? (
                 <div className="flex items-center space-x-3">
+                  {userPaymentStatus && (
+                    <Badge variant="default" className="bg-green-500 text-white">
+                      Verified: {userPaymentStatus.phone_number}
+                    </Badge>
+                  )}
                   <Button 
                     variant="outline" 
                     onClick={() => navigate('/dashboard')}

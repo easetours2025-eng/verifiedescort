@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import CelebrityDashboard from "./pages/CelebrityDashboard";
 import CelebrityProfile from "./pages/CelebrityProfile";
+import AdminAuth from "./pages/AdminAuth";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/dashboard" element={<CelebrityDashboard />} />
             <Route path="/celebrity/:id" element={<CelebrityProfile />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin-auth" element={<AdminAuth />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

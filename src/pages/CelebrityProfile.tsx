@@ -498,12 +498,21 @@ const CelebrityProfile = () => {
                         className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden"
                         onClick={() => setSelectedMedia(item)}
                       >
-                        <div className="aspect-square bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center relative">
+                        <div className="aspect-square bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center relative overflow-hidden">
                           {item.file_type === 'video' ? (
                             <Video className="h-12 w-12 text-primary" />
                           ) : (
-                            <ImageIcon className="h-12 w-12 text-primary" />
+                            <img 
+                              src={`https://kpjqcrhoablsllkgonbl.supabase.co/storage/v1/object/public/celebrity-photos/${item.file_path}`}
+                              alt={item.title || 'Celebrity media'}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                              }}
+                            />
                           )}
+                          <ImageIcon className="h-12 w-12 text-primary hidden" />
                           
                           {item.is_premium && (
                             <Badge className="absolute top-2 right-2">

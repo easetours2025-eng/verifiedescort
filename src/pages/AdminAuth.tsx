@@ -37,8 +37,8 @@ const AdminAuth = () => {
 
     setLoading(true);
     try {
-      // For development - simple check
-      if (email === 'admin@admin.com' && password === 'admin123') {
+      // Use original admin credentials
+      if (email === 'admin' && password === 'admin123') {
         // Store admin session in localStorage
         localStorage.setItem('admin_session', JSON.stringify({
           email: email,
@@ -52,7 +52,7 @@ const AdminAuth = () => {
         });
         navigate('/admin');
       } else {
-        throw new Error('Invalid credentials. Use admin@admin.com / admin123 for development.');
+        throw new Error('Invalid credentials. Use admin / admin123 for development.');
       }
     } catch (error: any) {
       toast({
@@ -120,7 +120,7 @@ const AdminAuth = () => {
             Admin Portal
           </h1>
           <p className="text-muted-foreground">
-            Development Mode - Use admin@admin.com / admin123
+            Development Mode - Use admin / admin123
           </p>
         </div>
 
