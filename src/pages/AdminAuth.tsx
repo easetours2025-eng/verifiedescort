@@ -19,10 +19,38 @@ const AdminAuth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // For development - skip machine access and admin checks
-    setHasAdmins(true);
-    setCheckingAdmins(false);
+    checkAdminExists();
   }, []);
+
+  const checkAdminExists = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('id')
+        .limit(1);
+      
+      if (error) {
+        console.error('Error checking admin users:', error);
+        setHasAdmins(false);
+      } else {
+        setHasAdmins(data && data.length > 0);
+      }
+    } catch (error) {
+      console.error('Error checking admin users:', error);
+      setHasAdmins(false);
+    } finally {
+      setCheckingAdmins(false);
+    }
+  };
+
+  const hashPassword = async (password: string): Promise<string> => {
+    // Simple SHA-256 hash - should match the hash used in the database
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password + 'salt'); // Using 'salt' as the salt
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,23 +65,34 @@ const AdminAuth = () => {
 
     setLoading(true);
     try {
-      // Use original admin credentials
-      if (email === 'admin' && password === 'admin123') {
-        // Store admin session in localStorage
-        localStorage.setItem('admin_session', JSON.stringify({
-          email: email,
-          id: 'dev-admin-id',
-          loginTime: new Date().toISOString()
-        }));
+      // Hash the password to compare with database
+      const hashedPassword = await hashPassword(password);
+      
+      // Check against database
+      const { data: adminUser, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('email', email)
+        .eq('password_hash', hashedPassword)
+        .single();
 
-        toast({
-          title: "Welcome back!",
-          description: "You have successfully signed in as admin.",
-        });
-        navigate('/admin');
-      } else {
-        throw new Error('Invalid credentials. Use admin / admin123 for development.');
+      if (error || !adminUser) {
+        throw new Error('Invalid email or password');
       }
+
+      // Store admin session in localStorage
+      localStorage.setItem('admin_session', JSON.stringify({
+        email: adminUser.email,
+        id: adminUser.id,
+        is_super_admin: adminUser.is_super_admin,
+        loginTime: new Date().toISOString()
+      }));
+
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in as admin.",
+      });
+      navigate('/admin');
     } catch (error: any) {
       toast({
         title: "Sign In Error",
@@ -76,12 +115,40 @@ const AdminAuth = () => {
       return;
     }
 
+    if (password.length < 8) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 8 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      // For development - allow any signup
+      // Hash the password
+      const hashedPassword = await hashPassword(password);
+      
+      // Create admin user in database
+      const { data: newAdmin, error } = await supabase
+        .from('admin_users')
+        .insert({
+          email: email,
+          password_hash: hashedPassword,
+          is_super_admin: false
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Store admin session in localStorage
       localStorage.setItem('admin_session', JSON.stringify({
-        email: email,
-        id: 'dev-admin-id',
+        email: newAdmin.email,
+        id: newAdmin.id,
+        is_super_admin: newAdmin.is_super_admin,
         loginTime: new Date().toISOString()
       }));
 
@@ -120,7 +187,7 @@ const AdminAuth = () => {
             Admin Portal
           </h1>
           <p className="text-muted-foreground">
-            Development Mode - Use admin / admin123
+            Enter your admin credentials to access the dashboard
           </p>
         </div>
 
