@@ -111,12 +111,12 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Base Price:</span>
-            <span className="font-bold text-primary">${celebrity.base_price}</span>
+            <span className="font-bold text-primary">KSh {celebrity.base_price}</span>
           </div>
           {celebrity.hourly_rate && (
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Per Hour:</span>
-              <span className="font-bold text-accent">${celebrity.hourly_rate}</span>
+              <span className="font-bold text-accent">KSh {celebrity.hourly_rate}</span>
             </div>
           )}
         </div>

@@ -16,7 +16,6 @@ interface MediaUploadProps {
 const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
-    title: '',
     description: '',
     price: 0,
     is_premium: false,
@@ -93,7 +92,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
         .from('celebrity_media')
         .insert({
           celebrity_id: celebrityId,
-          title: formData.title || selectedFile.name,
+          title: selectedFile.name,
           description: formData.description,
           file_path: publicUrl,
           file_type: isVideo ? 'video' : 'image',
@@ -106,7 +105,6 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
 
       // Reset form
       setFormData({
-        title: '',
         description: '',
         price: 0,
         is_premium: false,
@@ -188,33 +186,22 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
           </div>
 
           {/* Media Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Title</label>
-              <Input
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Give your media a title..."
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center space-x-2">
-                <DollarSign className="h-4 w-4" />
-                <span>Price ($)</span>
-              </label>
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                placeholder="0.00"
-              />
-            </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium flex items-center space-x-2">
+              <DollarSign className="h-4 w-4" />
+              <span>Price (KSh)</span>
+            </label>
+            <Input
+              type="number"
+              min="0"
+              value={formData.price}
+              onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+              placeholder="0"
+            />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Description</label>
+            <label className="text-sm font-medium">Description (Optional)</label>
             <Textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}

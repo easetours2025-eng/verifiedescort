@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import MediaUpload from '@/components/MediaUpload';
 import BulkMediaUpload from '@/components/BulkMediaUpload';
 import CelebrityServices from '@/components/CelebrityServices';
+import ProfilePictureUpload from '@/components/ProfilePictureUpload';
 import PaymentVerificationModal from '@/components/PaymentVerificationModal';
 import SubscriptionTab from '@/components/SubscriptionTab';
 import { 
@@ -521,7 +522,12 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Profile Picture</label>
-              <p className="text-xs text-muted-foreground">Profile picture upload coming soon</p>
+              <ProfilePictureUpload
+                profileId={profile.id}
+                currentImagePath={profile.profile_picture_path}
+                onUpload={(imagePath) => onUpdate({ profile_picture_path: imagePath })}
+                initials={profile.stage_name.charAt(0).toUpperCase()}
+              />
             </div>
           </div>
 
@@ -582,6 +588,66 @@ const MediaTab = ({ profile, media, onUpload, onDelete }: {
 }) => {
   return (
     <div className="space-y-6">
+      {/* Media Slideshow - Show when payment is verified */}
+      {media.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Media Gallery</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {media.map((item) => (
+                <Card key={item.id} className="overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="aspect-video bg-black relative">
+                      {item.file_type === 'image' ? (
+                        <img
+                          src={item.file_path}
+                          alt={item.title || 'Media'}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <video
+                          src={item.file_path}
+                          className="w-full h-full object-cover"
+                          controls
+                          muted
+                        />
+                      )}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                        <div className="flex items-end justify-between">
+                          <div className="text-white">
+                            <p className="text-sm font-medium">
+                              {item.file_type.toUpperCase()}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={item.is_public ? "default" : "secondary"}>
+                              {item.is_public ? "Public" : "Private"}
+                            </Badge>
+                            <Badge variant="secondary" className="bg-green-500/20 text-green-200">
+                              KSh {item.price}
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onDelete(item.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       {/* Bulk Upload */}
       <BulkMediaUpload 
         celebrityId={profile.id} 
@@ -594,58 +660,15 @@ const MediaTab = ({ profile, media, onUpload, onDelete }: {
         onUpload={onUpload}
       />
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Media ({media.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {media.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
+      {media.length === 0 && (
+        <Card>
+          <CardContent className="text-center py-8">
+            <p className="text-muted-foreground">
               No media uploaded yet. Upload your first photo or video above!
             </p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {media.map((item) => (
-                <Card key={item.id} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Badge variant={item.is_public ? "default" : "secondary"}>
-                          {item.is_public ? "Public" : "Private"}
-                        </Badge>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onDelete(item.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-medium">{item.title || 'Untitled'}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {item.description || 'No description'}
-                        </p>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          {item.file_type.toUpperCase()}
-                        </span>
-                        <span className="font-medium text-primary">
-                          ${item.price}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
@@ -679,22 +702,20 @@ const SettingsTab = ({ profile, onUpdate, saving }: {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Base Price ($)</label>
+              <label className="text-sm font-medium">Base Price (KSh)</label>
               <Input
                 type="number"
                 min="0"
-                step="0.01"
                 value={formData.base_price}
                 onChange={(e) => setFormData({ ...formData, base_price: parseFloat(e.target.value) })}
                 required
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Hourly Rate ($)</label>
+              <label className="text-sm font-medium">Hourly Rate (KSh)</label>
               <Input
                 type="number"
                 min="0"
-                step="0.01"
                 value={formData.hourly_rate}
                 onChange={(e) => setFormData({ ...formData, hourly_rate: parseFloat(e.target.value) })}
               />

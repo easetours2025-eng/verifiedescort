@@ -548,7 +548,7 @@ const CelebrityProfile = () => {
                                 {item.file_type}
                               </span>
                               <span className="text-sm font-bold text-primary">
-                                ${item.price}
+                                KSh {item.price}
                               </span>
                             </div>
                           </div>
