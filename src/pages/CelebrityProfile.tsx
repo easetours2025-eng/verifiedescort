@@ -53,8 +53,9 @@ const CelebrityProfile = () => {
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
-  const [showMessaging, setShowMessaging] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [mediaFilter, setMediaFilter] = useState<'all' | 'images' | 'videos'>('all');
+  const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -64,8 +65,22 @@ const CelebrityProfile = () => {
       fetchMedia();
       fetchServices();
       fetchProfileImage();
+      generateViewCounts();
     }
   }, [id]);
+
+  const generateViewCounts = () => {
+    // Generate random view counts for demo purposes
+    const counts: Record<string, number> = {};
+    media.forEach(item => {
+      counts[item.id] = Math.floor(Math.random() * 1000) + 50;
+    });
+    setViewCounts(counts);
+  };
+
+  useEffect(() => {
+    generateViewCounts();
+  }, [media]);
 
   const fetchProfile = async () => {
     try {
@@ -215,6 +230,30 @@ const CelebrityProfile = () => {
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
+
+  const getMediaUrl = (filePath: string, type: 'image' | 'video') => {
+    const bucket = type === 'video' ? 'celebrity-videos' : 'celebrity-photos';
+    const { data } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(filePath);
+    return data.publicUrl;
+  };
+
+  const handleMediaClick = (item: MediaItem) => {
+    // Increment view count when media is clicked
+    setViewCounts(prev => ({
+      ...prev,
+      [item.id]: (prev[item.id] || 0) + 1
+    }));
+    setSelectedMedia(item);
+  };
+
+  const filteredMedia = media.filter(item => {
+    if (mediaFilter === 'all') return true;
+    if (mediaFilter === 'images') return item.file_type === 'image';
+    if (mediaFilter === 'videos') return item.file_type === 'video';
+    return true;
+  });
 
   if (loading) {
     return (
@@ -465,15 +504,6 @@ const CelebrityProfile = () => {
                     </div>
                   </div>
                 )}
-
-                <Button 
-                  className="w-full bg-gradient-to-r from-primary to-accent" 
-                  size="lg"
-                  onClick={() => setShowMessaging(true)}
-                >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Message Celebrity
-                </Button>
               </CardContent>
             </Card>
           </div>
@@ -483,15 +513,36 @@ const CelebrityProfile = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>Media Gallery ({media.length})</span>
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <ImageIcon className="h-4 w-4" />
-                    <Video className="h-4 w-4" />
+                  <span>Media Gallery ({filteredMedia.length})</span>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant={mediaFilter === 'all' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setMediaFilter('all')}
+                    >
+                      All
+                    </Button>
+                    <Button
+                      variant={mediaFilter === 'images' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setMediaFilter('images')}
+                    >
+                      <ImageIcon className="h-4 w-4 mr-1" />
+                      Images ({media.filter(m => m.file_type === 'image').length})
+                    </Button>
+                    <Button
+                      variant={mediaFilter === 'videos' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setMediaFilter('videos')}
+                    >
+                      <Video className="h-4 w-4 mr-1" />
+                      Videos ({media.filter(m => m.file_type === 'video').length})
+                    </Button>
                   </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {media.length === 0 ? (
+                {filteredMedia.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="flex justify-center space-x-2 mb-4">
                       <ImageIcon className="h-12 w-12 text-muted-foreground" />
@@ -499,60 +550,54 @@ const CelebrityProfile = () => {
                     </div>
                     <h3 className="text-lg font-semibold mb-2">No Media Available</h3>
                     <p className="text-muted-foreground">
-                      This celebrity hasn't uploaded any public media yet.
+                      {mediaFilter === 'all' 
+                        ? "This celebrity hasn't uploaded any public media yet."
+                        : `This celebrity hasn't uploaded any ${mediaFilter} yet.`
+                      }
                     </p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {media.map((item) => (
+                    {filteredMedia.map((item) => (
                       <Card 
                         key={item.id} 
-                        className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden"
-                        onClick={() => setSelectedMedia(item)}
+                        className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden relative"
+                        onClick={() => handleMediaClick(item)}
                       >
                         <div className="aspect-square bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center relative overflow-hidden">
                           {item.file_type === 'video' ? (
-                            <Video className="h-12 w-12 text-primary" />
+                            <>
+                              <video
+                                src={getMediaUrl(item.file_path, 'video')}
+                                className="w-full h-full object-cover"
+                                muted
+                              />
+                              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                <div className="bg-white/90 rounded-full p-3">
+                                  <Video className="h-6 w-6 text-primary" />
+                                </div>
+                              </div>
+                            </>
                           ) : (
-                            <img 
-                              src={`https://kpjqcrhoablsllkgonbl.supabase.co/storage/v1/object/public/celebrity-photos/${item.file_path}`}
-                              alt={item.title || 'Celebrity media'}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                              }}
-                            />
-                          )}
-                          <ImageIcon className="h-12 w-12 text-primary hidden" />
-                          
-                          {item.is_premium && (
-                            <Badge className="absolute top-2 right-2">
-                              Premium
-                            </Badge>
+                            <>
+                              <img 
+                                src={getMediaUrl(item.file_path, 'image')}
+                                alt="Celebrity media"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                }}
+                              />
+                              <ImageIcon className="h-12 w-12 text-primary hidden" />
+                            </>
                           )}
                         </div>
                         
-                        <CardContent className="p-3">
-                          <div className="space-y-2">
-                            <h4 className="font-medium text-sm line-clamp-1">
-                              {item.title || 'Untitled'}
-                            </h4>
-                            {item.description && (
-                              <p className="text-xs text-muted-foreground line-clamp-2">
-                                {item.description}
-                              </p>
-                            )}
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-muted-foreground uppercase">
-                                {item.file_type}
-                              </span>
-                              <span className="text-sm font-bold text-primary">
-                                KSh {item.price}
-                              </span>
-                            </div>
-                          </div>
-                        </CardContent>
+                        {/* View Counter */}
+                        <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full text-xs">
+                          👁 {viewCounts[item.id] || 0}
+                        </div>
                       </Card>
                     ))}
                   </div>
@@ -563,12 +608,38 @@ const CelebrityProfile = () => {
         </div>
       </div>
 
-      <MessagingModal
-        open={showMessaging}
-        onOpenChange={setShowMessaging}
-        celebrityId={id || ''}
-        celebrityName={profile?.stage_name || ''}
-      />
+      {/* Media Modal */}
+      {selectedMedia && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="relative max-w-4xl w-full">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute -top-12 right-0 text-white hover:text-gray-300"
+              onClick={() => setSelectedMedia(null)}
+            >
+              ✕ Close
+            </Button>
+            {selectedMedia.file_type === 'video' ? (
+              <video
+                src={getMediaUrl(selectedMedia.file_path, 'video')}
+                className="w-full h-auto max-h-[80vh] rounded-lg"
+                controls
+                autoPlay
+              />
+            ) : (
+              <img
+                src={getMediaUrl(selectedMedia.file_path, 'image')}
+                alt="Celebrity media"
+                className="w-full h-auto max-h-[80vh] rounded-lg object-contain"
+              />
+            )}
+            <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-2 rounded-lg">
+              Views: {viewCounts[selectedMedia.id] || 0}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
