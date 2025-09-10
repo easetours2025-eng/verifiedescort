@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, MapPin, Phone, Instagram, Twitter, Video, Image as ImageIcon, Verified } from 'lucide-react';
+import { Star, MapPin, Phone, Instagram, Twitter, Video, Image as ImageIcon, Verified, MessageCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   PublicCelebrityProfile, 
@@ -18,9 +18,15 @@ interface CelebrityCardProps {
 
 const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile }) => {
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [profileVideo, setProfileVideo] = useState<string | null>(null);
+  const [hasVideos, setHasVideos] = useState(false);
+  const [isVIP, setIsVIP] = useState(false);
 
   useEffect(() => {
     fetchProfileImage();
+    fetchProfileVideo();
+    checkForVideos();
+    checkVIPStatus();
   }, [celebrity.id]);
 
   const fetchProfileImage = async () => {
@@ -46,6 +52,60 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
     }
   };
 
+  const fetchProfileVideo = async () => {
+    try {
+      const { data } = await supabase
+        .from('celebrity_media')
+        .select('file_path')
+        .eq('celebrity_id', celebrity.id)
+        .eq('is_public', true)
+        .eq('file_type', 'video')
+        .order('upload_date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (data?.file_path) {
+        const { data: urlData } = supabase.storage
+          .from('celebrity-videos')
+          .getPublicUrl(data.file_path);
+        setProfileVideo(urlData.publicUrl);
+      }
+    } catch (error) {
+      console.error('Error fetching profile video:', error);
+    }
+  };
+
+  const checkForVideos = async () => {
+    try {
+      const { count } = await supabase
+        .from('celebrity_media')
+        .select('*', { count: 'exact', head: true })
+        .eq('celebrity_id', celebrity.id)
+        .eq('is_public', true)
+        .eq('file_type', 'video');
+
+      setHasVideos((count || 0) > 0);
+    } catch (error) {
+      console.error('Error checking for videos:', error);
+    }
+  };
+
+  const checkVIPStatus = async () => {
+    try {
+      const { data } = await supabase
+        .from('payment_verification')
+        .select('*')
+        .eq('celebrity_id', celebrity.id)
+        .eq('is_verified', true)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      setIsVIP(data && data.length > 0);
+    } catch (error) {
+      console.error('Error checking VIP status:', error);
+    }
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -54,17 +114,44 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
     <Card className="group hover:shadow-celebrity transition-all duration-300 hover:-translate-y-1 border-primary/20 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       
-      {/* Profile Image - 3/4 of card */}
+      {/* Profile Image/Video - 3/4 of card */}
       <div className="relative h-64 cursor-pointer" onClick={() => onViewProfile(celebrity.id)}>
-        <img 
-          src={profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${celebrity.stage_name}`}
-          alt={celebrity.stage_name}
-          className="w-full h-full object-cover"
-        />
+        {profileVideo && celebrity.is_verified ? (
+          <video 
+            src={profileVideo}
+            className="w-full h-full object-cover"
+            muted
+            autoPlay
+            loop
+            playsInline
+          />
+        ) : (
+          <img 
+            src={profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${celebrity.stage_name}`}
+            alt={celebrity.stage_name}
+            className="w-full h-full object-cover"
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        
+        {/* VIP Badge */}
+        {isVIP && (
+          <div className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-2 py-1 rounded-full text-xs font-bold">
+            VIP
+          </div>
+        )}
+        
+        {/* Verified Badge */}
         {celebrity.is_verified && (
           <div className="absolute top-2 right-2 bg-accent rounded-full p-1">
             <Verified className="h-4 w-4 text-accent-foreground" />
+          </div>
+        )}
+        
+        {/* Video Indicator */}
+        {hasVideos && (
+          <div className="absolute bottom-2 right-2 bg-primary rounded-full p-2">
+            <Video className="h-4 w-4 text-primary-foreground" />
           </div>
         )}
       </div>
@@ -121,35 +208,46 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
           )}
         </div>
 
-        <div className="flex justify-center space-x-2">
-          {celebrity.social_instagram && (
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <Instagram className="h-4 w-4 text-pink-500" />
-            </Button>
-          )}
-          {celebrity.social_twitter && (
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <Twitter className="h-4 w-4 text-blue-500" />
-            </Button>
-          )}
-          {/* Only show phone icon if user has access to private data */}
-          {isPrivateProfile(celebrity) && celebrity.phone_number && (
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <Phone className="h-4 w-4 text-green-500" />
-            </Button>
-          )}
-        </div>
+        {/* VIP Contact Info */}
+        {isVIP && isPrivateProfile(celebrity) && celebrity.phone_number && (
+          <div className="space-y-2 p-3 bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+            <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">VIP Contact</p>
+            <div className="flex items-center justify-center space-x-3">
+              <a 
+                href={`tel:${celebrity.phone_number}`}
+                className="flex items-center space-x-1 text-green-600 hover:text-green-700"
+              >
+                <Phone className="h-4 w-4" />
+                <span className="text-sm">{celebrity.phone_number}</span>
+              </a>
+              <a 
+                href={`https://wa.me/${celebrity.phone_number.replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-1 text-green-500 hover:text-green-600"
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span className="text-sm">WhatsApp</span>
+              </a>
+            </div>
+          </div>
+        )}
 
-        <div className="flex space-x-2">
-          <Button
-            onClick={() => onViewProfile(celebrity.id)}
-            className="flex-1 bg-gradient-to-r from-primary to-primary-glow hover:shadow-celebrity"
-            size="sm"
-          >
-            <Star className="h-4 w-4 mr-2" />
-            View Profile
-          </Button>
-        </div>
+        {/* Social Media - only for non-VIP */}
+        {!isVIP && (
+          <div className="flex justify-center space-x-2">
+            {celebrity.social_instagram && (
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Instagram className="h-4 w-4 text-pink-500" />
+              </Button>
+            )}
+            {celebrity.social_twitter && (
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Twitter className="h-4 w-4 text-blue-500" />
+              </Button>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

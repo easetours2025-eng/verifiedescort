@@ -10,6 +10,7 @@ import CelebrityDashboard from "./pages/CelebrityDashboard";
 import CelebrityProfile from "./pages/CelebrityProfile";
 import AdminAuth from "./pages/AdminAuth";
 import AdminDashboard from "./pages/AdminDashboard";
+import Videos from "./pages/Videos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<CelebrityDashboard />} />
             <Route path="/celebrity/:id" element={<CelebrityProfile />} />
+            <Route path="/videos" element={<Videos />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin-auth" element={<AdminAuth />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

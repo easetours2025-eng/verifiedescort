@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import CelebrityCard from '@/components/CelebrityCard';
-import { Crown, Sparkles, Search, Filter, Star, Users, Trophy, Heart } from 'lucide-react';
+import { Crown, Sparkles, Search, Filter, Star, Users, Trophy, Heart, Video } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { 
   filterCelebrityDataArray, 
@@ -138,6 +138,14 @@ const Index = () => {
             </div>
             
             <div className="flex items-center space-x-4">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/videos')}
+                className="border-primary/20 hover:bg-primary/10"
+              >
+                <Video className="h-4 w-4 mr-2" />
+                Videos
+              </Button>
               {user ? (
                 <div className="flex items-center space-x-3">
                   {userPaymentStatus && (
