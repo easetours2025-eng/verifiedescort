@@ -54,22 +54,22 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
     <Card className="group hover:shadow-celebrity transition-all duration-300 hover:-translate-y-1 border-primary/20 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       
-      <CardHeader className="text-center space-y-4 relative z-10">
-        <div className="flex justify-center">
-          <div className="relative">
-            <Avatar className="h-20 w-20 border-4 border-primary/20 shadow-lg">
-              <AvatarImage src={profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${celebrity.stage_name}`} />
-              <AvatarFallback className="bg-gradient-to-br from-primary to-primary-glow text-primary-foreground text-lg font-bold">
-                {getInitials(celebrity.stage_name)}
-              </AvatarFallback>
-            </Avatar>
-            {celebrity.is_verified && (
-              <div className="absolute -bottom-1 -right-1 bg-accent rounded-full p-1">
-                <Verified className="h-4 w-4 text-accent-foreground" />
-              </div>
-            )}
+      {/* Profile Image - 3/4 of card */}
+      <div className="relative h-64 cursor-pointer" onClick={() => onViewProfile(celebrity.id)}>
+        <img 
+          src={profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${celebrity.stage_name}`}
+          alt={celebrity.stage_name}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        {celebrity.is_verified && (
+          <div className="absolute top-2 right-2 bg-accent rounded-full p-1">
+            <Verified className="h-4 w-4 text-accent-foreground" />
           </div>
-        </div>
+        )}
+      </div>
+      
+      <CardHeader className="text-center space-y-2 relative z-10 py-4">
         
         <div className="space-y-2">
           <h3 className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
