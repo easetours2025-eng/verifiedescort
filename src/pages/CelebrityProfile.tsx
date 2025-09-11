@@ -64,10 +64,15 @@ const CelebrityProfile = () => {
       fetchProfile();
       fetchMedia();
       fetchServices();
-      fetchProfileImage();
       generateViewCounts();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (profile) {
+      fetchProfileImage();
+    }
+  }, [profile]);
 
   const generateViewCounts = () => {
     // Generate random view counts for demo purposes
@@ -167,9 +172,19 @@ const CelebrityProfile = () => {
   };
 
   const fetchProfileImage = async () => {
-    if (!id) return;
+    if (!id || !profile) return;
     
     try {
+      // First try to get the profile picture from celebrity_profiles
+      if (profile.profile_picture_path) {
+        const { data: urlData } = supabase.storage
+          .from('celebrity-photos')
+          .getPublicUrl(profile.profile_picture_path);
+        setProfileImage(urlData.publicUrl);
+        return;
+      }
+
+      // If no profile picture, try to get latest public image from media
       const { data } = await supabase
         .from('celebrity_media')
         .select('file_path')

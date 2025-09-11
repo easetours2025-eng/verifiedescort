@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, MapPin, Phone, Instagram, Twitter, Video, Image as ImageIcon, Verified, MessageCircle } from 'lucide-react';
+import { Star, MapPin, Phone, Instagram, Twitter, Video, Image as ImageIcon, Verified, MessageCircle, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   PublicCelebrityProfile, 
@@ -21,16 +21,28 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
   const [profileVideo, setProfileVideo] = useState<string | null>(null);
   const [hasVideos, setHasVideos] = useState(false);
   const [isVIP, setIsVIP] = useState(false);
+  const [services, setServices] = useState<any[]>([]);
 
   useEffect(() => {
     fetchProfileImage();
     fetchProfileVideo();
     checkForVideos();
     checkVIPStatus();
+    fetchServices();
   }, [celebrity.id]);
 
   const fetchProfileImage = async () => {
     try {
+      // First try to get the profile picture from celebrity_profiles
+      if (celebrity.profile_picture_path) {
+        const { data: urlData } = supabase.storage
+          .from('celebrity-photos')
+          .getPublicUrl(celebrity.profile_picture_path);
+        setProfileImage(urlData.publicUrl);
+        return;
+      }
+
+      // If no profile picture, try to get latest public image from media
       const { data } = await supabase
         .from('celebrity_media')
         .select('file_path')
@@ -103,6 +115,22 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
       setIsVIP(data && data.length > 0);
     } catch (error) {
       console.error('Error checking VIP status:', error);
+    }
+  };
+
+  const fetchServices = async () => {
+    try {
+      const { data } = await supabase
+        .from('celebrity_services')
+        .select('service_name, price')
+        .eq('celebrity_id', celebrity.id)
+        .eq('is_active', true)
+        .order('price', { ascending: true })
+        .limit(3);
+
+      setServices(data || []);
+    } catch (error) {
+      console.error('Error fetching services:', error);
     }
   };
 
@@ -233,6 +261,26 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
           </div>
         )}
 
+        {/* Services List */}
+        {services.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-muted-foreground">Services Offered:</h4>
+            <ul className="space-y-1">
+              {services.map((service, index) => (
+                <li key={index} className="flex items-center space-x-2 text-sm">
+                  <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
+                  <span className="flex-1">{service.service_name}</span>
+                  {service.price > 0 && (
+                    <span className="text-xs text-primary font-medium">
+                      KSh {service.price}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
         {/* Social Media - only for non-VIP */}
         {!isVIP && (
           <div className="flex justify-center space-x-2">
