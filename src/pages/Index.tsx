@@ -133,7 +133,7 @@ const Index = () => {
                 <Sparkles className="h-4 w-4 text-accent absolute -top-1 -right-1" />
               </div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Celebrity Connect
+                Kenya Connect
               </h1>
             </div>
             

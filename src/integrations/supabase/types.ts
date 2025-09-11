@@ -381,6 +381,64 @@ export type Database = {
           },
         ]
       }
+      video_likes: {
+        Row: {
+          created_at: string
+          id: string
+          user_ip: string
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_ip: string
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_ip?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_likes_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_media"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_views: {
+        Row: {
+          created_at: string
+          id: string
+          user_ip: string | null
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_ip?: string | null
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_ip?: string | null
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_views_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_media"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

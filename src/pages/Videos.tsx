@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Video, Play, User, Phone, MessageCircle, ArrowLeft } from 'lucide-react';
+import { Video, Play, User, Phone, MessageCircle, ArrowLeft, Heart, Share2, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface VideoData {
@@ -22,6 +22,9 @@ interface VideoData {
     is_verified: boolean;
   };
   isVIP: boolean;
+  views: number;
+  likes: number;
+  isLiked: boolean;
 }
 
 const Videos = () => {
@@ -60,15 +63,33 @@ const Videos = () => {
 
       if (error) throw error;
 
-      // Check VIP status for each celebrity
-      const videosWithVIPStatus = await Promise.all(
+      const clientIP = await getClientIP();
+
+      // Check VIP status, views, and likes for each video
+      const videosWithData = await Promise.all(
         (mediaData || []).map(async (video: any) => {
-          const { data: vipData } = await supabase
-            .from('payment_verification')
-            .select('*')
-            .eq('celebrity_id', video.celebrity_id)
-            .eq('is_verified', true)
-            .limit(1);
+          const [vipData, viewsData, likesData, userLikeData] = await Promise.all([
+            supabase
+              .from('payment_verification')
+              .select('*')
+              .eq('celebrity_id', video.celebrity_id)
+              .eq('is_verified', true)
+              .limit(1),
+            supabase
+              .from('video_views')
+              .select('id')
+              .eq('video_id', video.id),
+            supabase
+              .from('video_likes')
+              .select('id')
+              .eq('video_id', video.id),
+            supabase
+              .from('video_likes')
+              .select('id')
+              .eq('video_id', video.id)
+              .eq('user_ip', clientIP)
+              .limit(1)
+          ]);
 
           return {
             id: video.id,
@@ -82,12 +103,15 @@ const Videos = () => {
               phone_number: video.celebrity_profiles.phone_number,
               is_verified: video.celebrity_profiles.is_verified,
             },
-            isVIP: vipData && vipData.length > 0,
+            isVIP: vipData.data && vipData.data.length > 0,
+            views: viewsData.data?.length || 0,
+            likes: likesData.data?.length || 0,
+            isLiked: userLikeData.data && userLikeData.data.length > 0,
           };
         })
       );
 
-      setVideos(videosWithVIPStatus);
+      setVideos(videosWithData);
     } catch (error) {
       console.error('Error fetching videos:', error);
       toast({
@@ -98,6 +122,54 @@ const Videos = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getClientIP = async () => {
+    try {
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      return data.ip;
+    } catch {
+      return 'unknown';
+    }
+  };
+
+  const handleVideoView = async (videoId: string) => {
+    const clientIP = await getClientIP();
+    await supabase
+      .from('video_views')
+      .insert({ video_id: videoId, user_ip: clientIP });
+  };
+
+  const handleLike = async (videoId: string) => {
+    const clientIP = await getClientIP();
+    const video = videos.find(v => v.id === videoId);
+    
+    if (video?.isLiked) {
+      // Unlike
+      await supabase
+        .from('video_likes')
+        .delete()
+        .eq('video_id', videoId)
+        .eq('user_ip', clientIP);
+    } else {
+      // Like
+      await supabase
+        .from('video_likes')
+        .insert({ video_id: videoId, user_ip: clientIP });
+    }
+    
+    // Refresh videos to update counts
+    fetchVideos();
+  };
+
+  const handleShare = (videoId: string) => {
+    const shareUrl = `${window.location.origin}/videos?video=${videoId}`;
+    navigator.clipboard.writeText(shareUrl);
+    toast({
+      title: "Link copied!",
+      description: "Video link copied to clipboard",
+    });
   };
 
   const getVideoUrl = (filePath: string) => {
@@ -126,7 +198,7 @@ const Videos = () => {
               </Button>
               <Video className="h-8 w-8 text-primary" />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Celebrity Videos
+                Kenya Connect Videos
               </h1>
             </div>
           </div>
@@ -185,7 +257,10 @@ const Videos = () => {
               {filteredVideos.map((video) => (
                 <Card key={video.id} className="group hover:shadow-celebrity transition-all duration-300 hover:-translate-y-1 border-primary/20 overflow-hidden">
                   {/* Video Thumbnail */}
-                  <div className="relative h-48 cursor-pointer" onClick={() => setSelectedVideo(video)}>
+                  <div className="relative h-48 cursor-pointer" onClick={() => {
+                    setSelectedVideo(video);
+                    handleVideoView(video.id);
+                  }}>
                     <video
                       src={getVideoUrl(video.file_path)}
                       className="w-full h-full object-cover"
@@ -193,6 +268,14 @@ const Videos = () => {
                     />
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-all">
                       <Play className="h-12 w-12 text-white" />
+                    </div>
+                    
+                    {/* Stats Overlay */}
+                    <div className="absolute top-2 right-2 flex items-center space-x-2">
+                      <div className="bg-black/60 text-white px-2 py-1 rounded text-xs flex items-center space-x-1">
+                        <Eye className="h-3 w-3" />
+                        <span>{video.views}</span>
+                      </div>
                     </div>
                     
                     {/* VIP Badge */}
@@ -224,6 +307,28 @@ const Videos = () => {
                     <p className="text-xs text-muted-foreground">
                       {new Date(video.upload_date).toLocaleDateString()}
                     </p>
+
+                    {/* Video Actions */}
+                    <div className="flex items-center justify-between pt-2 border-t">
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => handleLike(video.id)}
+                          className={`flex items-center space-x-1 text-xs transition-colors ${
+                            video.isLiked ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'
+                          }`}
+                        >
+                          <Heart className={`h-3 w-3 ${video.isLiked ? 'fill-current' : ''}`} />
+                          <span>{video.likes}</span>
+                        </button>
+                        <button
+                          onClick={() => handleShare(video.id)}
+                          className="flex items-center space-x-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          <Share2 className="h-3 w-3" />
+                          <span>Share</span>
+                        </button>
+                      </div>
+                    </div>
 
                     {/* VIP Contact Info */}
                     {video.isVIP && video.celebrity.phone_number && (
