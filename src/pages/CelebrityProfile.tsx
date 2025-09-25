@@ -86,7 +86,7 @@ const CelebrityProfile = () => {
   useEffect(() => {
     if (id) {
       fetchProfile();
-      fetchMedia();
+      fetchCelebrityMedia();
       fetchServices();
       fetchOtherCelebrities();
     }
@@ -199,7 +199,7 @@ const CelebrityProfile = () => {
     }
   };
 
-  const fetchMedia = async () => {
+  const fetchCelebrityMedia = async () => {
     if (!id) return;
     
     try {
@@ -214,6 +214,8 @@ const CelebrityProfile = () => {
       setMedia(data || []);
     } catch (error) {
       console.error('Error fetching media:', error);
+    } finally {
+      setIsLoadingMedia(false);
     }
   };
 
