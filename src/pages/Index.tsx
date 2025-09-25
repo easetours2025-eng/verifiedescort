@@ -17,7 +17,7 @@ import {
 } from '@/lib/celebrity-utils';
 
 const Index = () => {
-  const [celebrities, setCelebrities] = useState<(PublicCelebrityProfile | PrivateCelebrityProfile)[]>([]);
+  const [celebrities, setCelebrities] = useState<PrivateCelebrityProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('');

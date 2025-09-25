@@ -84,37 +84,13 @@ export const canAccessSensitiveData = async (celebrityUserId: string): Promise<b
 
 /**
  * Filter celebrity profile data based on user permissions
+ * Now returns all data as public since authorization is removed
  */
 export const filterCelebrityData = async (
   profile: CelebrityProfile
-): Promise<PublicCelebrityProfile | PrivateCelebrityProfile> => {
-  const hasAccess = await canAccessSensitiveData(profile.user_id);
-  
-  if (hasAccess) {
-    // Return full data for authorized users
-    return profile as PrivateCelebrityProfile;
-  }
-  
-  // Return filtered data for public users
-  const publicData: PublicCelebrityProfile = {
-    id: profile.id,
-    stage_name: profile.stage_name,
-    bio: profile.bio,
-    location: profile.location ? sanitizeLocation(profile.location) : undefined,
-    gender: profile.gender,
-    age: profile.age,
-    base_price: profile.base_price,
-    hourly_rate: profile.hourly_rate,
-    social_instagram: profile.social_instagram,
-    social_twitter: profile.social_twitter,
-    social_tiktok: profile.social_tiktok,
-    is_verified: profile.is_verified,
-    is_available: profile.is_available,
-    created_at: profile.created_at,
-    profile_picture_path: profile.profile_picture_path,
-  };
-  
-  return publicData;
+): Promise<PrivateCelebrityProfile> => {
+  // Return all data for everyone
+  return profile as PrivateCelebrityProfile;
 };
 
 /**
@@ -137,10 +113,11 @@ export const isPrivateProfile = (
 
 /**
  * Filter array of celebrity profiles
+ * Now returns all data as public
  */
 export const filterCelebrityDataArray = async (
   profiles: CelebrityProfile[]
-): Promise<(PublicCelebrityProfile | PrivateCelebrityProfile)[]> => {
+): Promise<PrivateCelebrityProfile[]> => {
   const filteredProfiles = await Promise.all(
     profiles.map(profile => filterCelebrityData(profile))
   );

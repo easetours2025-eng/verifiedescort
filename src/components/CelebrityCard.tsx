@@ -12,7 +12,7 @@ import {
 } from '@/lib/celebrity-utils';
 
 interface CelebrityCardProps {
-  celebrity: PublicCelebrityProfile | PrivateCelebrityProfile;
+  celebrity: PrivateCelebrityProfile;
   onViewProfile: (id: string) => void;
 }
 
@@ -195,8 +195,8 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
           <h3 className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             {celebrity.stage_name}
           </h3>
-          {/* Only show real name if user has access to private data */}
-          {isPrivateProfile(celebrity) && celebrity.real_name && (
+          {/* Show real name for everyone */}
+          {celebrity.real_name && (
             <p className="text-sm text-muted-foreground">({celebrity.real_name})</p>
           )}
           <div className="flex items-center justify-center space-x-2">
@@ -228,23 +228,10 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
           )}
         </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Base Price:</span>
-            <span className="font-bold text-primary">KSh {celebrity.base_price}</span>
-          </div>
-          {celebrity.hourly_rate && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Per Hour:</span>
-              <span className="font-bold text-accent">KSh {celebrity.hourly_rate}</span>
-            </div>
-          )}
-        </div>
-
-        {/* VIP Contact Info */}
-        {isVIP && isPrivateProfile(celebrity) && celebrity.phone_number && (
-          <div className="space-y-2 p-3 bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-            <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">VIP Contact</p>
+        {/* Contact Info */}
+        {celebrity.phone_number && (
+          <div className="space-y-2 p-3 bg-gradient-to-r from-primary/5 to-accent/5 rounded-lg border border-primary/20">
+            <p className="text-sm font-medium text-center">Contact Information</p>
             <div className="flex items-center justify-center space-x-3">
               <a 
                 href={`tel:${celebrity.phone_number}`}
@@ -275,11 +262,6 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
                 <li key={index} className="flex items-center space-x-2 text-sm">
                   <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
                   <span className="flex-1">{service.service_name}</span>
-                  {service.price > 0 && (
-                    <span className="text-xs text-primary font-medium">
-                      KSh {service.price}
-                    </span>
-                  )}
                 </li>
               ))}
             </ul>
@@ -287,7 +269,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
         )}
 
         {/* Call Button */}
-        {isPrivateProfile(celebrity) && celebrity.phone_number && (
+        {celebrity.phone_number && (
           <div className="pt-2">
             <Button
               variant="outline"
@@ -301,21 +283,19 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
           </div>
         )}
         
-        {/* Social Media - only for non-VIP */}
-        {!isVIP && (
-          <div className="flex justify-center space-x-2">
-            {celebrity.social_instagram && (
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <Instagram className="h-4 w-4 text-pink-500" />
-              </Button>
-            )}
-            {celebrity.social_twitter && (
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <Twitter className="h-4 w-4 text-blue-500" />
-              </Button>
-            )}
-          </div>
-        )}
+        {/* Social Media */}
+        <div className="flex justify-center space-x-2">
+          {celebrity.social_instagram && (
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Instagram className="h-4 w-4 text-pink-500" />
+            </Button>
+          )}
+          {celebrity.social_twitter && (
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Twitter className="h-4 w-4 text-blue-500" />
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
