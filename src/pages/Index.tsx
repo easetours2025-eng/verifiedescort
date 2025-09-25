@@ -100,13 +100,11 @@ const Index = () => {
     const matchesLocation = !locationFilter || 
                            celebrity.location?.toLowerCase().includes(locationFilter.toLowerCase());
     
-    const matchesPrice = celebrity.base_price >= minPrice && celebrity.base_price <= maxPrice;
-    
     const matchesAge = !celebrity.age || (celebrity.age >= minAge && celebrity.age <= maxAge);
     
     const matchesGender = genderFilter === 'all' || celebrity.gender === genderFilter;
     
-    return matchesSearch && matchesLocation && matchesPrice && matchesAge && matchesGender;
+    return matchesSearch && matchesLocation && matchesAge && matchesGender;
   });
 
   const handleViewProfile = (id: string) => {
@@ -177,42 +175,6 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4 text-center">
-          <div className="max-w-4xl mx-auto space-y-8">
-            <div className="flex justify-center items-center space-x-4 mb-6">
-              <Star className="h-12 w-12 text-accent animate-pulse" />
-              <Trophy className="h-16 w-16 text-primary" />
-              <Star className="h-12 w-12 text-accent animate-pulse" />
-            </div>
-            
-            <h2 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-              Meet Your Favorite Celebrities
-            </h2>
-            
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Connect with verified celebrities for exclusive meetups, photo sessions, and personal interactions. 
-              Your dream celebrity encounter is just one click away.
-            </p>
-
-            <div className="flex justify-center space-x-8 text-sm">
-              <div className="flex items-center space-x-2">
-                <Users className="h-5 w-5 text-primary" />
-                <span>{celebrities.length}+ Celebrities</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Heart className="h-5 w-5 text-accent" />
-                <span>Verified Profiles</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Trophy className="h-5 w-5 text-primary" />
-                <span>Premium Experience</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Search and Filter */}
       <section className="pb-8">
@@ -221,7 +183,7 @@ const Index = () => {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Search className="h-5 w-5" />
-                <span>Find Your Celebrity</span>
+                <span>Find your Escort</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -237,7 +199,7 @@ const Index = () => {
                 </div>
 
                 {/* Advanced Filters */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Location Filter */}
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Location</label>
@@ -247,27 +209,6 @@ const Index = () => {
                       onChange={(e) => setLocationFilter(e.target.value)}
                       className="h-10"
                     />
-                  </div>
-
-                  {/* Price Range */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Price Range (KSh)</label>
-                    <div className="flex space-x-2">
-                      <Input
-                        type="number"
-                        placeholder="Min"
-                        value={minPrice}
-                        onChange={(e) => setMinPrice(parseInt(e.target.value) || 0)}
-                        className="h-10"
-                      />
-                      <Input
-                        type="number"
-                        placeholder="Max"
-                        value={maxPrice}
-                        onChange={(e) => setMaxPrice(parseInt(e.target.value) || 10000)}
-                        className="h-10"
-                      />
-                    </div>
                   </div>
 
                   {/* Age Range */}
@@ -333,8 +274,6 @@ const Index = () => {
                     onClick={() => {
                       setSearchTerm('');
                       setLocationFilter('');
-                      setMinPrice(0);
-                      setMaxPrice(10000);
                       setMinAge(18);
                       setMaxAge(65);
                       setGenderFilter('all');
