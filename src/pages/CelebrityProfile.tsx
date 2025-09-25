@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import MessagingModal from '@/components/MessagingModal';
+import MediaCard from '@/components/MediaCard';
 import { 
   filterCelebrityData, 
   PublicCelebrityProfile, 
@@ -33,7 +35,10 @@ import {
   Briefcase,
   MessageSquare,
   Eye,
-  ThumbsUp
+  ThumbsUp,
+  CheckCircle,
+  Music,
+  Calendar
 } from 'lucide-react';
 
 interface MediaItem {
@@ -53,9 +58,12 @@ const CelebrityProfile = () => {
   const [profile, setProfile] = useState<PrivateCelebrityProfile | null>(null);
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [services, setServices] = useState<any[]>([]);
+  const [otherCelebrities, setOtherCelebrities] = useState<PrivateCelebrityProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLoadingMedia, setIsLoadingMedia] = useState(true);
+  const [isLoadingOthers, setIsLoadingOthers] = useState(true);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [showMessaging, setShowMessaging] = useState(false);
   const [mediaFilter, setMediaFilter] = useState<'all' | 'images' | 'videos'>('all');
   const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
   const [likeCounts, setLikeCounts] = useState<Record<string, { likes: number; loves: number }>>({});
@@ -80,14 +88,9 @@ const CelebrityProfile = () => {
       fetchProfile();
       fetchMedia();
       fetchServices();
+      fetchOtherCelebrities();
     }
   }, [id]);
-
-  useEffect(() => {
-    if (profile) {
-      fetchProfileImage();
-    }
-  }, [profile]);
 
   useEffect(() => {
     if (media.length > 0) {
@@ -234,40 +237,33 @@ const CelebrityProfile = () => {
     }
   };
 
-  const fetchProfileImage = async () => {
-    if (!id || !profile) return;
+  const fetchOtherCelebrities = async () => {
+    if (!id) return;
     
     try {
-      // First try to get the profile picture from celebrity_profiles
-      if (profile.profile_picture_path) {
-        const { data: urlData } = supabase.storage
-          .from('celebrity-photos')
-          .getPublicUrl(profile.profile_picture_path);
-        setProfileImage(urlData.publicUrl);
-        return;
-      }
+      const { data, error } = await supabase
+        .from('celebrity_profiles')
+        .select('*')
+        .neq('id', id)
+        .eq('is_available', true)
+        .limit(6)
+        .order('created_at', { ascending: false });
 
-      // If no profile picture, try to get latest public image from media
-      const { data } = await supabase
-        .from('celebrity_media')
-        .select('file_path')
-        .eq('celebrity_id', id)
-        .eq('is_public', true)
-        .eq('file_type', 'image')
-        .order('upload_date', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (data?.file_path) {
-        const { data: urlData } = supabase.storage
-          .from('celebrity-photos')
-          .getPublicUrl(data.file_path);
-        setProfileImage(urlData.publicUrl);
+      if (error) throw error;
+      
+      if (data) {
+        const filteredProfiles = await Promise.all(
+          data.map(profile => filterCelebrityData(profile as FullCelebrityProfile))
+        );
+        setOtherCelebrities(filteredProfiles);
       }
     } catch (error) {
-      console.error('Error fetching profile image:', error);
+      console.error('Error fetching other celebrities:', error);
+    } finally {
+      setIsLoadingOthers(false);
     }
   };
+
 
   const handleContact = () => {
     if (profile?.phone_number) {
@@ -463,399 +459,303 @@ const CelebrityProfile = () => {
         </div>
       </header>
 
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Profile Card */}
-            <div className="lg:col-span-1 order-2 lg:order-1">
-              <Card className="lg:sticky lg:top-24">
-                <CardHeader className="text-center pb-4">
-                  <div className="flex justify-center mb-4">
-                    <div className="relative">
-                      <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-primary/20 shadow-lg">
-                        <AvatarImage src={profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.stage_name}`} />
-                        <AvatarFallback className="bg-gradient-to-br from-primary to-primary-glow text-primary-foreground text-xl sm:text-2xl font-bold">
-                          {getInitials(profile.stage_name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      {profile.is_verified && (
-                        <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 bg-accent rounded-full p-1.5 sm:p-2">
-                          <Verified className="h-4 w-4 sm:h-6 sm:w-6 text-accent-foreground" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                      {profile.stage_name}
-                    </h1>
-                    {profile.real_name && (
-                      <p className="text-sm sm:text-base text-muted-foreground">({profile.real_name})</p>
-                    )}
-                    
-                    <div className="flex items-center justify-center space-x-2">
-                      <Badge variant={profile.is_available ? "default" : "secondary"} className="text-xs">
-                        {profile.is_available ? "Available" : "Busy"}
-                      </Badge>
-                      {profile.gender && (
-                        <Badge variant="outline" className="capitalize text-xs">
-                          {profile.gender}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-4 sm:space-y-6 px-3 sm:px-6">
-                  {profile.bio && (
-                    <div>
-                      <h3 className="font-semibold mb-2 text-sm sm:text-base">About</h3>
-                      <p className="text-muted-foreground text-sm sm:text-base">{profile.bio}</p>
-                    </div>
-                  )}
-
-                  <Separator />
-
-                  {/* Contact Info */}
-                  <div className="space-y-3">
-                    <h3 className="font-semibold text-sm sm:text-base">Contact Information</h3>
-                    
-                    {profile.location && (
-                      <div className="flex items-center space-x-2 text-xs sm:text-sm">
-                        <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                        <span>{profile.location}</span>
-                      </div>
-                    )}
-                    
-                    {profile.phone_number && (
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2 text-xs sm:text-sm font-medium">
-                          <Phone className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                          <span className="break-all">{profile.phone_number}</span>
-                        </div>
-                        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleContact}
-                            className="flex-1 text-xs"
-                          >
-                            <Phone className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                            Call
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleWhatsApp}
-                            className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 border-green-300 text-xs"
-                          >
-                            <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                            WhatsApp
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <Separator />
-
-                  {/* Services */}
-                  {services.length > 0 && (
-                    <div className="space-y-3">
-                      <h3 className="font-semibold flex items-center space-x-2 text-sm sm:text-base">
-                        <Briefcase className="h-3 w-3 sm:h-4 sm:w-4" />
-                        <span>Services Offered</span>
-                      </h3>
-                      
-                      <div className="space-y-2">
-                        {services.slice(0, 3).map((service) => (
-                          <div key={service.id} className="flex justify-between items-center p-2 bg-muted/50 rounded text-xs sm:text-sm">
-                            <div>
-                              <p className="font-medium">{service.service_name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {service.duration_minutes} minutes
-                              </p>
-                            </div>
-                            <span className="font-bold text-primary text-xs sm:text-sm">
-                              KSh {service.price}
-                            </span>
-                          </div>
-                        ))}
-                        {services.length > 3 && (
-                          <p className="text-xs text-muted-foreground text-center">
-                            +{services.length - 3} more services
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {services.length > 0 && <Separator />}
-
-                  {/* Pricing */}
-                  <div className="space-y-3">
-                    <h3 className="font-semibold flex items-center space-x-2 text-sm sm:text-base">
-                      <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span>Base Pricing</span>
-                    </h3>
-                    
-                    <div className="space-y-2 text-xs sm:text-sm">
-                      <div className="flex justify-between">
-                        <span>Starting Price:</span>
-                        <span className="font-bold text-primary">KSh {profile.base_price}</span>
-                      </div>
-                      {profile.hourly_rate && (
-                        <div className="flex justify-between">
-                          <span>Per Hour:</span>
-                          <span className="font-bold text-accent">KSh {profile.hourly_rate}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Social Links */}
-                  {(profile.social_instagram || profile.social_twitter) && (
-                    <div className="space-y-3">
-                      <h3 className="font-semibold text-sm sm:text-base">Social Media</h3>
-                      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                        {profile.social_instagram && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleSocialClick('instagram')}
-                            className="text-xs"
-                          >
-                            <Instagram className="h-3 w-3 sm:h-4 sm:w-4 mr-2 text-pink-500" />
-                            Instagram
-                          </Button>
-                        )}
-                        {profile.social_twitter && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleSocialClick('twitter')}
-                            className="text-xs"
-                          >
-                            <Twitter className="h-3 w-3 sm:h-4 sm:w-4 mr-2 text-blue-500" />
-                            Twitter
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Media Gallery */}
-            <div className="lg:col-span-2 order-1 lg:order-2">
-              <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-base sm:text-lg">Media Gallery ({filteredMedia.length})</CardTitle>
-                  <div className="flex items-center space-x-1 sm:space-x-2 overflow-x-auto">
-                    <Button
-                      variant={mediaFilter === 'all' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setMediaFilter('all')}
-                      className="text-xs whitespace-nowrap"
-                    >
-                      All
-                    </Button>
-                    <Button
-                      variant={mediaFilter === 'images' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setMediaFilter('images')}
-                      className="text-xs whitespace-nowrap"
-                    >
-                      <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                      Images ({media.filter(m => m.file_type === 'image').length})
-                    </Button>
-                    <Button
-                      variant={mediaFilter === 'videos' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setMediaFilter('videos')}
-                      className="text-xs whitespace-nowrap"
-                    >
-                      <Video className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                      Videos ({media.filter(m => m.file_type === 'video').length})
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="px-3 sm:px-6">
-                  {filteredMedia.length === 0 ? (
-                    <div className="text-center py-8 sm:py-12">
-                      <div className="flex justify-center space-x-2 mb-4">
-                        <ImageIcon className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground" />
-                        <Video className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground" />
-                      </div>
-                      <h3 className="text-base sm:text-lg font-semibold mb-2">No Media Available</h3>
-                      <p className="text-muted-foreground text-sm sm:text-base">
-                        {mediaFilter === 'all' 
-                          ? "This celebrity hasn't uploaded any public media yet."
-                          : `This celebrity hasn't uploaded any ${mediaFilter} yet.`
-                        }
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
-                      {filteredMedia.map((item) => (
-                        <Card 
-                          key={item.id} 
-                          className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden relative"
-                        >
-                          <div 
-                            className="aspect-square bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center relative overflow-hidden"
-                            onClick={() => handleMediaClick(item)}
-                          >
-                            {item.file_type === 'video' ? (
-                              <>
-                                <video
-                                  src={getMediaUrl(item.file_path, 'video')}
-                                  className="w-full h-full object-cover"
-                                  muted
-                                />
-                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                                  <div className="bg-white/90 rounded-full p-2 sm:p-3">
-                                    <Video className="h-4 w-4 sm:h-6 sm:w-6 text-primary" />
-                                  </div>
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <img 
-                                  src={getMediaUrl(item.file_path, 'image')}
-                                  alt="Celebrity media"
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    e.currentTarget.style.display = 'none';
-                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                                  }}
-                                />
-                                <ImageIcon className="h-8 w-8 sm:h-12 sm:w-12 text-primary hidden" />
-                              </>
-                            )}
-                            
-                            {/* View Counter */}
-                            <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
-                              <Eye className="h-3 w-3" />
-                              <span>{viewCounts[item.id] || 0}</span>
-                            </div>
-                          </div>
-                          
-                          {/* Like/Love Actions */}
-                          <div className="p-2 bg-muted/30 flex items-center justify-between">
-                            <div className="flex items-center space-x-2 sm:space-x-3">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleLike(item.id, 'like');
-                                }}
-                                className={`p-1 h-auto ${userLikes[item.id]?.includes('like') ? 'text-blue-600' : 'text-muted-foreground'}`}
-                              >
-                                <ThumbsUp className="h-3 w-3 sm:h-4 sm:w-4" />
-                                <span className="ml-1 text-xs">{likeCounts[item.id]?.likes || 0}</span>
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleLike(item.id, 'love');
-                                }}
-                                className={`p-1 h-auto ${userLikes[item.id]?.includes('love') ? 'text-red-600' : 'text-muted-foreground'}`}
-                              >
-                                <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
-                                <span className="ml-1 text-xs">{likeCounts[item.id]?.loves || 0}</span>
-                              </Button>
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {item.file_type === 'video' ? 'Video' : 'Photo'}
-                            </div>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-
-        {/* Media Modal */}
-        {selectedMedia && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 sm:p-4">
-            <div className="relative max-w-4xl w-full max-h-full overflow-hidden">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute -top-10 sm:-top-12 right-0 text-white hover:text-gray-300 z-10"
-                onClick={() => setSelectedMedia(null)}
-              >
-                ✕ Close
-              </Button>
-              
-              <div className="bg-card rounded-lg overflow-hidden">
-                {selectedMedia.file_type === 'video' ? (
-                  <video
-                    src={getMediaUrl(selectedMedia.file_path, 'video')}
-                    className="w-full h-auto max-h-[70vh] sm:max-h-[80vh]"
-                    controls
-                    autoPlay
+      <div className="container mx-auto px-4 py-6 md:py-8">
+        <div className="space-y-6 md:space-y-8">
+          {/* Celebrity Profile and Info */}
+          <Card className="p-4 md:p-6">
+            <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+              <div className="flex-shrink-0 mx-auto md:mx-0">
+                <Avatar className="w-24 h-24 md:w-32 md:h-32">
+                  <AvatarImage 
+                    src={profile.profile_picture_path ? 
+                      `https://kpjqcrhoablsllkgonbl.supabase.co/storage/v1/object/public/celebrity-photos/${profile.profile_picture_path}` : 
+                      undefined
+                    } 
+                    alt={profile.stage_name}
+                    className="object-cover"
                   />
-                ) : (
-                  <img
-                    src={getMediaUrl(selectedMedia.file_path, 'image')}
-                    alt="Celebrity media"
-                    className="w-full h-auto max-h-[70vh] sm:max-h-[80vh] object-contain"
-                  />
-                )}
-                
-                {/* Modal Stats and Actions */}
-                <div className="p-3 sm:p-4 bg-card border-t">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 text-sm">
-                      <div className="flex items-center space-x-1">
-                        <Eye className="h-4 w-4 text-muted-foreground" />
-                        <span>{viewCounts[selectedMedia.id] || 0} views</span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleLike(selectedMedia.id, 'like')}
-                          className={`p-2 ${userLikes[selectedMedia.id]?.includes('like') ? 'text-blue-600' : 'text-muted-foreground'}`}
-                        >
-                          <ThumbsUp className="h-4 w-4" />
-                          <span className="ml-1">{likeCounts[selectedMedia.id]?.likes || 0}</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleLike(selectedMedia.id, 'love')}
-                          className={`p-2 ${userLikes[selectedMedia.id]?.includes('love') ? 'text-red-600' : 'text-muted-foreground'}`}
-                        >
-                          <Heart className="h-4 w-4" />
-                          <span className="ml-1">{likeCounts[selectedMedia.id]?.loves || 0}</span>
-                        </Button>
-                      </div>
-                    </div>
-                    {selectedMedia.title && (
-                      <h3 className="font-semibold text-sm sm:text-base">{selectedMedia.title}</h3>
+                  <AvatarFallback className="text-xl md:text-2xl">
+                    {profile.stage_name.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+              <div className="flex-1 text-center md:text-left">
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-2">
+                  <h1 className="text-2xl md:text-3xl font-bold">{profile.stage_name}</h1>
+                  {profile.is_verified && (
+                    <Badge variant="secondary" className="w-fit mx-auto md:mx-0">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Verified
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-muted-foreground mb-3 text-sm md:text-base">{profile.bio}</p>
+                <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-4 text-sm text-muted-foreground mb-4">
+                  {profile.location && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {profile.location}
+                    </span>
+                  )}
+                  {profile.age && (
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {profile.age} years old
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
+                  {profile.social_instagram && (
+                    <Button variant="outline" size="sm" asChild className="text-xs">
+                      <a href={`https://instagram.com/${profile.social_instagram}`} target="_blank" rel="noopener noreferrer">
+                        <Instagram className="w-3 h-3 mr-1" />
+                        Instagram
+                      </a>
+                    </Button>
+                  )}
+                  {profile.social_twitter && (
+                    <Button variant="outline" size="sm" asChild className="text-xs">
+                      <a href={`https://twitter.com/${profile.social_twitter}`} target="_blank" rel="noopener noreferrer">
+                        <Twitter className="w-3 h-3 mr-1" />
+                        Twitter
+                      </a>
+                    </Button>
+                  )}
+                  {profile.social_tiktok && (
+                    <Button variant="outline" size="sm" asChild className="text-xs">
+                      <a href={`https://tiktok.com/@${profile.social_tiktok}`} target="_blank" rel="noopener noreferrer">
+                        <Music className="w-3 h-3 mr-1" />
+                        TikTok
+                      </a>
+                    </Button>
+                  )}
+                </div>
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="text-center md:text-left">
+                    <p className="text-sm text-muted-foreground">Starting from</p>
+                    <p className="text-2xl font-bold text-primary">KSh {profile.base_price}</p>
+                    {profile.hourly_rate && (
+                      <p className="text-sm text-muted-foreground">KSh {profile.hourly_rate}/hour</p>
                     )}
                   </div>
-                  {selectedMedia.description && (
-                    <p className="text-muted-foreground text-xs sm:text-sm mt-2">{selectedMedia.description}</p>
-                  )}
+                  <div className="flex gap-2">
+                    <Button 
+                      className="flex-1 md:flex-initial" 
+                      onClick={() => setShowMessaging(true)}
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Send Message
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
+          </Card>
+
+          {/* Services */}
+          {services.length > 0 && (
+            <Card className="p-4 md:p-6">
+              <h2 className="text-xl md:text-2xl font-semibold mb-4">Services</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {services.map((service) => (
+                  <div key={service.id} className="p-4 border rounded-lg">
+                    <h3 className="font-medium mb-2">{service.service_name}</h3>
+                    <p className="text-sm text-muted-foreground mb-2">{service.description}</p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">{service.duration_minutes} min</span>
+                      <span className="font-bold text-primary">KSh {service.price}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* Media Gallery */}
+          <Card className="p-4 md:p-6">
+            <h2 className="text-xl md:text-2xl font-semibold mb-4">Media Gallery</h2>
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Button
+                variant={mediaFilter === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMediaFilter('all')}
+                className="text-xs"
+              >
+                All ({media.length})
+              </Button>
+              <Button
+                variant={mediaFilter === 'images' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMediaFilter('images')}
+                className="text-xs"
+              >
+                <ImageIcon className="w-3 h-3 mr-1" />
+                Images ({media.filter(m => m.file_type === 'image').length})
+              </Button>
+              <Button
+                variant={mediaFilter === 'videos' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMediaFilter('videos')}
+                className="text-xs"
+              >
+                <Video className="w-3 h-3 mr-1" />
+                Videos ({media.filter(m => m.file_type === 'video').length})
+              </Button>
+            </div>
+            
+            {isLoadingMedia ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                {[...Array(8)].map((_, i) => (
+                  <Skeleton key={i} className="aspect-square rounded-lg" />
+                ))}
+              </div>
+            ) : filteredMedia && filteredMedia.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                {filteredMedia.map((media) => (
+                  <MediaCard key={media.id} media={media} />
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-center py-8">No media available</p>
+            )}
+          </Card>
+
+          {/* Other Celebrities */}
+          <Card className="p-4 md:p-6">
+            <h2 className="text-xl md:text-2xl font-semibold mb-4">Other Celebrities</h2>
+            {isLoadingOthers ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="p-4 border rounded-lg">
+                    <div className="flex gap-3">
+                      <Skeleton className="w-12 h-12 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-3 w-1/2" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : otherCelebrities && otherCelebrities.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {otherCelebrities.map((celebrity) => (
+                  <Link 
+                    key={celebrity.id} 
+                    to={`/celebrity/${celebrity.id}`}
+                    className="block p-4 border rounded-lg hover:bg-accent transition-colors"
+                  >
+                    <div className="flex gap-3">
+                      <Avatar className="w-12 h-12">
+                        <AvatarImage 
+                          src={celebrity.profile_picture_path ? 
+                            `https://kpjqcrhoablsllkgonbl.supabase.co/storage/v1/object/public/celebrity-photos/${celebrity.profile_picture_path}` : 
+                            undefined
+                          } 
+                          alt={celebrity.stage_name}
+                        />
+                        <AvatarFallback>{celebrity.stage_name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium truncate">{celebrity.stage_name}</h3>
+                          {celebrity.is_verified && (
+                            <CheckCircle className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate">{celebrity.bio}</p>
+                        <p className="text-sm font-medium text-primary">From KSh {celebrity.base_price}</p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-center py-8">No other celebrities available</p>
+            )}
+          </Card>
+        </div>
+      </div>
+
+      {showMessaging && (
+        <MessagingModal
+          open={showMessaging}
+          onOpenChange={setShowMessaging}
+          celebrityId={id!}
+          celebrityName={profile.stage_name}
+        />
+      )}
+
+      {/* Media Modal */}
+      {selectedMedia && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="relative max-w-4xl w-full max-h-full overflow-hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute -top-10 sm:-top-12 right-0 text-white hover:text-gray-300 z-10"
+              onClick={() => setSelectedMedia(null)}
+            >
+              ✕ Close
+            </Button>
+            
+            <div className="bg-card rounded-lg overflow-hidden">
+              {selectedMedia.file_type === 'video' ? (
+                <video
+                  src={getMediaUrl(selectedMedia.file_path, 'video')}
+                  className="w-full h-auto max-h-[70vh] sm:max-h-[80vh]"
+                  controls
+                  autoPlay
+                />
+              ) : (
+                <img
+                  src={getMediaUrl(selectedMedia.file_path, 'image')}
+                  alt="Celebrity media"
+                  className="w-full h-auto max-h-[70vh] sm:max-h-[80vh] object-contain"
+                />
+              )}
+              
+              {/* Modal Stats and Actions */}
+              <div className="p-3 sm:p-4 bg-card border-t">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4 text-sm">
+                    <div className="flex items-center space-x-1">
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                      <span>{viewCounts[selectedMedia.id] || 0} views</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleLike(selectedMedia.id, 'like')}
+                        className={`p-2 ${userLikes[selectedMedia.id]?.includes('like') ? 'text-blue-600' : 'text-muted-foreground'}`}
+                      >
+                        <ThumbsUp className="h-4 w-4" />
+                        <span className="ml-1">{likeCounts[selectedMedia.id]?.likes || 0}</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleLike(selectedMedia.id, 'love')}
+                        className={`p-2 ${userLikes[selectedMedia.id]?.includes('love') ? 'text-red-600' : 'text-muted-foreground'}`}
+                      >
+                        <Heart className="h-4 w-4" />
+                        <span className="ml-1">{likeCounts[selectedMedia.id]?.loves || 0}</span>
+                      </Button>
+                    </div>
+                  </div>
+                  {selectedMedia.title && (
+                    <h3 className="font-semibold text-sm sm:text-base">{selectedMedia.title}</h3>
+                  )}
+                </div>
+                {selectedMedia.description && (
+                  <p className="text-muted-foreground text-xs sm:text-sm mt-2">{selectedMedia.description}</p>
+                )}
+              </div>
+            </div>
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 };
