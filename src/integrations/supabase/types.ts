@@ -286,6 +286,73 @@ export type Database = {
           },
         ]
       }
+      media_likes: {
+        Row: {
+          created_at: string
+          id: string
+          like_type: string
+          media_id: string
+          user_id: string | null
+          user_ip: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          like_type?: string
+          media_id: string
+          user_id?: string | null
+          user_ip?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          like_type?: string
+          media_id?: string
+          user_id?: string | null
+          user_ip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_likes_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_media"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_views: {
+        Row: {
+          created_at: string
+          id: string
+          media_id: string
+          user_id: string | null
+          user_ip: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          media_id: string
+          user_id?: string | null
+          user_ip?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          media_id?: string
+          user_id?: string | null
+          user_ip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_views_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_media"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
