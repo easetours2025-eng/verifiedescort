@@ -35,10 +35,15 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
     try {
       // First try to get the profile picture from celebrity_profiles
       if (celebrity.profile_picture_path) {
-        const { data: urlData } = supabase.storage
-          .from('celebrity-photos')
-          .getPublicUrl(celebrity.profile_picture_path);
-        setProfileImage(urlData.publicUrl);
+        // Check if it's already a full URL or just a path
+        if (celebrity.profile_picture_path.startsWith('http')) {
+          setProfileImage(celebrity.profile_picture_path);
+        } else {
+          const { data: urlData } = supabase.storage
+            .from('celebrity-photos')
+            .getPublicUrl(celebrity.profile_picture_path);
+          setProfileImage(urlData.publicUrl);
+        }
         return;
       }
 
@@ -278,6 +283,21 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {/* Call Button */}
+        {isPrivateProfile(celebrity) && celebrity.phone_number && (
+          <div className="pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full border-green-500 text-green-600 hover:bg-green-50"
+              onClick={() => window.open(`tel:${celebrity.phone_number}`, '_self')}
+            >
+              <Phone className="h-4 w-4 mr-2" />
+              Call me now: {celebrity.phone_number}
+            </Button>
           </div>
         )}
         
