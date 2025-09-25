@@ -48,7 +48,7 @@ interface MediaItem {
 
 const CelebrityProfile = () => {
   const { id } = useParams<{ id: string }>();
-  const [profile, setProfile] = useState<PublicCelebrityProfile | PrivateCelebrityProfile | null>(null);
+  const [profile, setProfile] = useState<PrivateCelebrityProfile | null>(null);
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,17 +89,6 @@ const CelebrityProfile = () => {
 
   const fetchProfile = async () => {
     try {
-      // First check if this celebrity has an active subscription
-      const { data: subscriptionData, error: subscriptionError } = await supabase
-        .from('celebrity_subscriptions')
-        .select('is_active, subscription_end')
-        .eq('celebrity_id', id)
-        .eq('is_active', true)
-        .gte('subscription_end', new Date().toISOString())
-        .maybeSingle();
-
-      // Check if current user is the celebrity themselves
-      const { data: { user } } = await supabase.auth.getUser();
       const { data: celebrityData, error: celebrityError } = await supabase
         .from('celebrity_profiles')
         .select('*')
@@ -108,18 +97,7 @@ const CelebrityProfile = () => {
 
       if (celebrityError) throw celebrityError;
 
-      // If no active subscription and user is not the celebrity themselves, deny access
-      if (!subscriptionData && (!user || celebrityData.user_id !== user.id)) {
-        toast({
-          title: "Profile Not Available",
-          description: "This celebrity profile is not currently available for public viewing.",
-          variant: "destructive",
-        });
-        navigate('/');
-        return;
-      }
-
-      // Filter sensitive data based on user permissions
+      // Return all data as public since authorization is removed
       const filteredProfile = await filterCelebrityData(celebrityData as FullCelebrityProfile);
       setProfile(filteredProfile);
     } catch (error) {
@@ -207,7 +185,7 @@ const CelebrityProfile = () => {
   };
 
   const handleContact = () => {
-    if (isPrivateProfile(profile) && profile?.phone_number) {
+    if (profile?.phone_number) {
       window.open(`tel:${profile.phone_number}`, '_self');
     } else {
       toast({
@@ -219,7 +197,7 @@ const CelebrityProfile = () => {
   };
 
   const handleWhatsApp = () => {
-    if (isPrivateProfile(profile) && profile?.phone_number) {
+    if (profile?.phone_number) {
       const cleanPhone = profile.phone_number.replace(/[^\d+]/g, '');
       const message = encodeURIComponent(`Hi ${profile.stage_name}, I'm interested in booking you through Celebrity Connect.`);
       window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
@@ -345,8 +323,8 @@ const CelebrityProfile = () => {
                   <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                     {profile.stage_name}
                   </h1>
-                  {/* Only show real name if user has access to private data */}
-                  {isPrivateProfile(profile) && profile.real_name && (
+                  {/* Show real name for everyone */}
+                  {profile.real_name && (
                     <p className="text-muted-foreground">({profile.real_name})</p>
                   )}
                   
@@ -373,67 +351,48 @@ const CelebrityProfile = () => {
 
                 <Separator />
 
-                {/* Contact Info - Only show if user has access to private data */}
-                {isPrivateProfile(profile) && (
-                  <>
-                    <div className="space-y-3">
-                      <h3 className="font-semibold">Contact Information</h3>
-                      
-                      {profile.location && (
-                        <div className="flex items-center space-x-2 text-sm">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span>{profile.location}</span>
-                        </div>
-                      )}
-                      
-                      {profile.phone_number && (
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2 text-sm font-medium">
-                            <Phone className="h-4 w-4 text-muted-foreground" />
-                            <span>{profile.phone_number}</span>
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={handleContact}
-                              className="flex-1"
-                            >
-                              <Phone className="h-4 w-4 mr-2" />
-                              Call
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={handleWhatsApp}
-                              className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
-                            >
-                              <MessageSquare className="h-4 w-4 mr-2" />
-                              WhatsApp
-                            </Button>
-                          </div>
-                        </div>
-                      )}
+                {/* Contact Info - Show for everyone */}
+                <div className="space-y-3">
+                  <h3 className="font-semibold">Contact Information</h3>
+                  
+                  {profile.location && (
+                    <div className="flex items-center space-x-2 text-sm">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span>{profile.location}</span>
                     </div>
-
-                    <Separator />
-                  </>
-                )}
-
-                {/* Location for public users (sanitized) */}
-                {!isPrivateProfile(profile) && profile.location && (
-                  <>
-                    <div className="space-y-3">
-                      <h3 className="font-semibold">Location</h3>
-                      <div className="flex items-center space-x-2 text-sm">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span>{profile.location}</span>
+                  )}
+                  
+                  {profile.phone_number && (
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2 text-sm font-medium">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <span>{profile.phone_number}</span>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleContact}
+                          className="flex-1"
+                        >
+                          <Phone className="h-4 w-4 mr-2" />
+                          Call
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleWhatsApp}
+                          className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          WhatsApp
+                        </Button>
                       </div>
                     </div>
+                  )}
+                </div>
 
-                    <Separator />
-                  </>
-                )}
+                <Separator />
 
                 {/* Services */}
                 {services.length > 0 && (

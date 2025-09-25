@@ -22,6 +22,8 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
   const [hasVideos, setHasVideos] = useState(false);
   const [isVIP, setIsVIP] = useState(false);
   const [services, setServices] = useState<any[]>([]);
+  const [showFullBio, setShowFullBio] = useState(false);
+  const [showAllServices, setShowAllServices] = useState(false);
 
   useEffect(() => {
     fetchProfileImage();
@@ -214,9 +216,19 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
 
       <CardContent className="space-y-4 relative z-10">
         {celebrity.bio && (
-          <p className="text-sm text-muted-foreground text-center line-clamp-2">
-            {celebrity.bio}
-          </p>
+          <div className="text-sm text-muted-foreground text-center">
+            <p className={showFullBio ? "" : "line-clamp-2"}>
+              {celebrity.bio}
+            </p>
+            {celebrity.bio.length > 100 && (
+              <button
+                onClick={() => setShowFullBio(!showFullBio)}
+                className="text-primary hover:text-primary/80 text-xs mt-1 font-medium"
+              >
+                {showFullBio ? "Read Less" : "Read More"}
+              </button>
+            )}
+          </div>
         )}
 
         <div className="flex items-center justify-center space-x-4 text-sm text-muted-foreground">
@@ -258,13 +270,21 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
           <div className="space-y-2">
             <h4 className="text-sm font-medium text-muted-foreground">Services Offered:</h4>
             <ul className="space-y-1">
-              {services.map((service, index) => (
+              {(showAllServices ? services : services.slice(0, 3)).map((service, index) => (
                 <li key={index} className="flex items-center space-x-2 text-sm">
                   <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
                   <span className="flex-1">{service.service_name}</span>
                 </li>
               ))}
             </ul>
+            {services.length > 3 && (
+              <button
+                onClick={() => setShowAllServices(!showAllServices)}
+                className="text-primary hover:text-primary/80 text-xs font-medium"
+              >
+                {showAllServices ? `Show Less` : `+${services.length - 3} More Services`}
+              </button>
+            )}
           </div>
         )}
 
