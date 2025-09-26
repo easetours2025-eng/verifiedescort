@@ -12,6 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import MediaUpload from '@/components/MediaUpload';
 import BulkMediaUpload from '@/components/BulkMediaUpload';
 import CelebrityServices from '@/components/CelebrityServices';
+import MediaManagement from '@/components/MediaManagement';
+import SubscriptionUpgrade from '@/components/SubscriptionUpgrade';
 import ProfilePictureUpload from '@/components/ProfilePictureUpload';
 import PaymentVerificationModal from '@/components/PaymentVerificationModal';
 import SubscriptionTab from '@/components/SubscriptionTab';
@@ -57,6 +59,7 @@ interface MediaItem {
   description?: string;
   file_path: string;
   file_type: string;
+  price: number;
   is_premium: boolean;
   is_public: boolean;
   upload_date: string;
@@ -66,6 +69,8 @@ interface SubscriptionStatus {
   is_active: boolean;
   subscription_end?: string;
   subscription_start?: string;
+  subscription_tier?: string;
+  amount_paid?: number;
 }
 
 interface Service {
@@ -127,7 +132,7 @@ const CelebrityDashboard = () => {
     try {
       const { data, error } = await supabase
         .from('celebrity_subscriptions')
-        .select('*')
+        .select('is_active, subscription_start, subscription_end, subscription_tier, amount_paid')
         .eq('celebrity_id', profile.id)
         .maybeSingle();
 
@@ -154,7 +159,14 @@ const CelebrityDashboard = () => {
         .order('upload_date', { ascending: false });
 
       if (error) throw error;
-      setMedia(data || []);
+      
+      // Add price field with default value for existing media without price
+      const mediaWithPrice = (data || []).map(item => ({
+        ...item,
+        price: item.price || 0
+      }));
+      
+      setMedia(mediaWithPrice);
     } catch (error) {
       console.error('Error fetching media:', error);
     }
@@ -327,11 +339,33 @@ const CelebrityDashboard = () => {
           </TabsContent>
 
           <TabsContent value="subscription">
-            <SubscriptionTab 
-              profile={profile} 
-              subscriptionStatus={subscriptionStatus}
-              onOpenPaymentModal={() => setShowPaymentModal(true)}
-            />
+            <div className="space-y-6">
+              <SubscriptionTab 
+                profile={profile} 
+                subscriptionStatus={subscriptionStatus}
+                onOpenPaymentModal={() => setShowPaymentModal(true)}
+              />
+              
+              {/* Upgrade Option for Basic subscribers */}
+              {subscriptionStatus?.is_active && subscriptionStatus.subscription_tier && subscriptionStatus.amount_paid && (
+                <SubscriptionUpgrade
+                  celebrityId={profile.id}
+                  currentSubscription={{
+                    subscription_tier: subscriptionStatus.subscription_tier,
+                    amount_paid: subscriptionStatus.amount_paid,
+                    subscription_end: subscriptionStatus.subscription_end || ''
+                  }}
+                  onUpgradeSubmit={() => {
+                    // Refresh subscription status after upgrade
+                    fetchSubscriptionStatus();
+                    toast({
+                      title: "Upgrade Submitted",
+                      description: "Your upgrade request is being processed",
+                    });
+                  }}
+                />
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="media">
@@ -590,62 +624,12 @@ const MediaTab = ({ profile, media, onUpload, onDelete }: {
 }) => {
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Media Slideshow - Show when payment is verified */}
-      {media.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3 sm:pb-6">
-            <CardTitle className="text-lg sm:text-xl">Media Gallery</CardTitle>
-          </CardHeader>
-          <CardContent className="px-3 sm:px-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {media.map((item) => (
-                <Card key={item.id} className="overflow-hidden">
-                  <CardContent className="p-0">
-                    <div className="aspect-video bg-black relative">
-                      {item.file_type === 'image' ? (
-                        <img
-                          src={item.file_path}
-                          alt={item.title || 'Media'}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <video
-                          src={item.file_path}
-                          className="w-full h-full object-cover"
-                          controls
-                          muted
-                        />
-                      )}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 sm:p-4">
-                        <div className="flex items-end justify-between">
-                          <div className="text-white">
-                            <p className="text-xs sm:text-sm font-medium">
-                              {item.file_type.toUpperCase()}
-                            </p>
-                          </div>
-                          <div className="flex items-center space-x-1 sm:space-x-2">
-                            <Badge variant={item.is_public ? "default" : "secondary"} className="text-xs">
-                              {item.is_public ? "Public" : "Private"}
-                            </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onDelete(item.id)}
-                              className="text-destructive hover:text-destructive p-1 sm:p-2"
-                            >
-                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Media Management */}
+      <MediaManagement 
+        profile={profile}
+        media={media}
+        onMediaUpdate={onUpload}
+      />
       
       {/* Bulk Upload */}
       <BulkMediaUpload 
@@ -658,16 +642,6 @@ const MediaTab = ({ profile, media, onUpload, onDelete }: {
         celebrityId={profile.id} 
         onUpload={onUpload}
       />
-      
-      {media.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-6 sm:py-8 px-3 sm:px-6">
-            <p className="text-muted-foreground text-sm sm:text-base">
-              No media uploaded yet. Upload your first photo or video above!
-            </p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
