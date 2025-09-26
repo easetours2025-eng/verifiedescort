@@ -142,10 +142,10 @@ const Index = () => {
                 variant="outline" 
                 size="sm"
                 onClick={() => navigate('/videos')}
-                className="border-primary/20 hover:bg-primary/10 hidden sm:flex"
+                className="border-primary/20 hover:bg-primary/10 flex items-center"
               >
-                <Video className="h-4 w-4 mr-2" />
-                Videos
+                <Video className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Videos</span>
               </Button>
               {user ? (
                 <div className="flex items-center space-x-1 sm:space-x-3">
