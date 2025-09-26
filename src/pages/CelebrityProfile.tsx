@@ -10,6 +10,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import MessagingModal from '@/components/MessagingModal';
 import MediaCard from '@/components/MediaCard';
+import CelebrityMediaVideoCard from '@/components/CelebrityMediaVideoCard';
+import VideoModal from '@/components/VideoModal';
 import { 
   filterCelebrityData, 
   PublicCelebrityProfile, 
@@ -63,6 +65,8 @@ const CelebrityProfile = () => {
   const [isLoadingMedia, setIsLoadingMedia] = useState(true);
   const [isLoadingOthers, setIsLoadingOthers] = useState(true);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<MediaItem | null>(null);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [showMessaging, setShowMessaging] = useState(false);
   const [mediaFilter, setMediaFilter] = useState<'all' | 'images' | 'videos'>('all');
   const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
@@ -338,6 +342,16 @@ const CelebrityProfile = () => {
       console.error('Error recording view:', error);
       setSelectedMedia(item);
     }
+  };
+
+  const handleVideoPlay = (video: MediaItem) => {
+    setSelectedVideo(video);
+    setIsVideoModalOpen(true);
+  };
+
+  const handleCloseVideoModal = () => {
+    setIsVideoModalOpen(false);
+    setSelectedVideo(null);
   };
 
   const handleLike = async (mediaId: string, type: 'like' | 'love') => {
@@ -630,8 +644,16 @@ const CelebrityProfile = () => {
               </div>
             ) : filteredMedia && filteredMedia.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-                {filteredMedia.map((media) => (
-                  <MediaCard key={media.id} media={media} />
+                {filteredMedia.map((mediaItem) => (
+                  mediaItem.file_type === 'video' ? (
+                    <CelebrityMediaVideoCard 
+                      key={mediaItem.id} 
+                      media={mediaItem} 
+                      onPlay={() => handleVideoPlay(mediaItem)}
+                    />
+                  ) : (
+                    <MediaCard key={mediaItem.id} media={mediaItem} />
+                  )
                 ))}
               </div>
             ) : (
@@ -704,8 +726,8 @@ const CelebrityProfile = () => {
         />
       )}
 
-      {/* Media Modal */}
-      {selectedMedia && (
+      {/* Image Modal */}
+      {selectedMedia && selectedMedia.file_type === 'image' && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 sm:p-4">
           <div className="relative max-w-4xl w-full max-h-full overflow-hidden">
             <Button
@@ -718,20 +740,11 @@ const CelebrityProfile = () => {
             </Button>
             
             <div className="bg-card rounded-lg overflow-hidden">
-              {selectedMedia.file_type === 'video' ? (
-                <video
-                  src={getMediaUrl(selectedMedia.file_path, 'video')}
-                  className="w-full h-auto max-h-[70vh] sm:max-h-[80vh]"
-                  controls
-                  autoPlay
-                />
-              ) : (
-                <img
-                  src={getMediaUrl(selectedMedia.file_path, 'image')}
-                  alt="Celebrity media"
-                  className="w-full h-auto max-h-[70vh] sm:max-h-[80vh] object-contain"
-                />
-              )}
+              <img
+                src={getMediaUrl(selectedMedia.file_path, 'image')}
+                alt="Celebrity media"
+                className="w-full h-auto max-h-[70vh] sm:max-h-[80vh] object-contain"
+              />
               
               {/* Modal Stats and Actions */}
               <div className="p-3 sm:p-4 bg-card border-t">
@@ -773,6 +786,15 @@ const CelebrityProfile = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Video Modal */}
+      {selectedVideo && (
+        <VideoModal
+          videoUrl={getMediaUrl(selectedVideo.file_path, 'video')}
+          isOpen={isVideoModalOpen}
+          onClose={handleCloseVideoModal}
+        />
       )}
     </div>
   );
