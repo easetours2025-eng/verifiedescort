@@ -42,7 +42,8 @@ const Videos = () => {
 
   const fetchVideos = async () => {
     try {
-      const { data: mediaData, error } = await supabase
+      // First get the media data
+      const { data: mediaData, error: mediaError } = await supabase
         .from('celebrity_media')
         .select(`
           id,
@@ -50,25 +51,50 @@ const Videos = () => {
           title,
           description,
           upload_date,
-          celebrity_id,
-          celebrity_profiles!inner(
-            id,
-            stage_name,
-            phone_number,
-            is_verified
-          )
+          celebrity_id
         `)
         .eq('file_type', 'video')
         .eq('is_public', true)
         .order('upload_date', { ascending: false });
 
-      if (error) throw error;
+      if (mediaError) throw mediaError;
+
+      if (!mediaData || mediaData.length === 0) {
+        setVideos([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get unique celebrity IDs
+      const celebrityIds = [...new Set(mediaData.map(video => video.celebrity_id))];
+      
+      // Fetch celebrity profiles
+      const { data: celebrityData, error: celebrityError } = await supabase
+        .from('celebrity_profiles')
+        .select(`
+          id,
+          stage_name,
+          phone_number,
+          is_verified
+        `)
+        .in('id', celebrityIds);
+
+      if (celebrityError) throw celebrityError;
+
+      // Create a map for quick lookup
+      const celebrityMap = new Map(
+        celebrityData?.map(celebrity => [celebrity.id, celebrity]) || []
+      );
 
       const clientIP = await getClientIP();
 
       // Check VIP status, views, and likes for each video
       const videosWithData = await Promise.all(
-        (mediaData || []).map(async (video: any) => {
+        mediaData.map(async (video: any) => {
+          const celebrity = celebrityMap.get(video.celebrity_id);
+          
+          if (!celebrity) return null; // Skip if celebrity not found
+
           const [vipData, viewsData, likesData, userLikeData] = await Promise.all([
             supabase
               .from('payment_verification')
@@ -99,10 +125,10 @@ const Videos = () => {
             description: video.description,
             upload_date: video.upload_date,
             celebrity: {
-              id: video.celebrity_profiles.id,
-              stage_name: video.celebrity_profiles.stage_name,
-              phone_number: video.celebrity_profiles.phone_number,
-              is_verified: video.celebrity_profiles.is_verified,
+              id: celebrity.id,
+              stage_name: celebrity.stage_name,
+              phone_number: celebrity.phone_number,
+              is_verified: celebrity.is_verified,
             },
             isVIP: vipData.data && vipData.data.length > 0,
             views: viewsData.data?.length || 0,
@@ -112,7 +138,9 @@ const Videos = () => {
         })
       );
 
-      setVideos(videosWithData);
+      // Filter out null values (videos without valid celebrities)
+      const validVideos = videosWithData.filter(video => video !== null);
+      setVideos(validVideos);
     } catch (error) {
       console.error('Error fetching videos:', error);
       toast({
