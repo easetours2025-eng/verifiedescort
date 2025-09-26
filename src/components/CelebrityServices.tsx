@@ -93,7 +93,6 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
             celebrity_id: celebrityId,
             service_name: formData.service_name,
             description: formData.description || null,
-            price: 0,
             duration_minutes: formData.duration_minutes,
             is_active: true,
           });
@@ -293,12 +292,15 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
                   </div>
 
                   <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 text-sm">
-                    <div className="flex items-center space-x-1">
-                      <Clock className="h-4 w-4 text-blue-600" />
-                      <span>{service.duration_minutes} min</span>
+                  {/* Internal duration info for editing mode only, not displayed publicly */}
+                  {isEditable && (
+                    <div className="flex items-center space-x-4 text-sm">
+                      <div className="flex items-center space-x-1">
+                        <Clock className="h-4 w-4 text-blue-600" />
+                        <span>{service.duration_minutes} min</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                     {isEditable && (
                       <div className="flex items-center space-x-2">

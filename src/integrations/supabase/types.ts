@@ -172,7 +172,6 @@ export type Database = {
           duration_minutes: number | null
           id: string
           is_active: boolean | null
-          price: number
           service_name: string
           updated_at: string
         }
@@ -183,7 +182,6 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           is_active?: boolean | null
-          price?: number
           service_name: string
           updated_at?: string
         }
@@ -194,7 +192,6 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           is_active?: boolean | null
-          price?: number
           service_name?: string
           updated_at?: string
         }

@@ -228,7 +228,7 @@ const CelebrityProfile = () => {
         .select('*')
         .eq('celebrity_id', id)
         .eq('is_active', true)
-        .order('price', { ascending: true });
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
       setServices(data || []);
@@ -447,7 +447,26 @@ const CelebrityProfile = () => {
               <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Back</span>
             </Button>
+            
+            {/* Videos and Join Celebrity buttons */}
             <div className="flex items-center space-x-1 sm:space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/videos')}
+                className="border-primary/20 hover:bg-primary/10 flex items-center"
+              >
+                <Video className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Videos</span>
+              </Button>
+              <Button 
+                onClick={() => navigate('/auth')}
+                size="sm"
+                className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-celebrity text-xs sm:text-sm"
+              >
+                Join as Celebrity
+              </Button>
+              
               <Button variant="ghost" size="sm" className="p-2">
                 <Heart className="h-4 w-4" />
                 <span className="sr-only">Favorite</span>
@@ -537,11 +556,11 @@ const CelebrityProfile = () => {
                 </div>
                 <div className="flex justify-center md:justify-start">
                   <Button 
-                    className="flex-1 md:flex-initial" 
-                    onClick={handleContact}
+                    className="flex-1 md:flex-initial bg-green-600 hover:bg-green-700 text-white" 
+                    onClick={handleWhatsApp}
                   >
-                    <Phone className="w-4 h-4 mr-2" />
-                    Call Now
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    WhatsApp
                   </Button>
                 </div>
               </div>
@@ -551,15 +570,20 @@ const CelebrityProfile = () => {
           {/* Services */}
           {services.length > 0 && (
             <Card className="p-4 md:p-6">
-              <h2 className="text-xl md:text-2xl font-semibold mb-4">Services</h2>
+              <h2 className="text-xl md:text-2xl font-semibold mb-4 flex items-center">
+                <Briefcase className="h-5 w-5 mr-2" />
+                Services Offered
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {services.map((service) => (
-                  <div key={service.id} className="p-4 border rounded-lg">
-                    <h3 className="font-medium mb-2">{service.service_name}</h3>
-                    <p className="text-sm text-muted-foreground mb-2">{service.description}</p>
-                    <div className="flex justify-start items-center">
-                      <span className="text-sm text-muted-foreground">{service.duration_minutes} min</span>
+                  <div key={service.id} className="p-4 border rounded-lg border-primary/20 hover:bg-primary/5 transition-colors">
+                    <div className="flex items-center justify-start mb-2">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                      <h3 className="font-medium">{service.service_name}</h3>
                     </div>
+                    {service.description && (
+                      <p className="text-sm text-muted-foreground pl-6">{service.description}</p>
+                    )}
                   </div>
                 ))}
               </div>
