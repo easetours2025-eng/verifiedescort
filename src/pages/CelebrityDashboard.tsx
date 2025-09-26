@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import MediaUpload from '@/components/MediaUpload';
+import { default as MediaUploadComponent } from '@/components/MediaUpload';
 import BulkMediaUpload from '@/components/BulkMediaUpload';
 import CelebrityServices from '@/components/CelebrityServices';
 import MediaManagement from '@/components/MediaManagement';
@@ -638,7 +638,7 @@ const MediaTab = ({ profile, media, onUpload, onDelete }: {
       />
       
       {/* Individual Upload */}
-      <MediaUpload 
+      <MediaUploadComponent 
         celebrityId={profile.id} 
         onUpload={onUpload}
       />
