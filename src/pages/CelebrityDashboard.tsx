@@ -19,7 +19,6 @@ import {
   User, 
   Settings, 
   Upload, 
-  DollarSign, 
   Phone, 
   MapPin, 
   Instagram, 
@@ -46,8 +45,6 @@ interface CelebrityProfile {
   age?: number;
   date_of_birth?: string;
   profile_picture_path?: string;
-  base_price: number;
-  hourly_rate?: number;
   social_instagram?: string;
   social_twitter?: string;
   is_verified: boolean;
@@ -60,7 +57,6 @@ interface MediaItem {
   description?: string;
   file_path: string;
   file_type: string;
-  price: number;
   is_premium: boolean;
   is_public: boolean;
   upload_date: string;
@@ -76,7 +72,6 @@ interface Service {
   id: string;
   service_name: string;
   description?: string;
-  price: number;
   duration_minutes: number;
   is_active: boolean;
 }
@@ -305,7 +300,7 @@ const CelebrityDashboard = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center space-x-2">
               <User className="h-4 w-4" />
               <span>Profile</span>
@@ -321,10 +316,6 @@ const CelebrityDashboard = () => {
             <TabsTrigger value="services" className="flex items-center space-x-2">
               <Briefcase className="h-4 w-4" />
               <span>Services</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center space-x-2">
-              <Settings className="h-4 w-4" />
-              <span>Settings</span>
             </TabsTrigger>
           </TabsList>
 
@@ -356,10 +347,6 @@ const CelebrityDashboard = () => {
               onServicesUpdate={fetchServices}
               isEditable={true}
             />
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <SettingsTab profile={profile} onUpdate={handleProfileUpdate} saving={saving} />
           </TabsContent>
         </Tabs>
       </div>
@@ -625,9 +612,6 @@ const MediaTab = ({ profile, media, onUpload, onDelete }: {
                             <Badge variant={item.is_public ? "default" : "secondary"}>
                               {item.is_public ? "Public" : "Private"}
                             </Badge>
-                            <Badge variant="secondary" className="bg-green-500/20 text-green-200">
-                              KSh {item.price}
-                            </Badge>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -673,76 +657,5 @@ const MediaTab = ({ profile, media, onUpload, onDelete }: {
   );
 };
 
-// Settings Tab Component
-const SettingsTab = ({ profile, onUpdate, saving }: {
-  profile: CelebrityProfile;
-  onUpdate: (data: Partial<CelebrityProfile>) => void;
-  saving: boolean;
-}) => {
-  const [formData, setFormData] = useState({
-    base_price: profile.base_price,
-    hourly_rate: profile.hourly_rate || 0,
-    is_available: profile.is_available,
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onUpdate(formData);
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <DollarSign className="h-5 w-5" />
-          <span>Pricing & Availability</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Base Price (KSh)</label>
-              <Input
-                type="number"
-                min="0"
-                value={formData.base_price}
-                onChange={(e) => setFormData({ ...formData, base_price: parseFloat(e.target.value) })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Hourly Rate (KSh)</label>
-              <Input
-                type="number"
-                min="0"
-                value={formData.hourly_rate}
-                onChange={(e) => setFormData({ ...formData, hourly_rate: parseFloat(e.target.value) })}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="available"
-              checked={formData.is_available}
-              onChange={(e) => setFormData({ ...formData, is_available: e.target.checked })}
-              className="rounded border-input"
-            />
-            <label htmlFor="available" className="text-sm font-medium">
-              Available for bookings
-            </label>
-          </div>
-
-          <Button type="submit" disabled={saving} className="w-full">
-            <Save className="h-4 w-4 mr-2" />
-            {saving ? 'Saving...' : 'Save Settings'}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
-  );
-};
 
 export default CelebrityDashboard;

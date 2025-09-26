@@ -11,7 +11,6 @@ import {
   Edit, 
   Trash2, 
   Clock, 
-  DollarSign,
   Briefcase
 } from 'lucide-react';
 
@@ -19,7 +18,6 @@ interface Service {
   id: string;
   service_name: string;
   description?: string;
-  price: number;
   duration_minutes: number;
   is_active: boolean;
 }
@@ -42,7 +40,6 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
   const [formData, setFormData] = useState({
     service_name: '',
     description: '',
-    price: 0,
     duration_minutes: 60,
   });
   const [saving, setSaving] = useState(false);
@@ -52,7 +49,6 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
     setFormData({
       service_name: '',
       description: '',
-      price: 0,
       duration_minutes: 60,
     });
     setShowAddForm(false);
@@ -79,7 +75,6 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
           .update({
             service_name: formData.service_name,
             description: formData.description || null,
-            price: formData.price,
             duration_minutes: formData.duration_minutes,
           })
           .eq('id', editingService.id);
@@ -98,7 +93,7 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
             celebrity_id: celebrityId,
             service_name: formData.service_name,
             description: formData.description || null,
-            price: formData.price,
+            price: 0,
             duration_minutes: formData.duration_minutes,
             is_active: true,
           });
@@ -129,7 +124,6 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
     setFormData({
       service_name: service.service_name,
       description: service.description || '',
-      price: service.price,
       duration_minutes: service.duration_minutes,
     });
     setEditingService(service);
@@ -217,27 +211,13 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Service Name *</label>
                     <Input
                       value={formData.service_name}
                       onChange={(e) => setFormData({ ...formData, service_name: e.target.value })}
                       placeholder="e.g., Personal Meet & Greet"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium flex items-center space-x-2">
-                      <DollarSign className="h-4 w-4" />
-                      <span>Price (KSh) *</span>
-                    </label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                      placeholder="2000"
                       required
                     />
                   </div>
@@ -313,16 +293,12 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 text-sm">
-                      <div className="flex items-center space-x-1">
-                        <DollarSign className="h-4 w-4 text-green-600" />
-                        <span className="font-bold text-primary">KSh {service.price}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Clock className="h-4 w-4 text-blue-600" />
-                        <span>{service.duration_minutes} min</span>
-                      </div>
+                  <div className="flex items-center space-x-4 text-sm">
+                    <div className="flex items-center space-x-1">
+                      <Clock className="h-4 w-4 text-blue-600" />
+                      <span>{service.duration_minutes} min</span>
                     </div>
+                  </div>
 
                     {isEditable && (
                       <div className="flex items-center space-x-2">

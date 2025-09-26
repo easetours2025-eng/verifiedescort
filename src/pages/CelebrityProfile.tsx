@@ -470,7 +470,10 @@ const CelebrityProfile = () => {
                 <div className="w-24 h-32 md:w-32 md:h-40 rounded-lg overflow-hidden bg-muted">
                   {profile.profile_picture_path ? (
                     <img 
-                      src={`https://kpjqcrhoablsllkgonbl.supabase.co/storage/v1/object/public/celebrity-photos/${profile.profile_picture_path}`}
+                      src={profile.profile_picture_path.startsWith('http') ? 
+                        profile.profile_picture_path : 
+                        `https://kpjqcrhoablsllkgonbl.supabase.co/storage/v1/object/public/celebrity-photos/${profile.profile_picture_path}`
+                      }
                       alt={profile.stage_name}
                       className="w-full h-full object-cover"
                     />
