@@ -240,31 +240,6 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
           )}
         </div>
 
-        {/* Contact Info */}
-        {celebrity.phone_number && (
-          <div className="space-y-2 p-3 bg-gradient-to-r from-primary/5 to-accent/5 rounded-lg border border-primary/20">
-            <p className="text-sm font-medium text-center">Contact Information</p>
-            <div className="flex items-center justify-center space-x-3">
-              <a 
-                href={`tel:${celebrity.phone_number}`}
-                className="flex items-center space-x-1 text-green-600 hover:text-green-700"
-              >
-                <Phone className="h-4 w-4" />
-                <span className="text-sm">{celebrity.phone_number}</span>
-              </a>
-              <a 
-                href={`https://wa.me/${celebrity.phone_number.replace(/\D/g, '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center space-x-1 text-green-500 hover:text-green-600"
-              >
-                <MessageCircle className="h-4 w-4" />
-                <span className="text-sm">WhatsApp</span>
-              </a>
-            </div>
-          </div>
-        )}
-
         {/* Services List */}
         {services.length > 0 && (
           <div className="space-y-2">
