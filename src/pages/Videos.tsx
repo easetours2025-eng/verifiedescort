@@ -8,6 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Video, Play, User, Phone, MessageCircle, ArrowLeft, Heart, Share2, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+console.log("Videos.tsx file is being processed");
+
 interface VideoData {
   id: string;
   file_path: string;
