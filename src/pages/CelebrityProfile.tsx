@@ -467,19 +467,19 @@ const CelebrityProfile = () => {
           <Card className="p-4 md:p-6">
             <div className="flex flex-col md:flex-row gap-4 md:gap-6">
               <div className="flex-shrink-0 mx-auto md:mx-0">
-                <Avatar className="w-24 h-24 md:w-32 md:h-32">
-                  <AvatarImage 
-                    src={profile.profile_picture_path ? 
-                      `https://kpjqcrhoablsllkgonbl.supabase.co/storage/v1/object/public/celebrity-photos/${profile.profile_picture_path}` : 
-                      undefined
-                    } 
-                    alt={profile.stage_name}
-                    className="object-cover"
-                  />
-                  <AvatarFallback className="text-xl md:text-2xl">
-                    {profile.stage_name.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="w-24 h-32 md:w-32 md:h-40 rounded-lg overflow-hidden bg-muted">
+                  {profile.profile_picture_path ? (
+                    <img 
+                      src={`https://kpjqcrhoablsllkgonbl.supabase.co/storage/v1/object/public/celebrity-photos/${profile.profile_picture_path}`}
+                      alt={profile.stage_name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-xl md:text-2xl font-semibold text-muted-foreground">
+                      {profile.stage_name.charAt(0)}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex-1 text-center md:text-left">
                 <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-2">
@@ -532,23 +532,14 @@ const CelebrityProfile = () => {
                     </Button>
                   )}
                 </div>
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="text-center md:text-left">
-                    <p className="text-sm text-muted-foreground">Starting from</p>
-                    <p className="text-2xl font-bold text-primary">KSh {profile.base_price}</p>
-                    {profile.hourly_rate && (
-                      <p className="text-sm text-muted-foreground">KSh {profile.hourly_rate}/hour</p>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      className="flex-1 md:flex-initial" 
-                      onClick={() => setShowMessaging(true)}
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Send Message
-                    </Button>
-                  </div>
+                <div className="flex justify-center md:justify-start">
+                  <Button 
+                    className="flex-1 md:flex-initial" 
+                    onClick={handleContact}
+                  >
+                    <Phone className="w-4 h-4 mr-2" />
+                    Call Now
+                  </Button>
                 </div>
               </div>
             </div>
@@ -563,9 +554,8 @@ const CelebrityProfile = () => {
                   <div key={service.id} className="p-4 border rounded-lg">
                     <h3 className="font-medium mb-2">{service.service_name}</h3>
                     <p className="text-sm text-muted-foreground mb-2">{service.description}</p>
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-start items-center">
                       <span className="text-sm text-muted-foreground">{service.duration_minutes} min</span>
-                      <span className="font-bold text-primary">KSh {service.price}</span>
                     </div>
                   </div>
                 ))}
@@ -666,7 +656,6 @@ const CelebrityProfile = () => {
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground truncate">{celebrity.bio}</p>
-                        <p className="text-sm font-medium text-primary">From KSh {celebrity.base_price}</p>
                       </div>
                     </div>
                   </Link>
