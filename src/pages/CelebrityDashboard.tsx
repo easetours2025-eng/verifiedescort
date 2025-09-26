@@ -263,26 +263,29 @@ const CelebrityDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
       {/* Header */}
-      <header className="border-b border-primary/20 backdrop-blur-sm bg-background/80">
-        <div className="container mx-auto px-4 py-4">
+      <header className="border-b border-primary/20 backdrop-blur-sm bg-background/80 sticky top-0 z-50">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" onClick={() => navigate('/')}>
-                ← Back to Home
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Button variant="ghost" onClick={() => navigate('/')} className="text-xs sm:text-sm px-2 sm:px-4">
+                ← <span className="hidden xs:inline ml-1">Back to Home</span>
               </Button>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 Celebrity Dashboard
               </h1>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1 sm:space-x-3">
               <Button 
                 variant="outline" 
                 onClick={() => navigate(`/celebrity/${profile.id}`)}
+                size="sm"
+                className="text-xs sm:text-sm px-2 sm:px-3"
               >
-                <Eye className="h-4 w-4 mr-2" />
-                View Public Profile
+                <Eye className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+                <span className="hidden sm:inline">View Public Profile</span>
+                <span className="sm:hidden">View</span>
               </Button>
-              <Button variant="ghost" onClick={signOut}>
+              <Button variant="ghost" onClick={signOut} size="sm" className="text-xs sm:text-sm">
                 Sign Out
               </Button>
             </div>
@@ -290,31 +293,31 @@ const CelebrityDashboard = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         {/* Visibility Status Banner */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <VisibilityStatusBanner 
             subscriptionStatus={subscriptionStatus} 
             profile={profile} 
           />
         </div>
 
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="profile" className="flex items-center space-x-2">
-              <User className="h-4 w-4" />
+        <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-0 h-auto sm:h-10">
+            <TabsTrigger value="profile" className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2 text-xs sm:text-sm py-2 sm:py-1.5">
+              <User className="h-3 w-3 sm:h-4 sm:w-4" />
               <span>Profile</span>
             </TabsTrigger>
-            <TabsTrigger value="subscription" className="flex items-center space-x-2">
-              <CreditCard className="h-4 w-4" />
+            <TabsTrigger value="subscription" className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2 text-xs sm:text-sm py-2 sm:py-1.5">
+              <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
               <span>Subscription</span>
             </TabsTrigger>
-            <TabsTrigger value="media" className="flex items-center space-x-2">
-              <Upload className="h-4 w-4" />
+            <TabsTrigger value="media" className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2 text-xs sm:text-sm py-2 sm:py-1.5">
+              <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
               <span>Media</span>
             </TabsTrigger>
-            <TabsTrigger value="services" className="flex items-center space-x-2">
-              <Briefcase className="h-4 w-4" />
+            <TabsTrigger value="services" className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2 text-xs sm:text-sm py-2 sm:py-1.5">
+              <Briefcase className="h-3 w-3 sm:h-4 sm:w-4" />
               <span>Services</span>
             </TabsTrigger>
           </TabsList>
@@ -374,14 +377,14 @@ const VisibilityStatusBanner = ({
 
   return (
     <Card className={`border-2 ${isPubliclyVisible ? 'border-green-200 bg-green-50' : 'border-yellow-200 bg-yellow-50'}`}>
-      <CardContent className="p-4">
-        <div className="flex items-center space-x-3">
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex items-start sm:items-center space-x-2 sm:space-x-3">
           {isPubliclyVisible ? (
             <>
-              <CheckCircle className="h-6 w-6 text-green-600" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-green-800">Your Profile is Publicly Visible</h3>
-                <p className="text-sm text-green-700">
+              <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 flex-shrink-0 mt-0.5 sm:mt-0" />
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-green-800 text-sm sm:text-base">Your Profile is Publicly Visible</h3>
+                <p className="text-xs sm:text-sm text-green-700">
                   Users can discover and book you. Subscription expires on{' '}
                   {subscriptionStatus.subscription_end && new Date(subscriptionStatus.subscription_end).toLocaleDateString()}
                 </p>
@@ -389,16 +392,17 @@ const VisibilityStatusBanner = ({
             </>
           ) : (
             <>
-              <AlertCircle className="h-6 w-6 text-yellow-600" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-yellow-800">Profile Not Publicly Visible</h3>
-                <p className="text-sm text-yellow-700">
+              <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600 flex-shrink-0 mt-0.5 sm:mt-0" />
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-yellow-800 text-sm sm:text-base">Profile Not Publicly Visible</h3>
+                <p className="text-xs sm:text-sm text-yellow-700">
                   Your profile is hidden from public view. Submit payment verification to become visible to users.
                 </p>
               </div>
-              <Badge variant="secondary" className="text-yellow-800 bg-yellow-100">
+              <Badge variant="secondary" className="text-yellow-800 bg-yellow-100 ml-2 sm:ml-0 flex-shrink-0">
                 <Clock className="h-3 w-3 mr-1" />
-                Pending Payment
+                <span className="hidden sm:inline">Pending Payment</span>
+                <span className="sm:hidden">Pending</span>
               </Badge>
             </>
           )}
@@ -433,21 +437,22 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <User className="h-5 w-5" />
+      <CardHeader className="pb-4 sm:pb-6">
+        <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
+          <User className="h-4 w-4 sm:h-5 sm:w-5" />
           <span>Profile Information</span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <CardContent className="px-3 sm:px-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Stage Name *</label>
               <Input
                 value={formData.stage_name}
                 onChange={(e) => setFormData({ ...formData, stage_name: e.target.value })}
                 required
+                className="text-sm sm:text-base"
               />
             </div>
             <div className="space-y-2">
@@ -455,30 +460,33 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
               <Input
                 value={formData.real_name}
                 onChange={(e) => setFormData({ ...formData, real_name: e.target.value })}
+                className="text-sm sm:text-base"
               />
             </div>
           </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Bio</label>
-                <Textarea
-                  value={formData.bio}
-                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                  rows={4}
-                  placeholder="Tell people about yourself..."
-                />
-                <p className="text-xs text-muted-foreground">
-                  Write an engaging bio that describes who you are and what makes you unique. This will be displayed with a "read more" option if it gets long.
-                </p>
-              </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Bio</label>
+            <Textarea
+              value={formData.bio}
+              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              rows={4}
+              placeholder="Tell people about yourself..."
+              className="text-sm sm:text-base resize-none"
+            />
+            <p className="text-xs text-muted-foreground">
+              Write an engaging bio that describes who you are and what makes you unique. This will be displayed with a "read more" option if it gets long.
+            </p>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Location</label>
               <Input
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="City, Country"
+                className="text-sm sm:text-base"
               />
             </div>
             <div className="space-y-2">
@@ -486,7 +494,7 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
               <select
                 value={formData.gender}
                 onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                className="w-full p-2 border border-input rounded-md bg-background"
+                className="w-full p-2 sm:p-3 border border-input rounded-md bg-background text-sm sm:text-base"
               >
                 <option value="">Select gender</option>
                 <option value="male">Male</option>
@@ -496,7 +504,7 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Age *</label>
               <Input
@@ -507,6 +515,7 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
                 onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || 18 })}
                 placeholder="25"
                 required
+                className="text-sm sm:text-base"
               />
               <p className="text-xs text-muted-foreground">Must be 18 or older</p>
             </div>
@@ -531,10 +540,11 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
               value={formData.phone_number}
               onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
               placeholder="+1 (555) 123-4567"
+              className="text-sm sm:text-base"
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium flex items-center space-x-2">
                 <Instagram className="h-4 w-4" />
@@ -544,6 +554,7 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
                 value={formData.social_instagram}
                 onChange={(e) => setFormData({ ...formData, social_instagram: e.target.value })}
                 placeholder="@username"
+                className="text-sm sm:text-base"
               />
             </div>
             <div className="space-y-2">
@@ -555,11 +566,12 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
                 value={formData.social_twitter}
                 onChange={(e) => setFormData({ ...formData, social_twitter: e.target.value })}
                 placeholder="@username"
+                className="text-sm sm:text-base"
               />
             </div>
           </div>
 
-          <Button type="submit" disabled={saving} className="w-full">
+          <Button type="submit" disabled={saving} className="w-full h-10 sm:h-11 text-sm sm:text-base">
             <Save className="h-4 w-4 mr-2" />
             {saving ? 'Saving...' : 'Save Profile'}
           </Button>
@@ -577,15 +589,15 @@ const MediaTab = ({ profile, media, onUpload, onDelete }: {
   onDelete: (id: string) => void;
 }) => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Media Slideshow - Show when payment is verified */}
       {media.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle>Media Gallery</CardTitle>
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="text-lg sm:text-xl">Media Gallery</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <CardContent className="px-3 sm:px-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {media.map((item) => (
                 <Card key={item.id} className="overflow-hidden">
                   <CardContent className="p-0">
@@ -604,24 +616,24 @@ const MediaTab = ({ profile, media, onUpload, onDelete }: {
                           muted
                         />
                       )}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 sm:p-4">
                         <div className="flex items-end justify-between">
                           <div className="text-white">
-                            <p className="text-sm font-medium">
+                            <p className="text-xs sm:text-sm font-medium">
                               {item.file_type.toUpperCase()}
                             </p>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <Badge variant={item.is_public ? "default" : "secondary"}>
+                          <div className="flex items-center space-x-1 sm:space-x-2">
+                            <Badge variant={item.is_public ? "default" : "secondary"} className="text-xs">
                               {item.is_public ? "Public" : "Private"}
                             </Badge>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => onDelete(item.id)}
-                              className="text-destructive hover:text-destructive"
+                              className="text-destructive hover:text-destructive p-1 sm:p-2"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                             </Button>
                           </div>
                         </div>
@@ -649,8 +661,8 @@ const MediaTab = ({ profile, media, onUpload, onDelete }: {
       
       {media.length === 0 && (
         <Card>
-          <CardContent className="text-center py-8">
-            <p className="text-muted-foreground">
+          <CardContent className="text-center py-6 sm:py-8 px-3 sm:px-6">
+            <p className="text-muted-foreground text-sm sm:text-base">
               No media uploaded yet. Upload your first photo or video above!
             </p>
           </CardContent>

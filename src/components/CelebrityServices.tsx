@@ -181,71 +181,73 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center space-x-2">
-            <Briefcase className="h-5 w-5" />
+      <CardHeader className="pb-3 sm:pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0">
+          <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
+            <Briefcase className="h-4 w-4 sm:h-5 sm:w-5" />
             <span>Services Offered</span>
           </CardTitle>
           {isEditable && (
             <Button 
               onClick={() => setShowAddForm(true)} 
               size="sm"
-              className="bg-gradient-to-r from-primary to-accent"
+              className="bg-gradient-to-r from-primary to-accent w-full sm:w-auto"
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
               Add Service
             </Button>
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="px-3 sm:px-6 space-y-3 sm:space-y-4">
         {/* Add/Edit Form */}
         {showAddForm && isEditable && (
-          <Card className="border-2 border-primary/20">
-            <CardHeader>
-              <CardTitle className="text-lg">
-                {editingService ? 'Edit Service' : 'Add New Service'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Service Name *</label>
-                    <Input
-                      value={formData.service_name}
-                      onChange={(e) => setFormData({ ...formData, service_name: e.target.value })}
-                      placeholder="e.g., Personal Meet & Greet, Photoshoot, Performance"
-                      required
-                    />
+            <Card className="border-2 border-primary/20 p-3 sm:p-4">
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="text-base sm:text-lg">
+                  {editingService ? 'Edit Service' : 'Add New Service'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-0 sm:px-6">
+                <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Service Name *</label>
+                      <Input
+                        value={formData.service_name}
+                        onChange={(e) => setFormData({ ...formData, service_name: e.target.value })}
+                        placeholder="e.g., Personal Meet & Greet, Photoshoot, Performance"
+                        required
+                        className="text-sm sm:text-base"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Description</label>
+                      <Textarea
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        placeholder="Describe what this service includes..."
+                        rows={3}
+                        className="text-sm sm:text-base resize-none"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Services will be displayed as bullet points. If you have many services, a "read more" option will be shown.
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Description</label>
-                    <Textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Describe what this service includes..."
-                      rows={3}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Services will be displayed as bullet points. If you have many services, a "read more" option will be shown.
-                    </p>
+                  <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 pt-2">
+                    <Button type="submit" disabled={saving} className="w-full sm:w-auto text-sm sm:text-base">
+                      {saving ? 'Saving...' : (editingService ? 'Update Service' : 'Add Service')}
+                    </Button>
+                    <Button type="button" variant="outline" onClick={resetForm} className="w-full sm:w-auto text-sm sm:text-base">
+                      Cancel
+                    </Button>
                   </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Button type="submit" disabled={saving}>
-                    {saving ? 'Saving...' : (editingService ? 'Update Service' : 'Add Service')}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+                </form>
+              </CardContent>
+            </Card>
         )}
 
         {/* Services List */}
