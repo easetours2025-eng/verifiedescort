@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Video, Play, User, Phone, MessageCircle, ArrowLeft, Heart, Share2, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -281,7 +280,7 @@ const Videos = () => {
               {/* Featured Video (First Video) */}
               {filteredVideos[0] && (
                 <div className="mb-6 sm:mb-8">
-                  <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Featured Video</h2>
+                  <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">🌟 Featured Video</h2>
                   <Card className="group hover:shadow-celebrity transition-all duration-300 hover:-translate-y-1 border-primary/30 overflow-hidden bg-gradient-to-br from-background to-primary/5">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                       <div className="relative h-48 sm:h-64 lg:h-80 cursor-pointer order-2 lg:order-1" onClick={() => {
@@ -338,7 +337,7 @@ const Videos = () => {
                         )}
 
                         <p className="text-xs text-muted-foreground mb-4">
-                          Uploaded {new Date(filteredVideos[0].upload_date).toLocaleDateString()}
+                          📅 Uploaded {new Date(filteredVideos[0].upload_date).toLocaleDateString()}
                         </p>
 
                         {/* Video Actions */}
@@ -390,7 +389,7 @@ const Videos = () => {
               
               {/* All Videos Grid */}
               <div>
-                <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">All Videos ({filteredVideos.length})</h2>
+                <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">📺 All Videos ({filteredVideos.length})</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                   {filteredVideos.map((video) => (
                     <Card key={video.id} className="group hover:shadow-celebrity transition-all duration-300 hover:-translate-y-1 border-primary/20 overflow-hidden bg-gradient-to-br from-background to-primary/5">
@@ -443,7 +442,7 @@ const Videos = () => {
                         )}
 
                         <p className="text-xs text-muted-foreground">
-                          {new Date(video.upload_date).toLocaleDateString()}
+                          📅 {new Date(video.upload_date).toLocaleDateString()}
                         </p>
 
                         {/* Video Actions */}
@@ -524,6 +523,10 @@ const Videos = () => {
               controls
               autoPlay
             />
+            <div className="mt-4 text-center text-white">
+              <h3 className="text-lg font-semibold">{selectedVideo.celebrity.stage_name}</h3>
+              {selectedVideo.title && <p className="text-sm">{selectedVideo.title}</p>}
+            </div>
           </div>
         </div>
       )}
