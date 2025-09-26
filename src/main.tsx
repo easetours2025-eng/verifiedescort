@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Videos from "./pages/Videos";
 import AdminAuth from "./pages/AdminAuth";
 import AdminDashboard from "./pages/AdminDashboard";
 import CelebrityDashboard from "./pages/CelebrityDashboard";
@@ -18,15 +19,16 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/admin-auth" element={<AdminAuth />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/dashboard" element={<CelebrityDashboard />} />
-          <Route path="/celebrity/:id" element={<CelebrityProfile />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/videos" element={<Videos />} />
+            <Route path="/admin-auth" element={<AdminAuth />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/dashboard" element={<CelebrityDashboard />} />
+            <Route path="/celebrity/:id" element={<CelebrityProfile />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         <Toaster />
       </BrowserRouter>
     </AuthProvider>
