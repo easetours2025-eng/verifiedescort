@@ -5,8 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { Video, Play, User, Phone, MessageCircle, ArrowLeft, Heart, Share2, Eye } from 'lucide-react';
+import { Video, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import VideoCard from '@/components/VideoCard';
+import VideoModal from '@/components/VideoModal';
 
 console.log("Videos.tsx file is being processed");
 
@@ -33,6 +35,7 @@ const Videos = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -65,8 +68,19 @@ const Videos = () => {
         return;
       }
 
+      // Remove duplicates based on celebrity_id - keep only the latest video per celebrity
+      const uniqueVideos = mediaData.reduce((acc: any[], current: any) => {
+        const existingIndex = acc.findIndex(video => video.celebrity_id === current.celebrity_id);
+        if (existingIndex === -1) {
+          acc.push(current);
+        } else if (new Date(current.upload_date) > new Date(acc[existingIndex].upload_date)) {
+          acc[existingIndex] = current;
+        }
+        return acc;
+      }, []);
+
       // Get unique celebrity IDs
-      const celebrityIds = [...new Set(mediaData.map(video => video.celebrity_id))];
+      const celebrityIds = [...new Set(uniqueVideos.map(video => video.celebrity_id))];
       
       // Fetch celebrity profiles
       const { data: celebrityData, error: celebrityError } = await supabase
@@ -90,7 +104,7 @@ const Videos = () => {
 
       // Check VIP status, views, and likes for each video
       const videosWithData = await Promise.all(
-        mediaData.map(async (video: any) => {
+        uniqueVideos.map(async (video: any) => {
           const celebrity = celebrityMap.get(video.celebrity_id);
           
           if (!celebrity) return null; // Skip if celebrity not found
@@ -207,13 +221,15 @@ const Videos = () => {
     }
   };
 
-  const handleShare = (videoId: string) => {
-    const shareUrl = `${window.location.origin}/videos?video=${videoId}`;
-    navigator.clipboard.writeText(shareUrl);
-    toast({
-      title: "Link copied!",
-      description: "Video link copied to clipboard",
-    });
+  const handleVideoPlay = (video: VideoData) => {
+    setSelectedVideo(video);
+    setIsModalOpen(true);
+    handleVideoView(video.id);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedVideo(null);
   };
 
   const getVideoUrl = (filePath: string) => {
@@ -306,259 +322,31 @@ const Videos = () => {
               </div>
             </div>
           ) : (
-            <>
-              {/* Featured Video (First Video) */}
-              {filteredVideos[0] && (
-                <div className="mb-6 sm:mb-8">
-                  <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">🌟 Featured Video</h2>
-                  <Card className="group hover:shadow-celebrity transition-all duration-300 hover:-translate-y-1 border-primary/30 overflow-hidden bg-gradient-to-br from-background to-primary/5">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                      <div className="relative h-48 sm:h-64 lg:h-80 cursor-pointer order-2 lg:order-1" onClick={() => {
-                        setSelectedVideo(filteredVideos[0]);
-                        handleVideoView(filteredVideos[0].id);
-                      }}>
-                        <video
-                          src={getVideoUrl(filteredVideos[0].file_path)}
-                          className="w-full h-full object-cover rounded-lg"
-                          muted
-                        />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-all rounded-lg">
-                          <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
-                            <Play className="h-8 w-8 sm:h-12 sm:w-12 text-white" />
-                          </div>
-                        </div>
-                        
-                        {/* Stats Overlay */}
-                        <div className="absolute top-3 right-3 flex items-center space-x-2">
-                          <div className="bg-black/60 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
-                            <Eye className="h-3 w-3" />
-                            <span>{filteredVideos[0].views}</span>
-                          </div>
-                        </div>
-                        
-                        {/* VIP Badge */}
-                        {filteredVideos[0].isVIP && (
-                          <div className="absolute top-3 left-3 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-3 py-1 rounded-full text-xs font-bold">
-                            ⭐ VIP
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="p-4 sm:p-6 flex flex-col justify-center order-1 lg:order-2">
-                        {/* Celebrity Info */}
-                        <div className="flex items-center space-x-2 mb-3 sm:mb-4">
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                            <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                          </div>
-                          <div className="flex-1">
-                            <span className="font-bold text-lg sm:text-xl text-primary">{filteredVideos[0].celebrity.stage_name}</span>
-                            {filteredVideos[0].celebrity.is_verified && (
-                              <Badge variant="secondary" className="ml-2 text-xs">✓ Verified</Badge>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Video Details */}
-                        {filteredVideos[0].title && (
-                          <h3 className="font-semibold text-base sm:text-lg mb-2">{filteredVideos[0].title}</h3>
-                        )}
-                        {filteredVideos[0].description && (
-                          <p className="text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-3">{filteredVideos[0].description}</p>
-                        )}
-
-                        <p className="text-xs text-muted-foreground mb-4">
-                          📅 Uploaded {new Date(filteredVideos[0].upload_date).toLocaleDateString()}
-                        </p>
-
-                        {/* Video Actions */}
-                        <div className="flex items-center space-x-4 mb-4">
-                          <button
-                            onClick={() => handleLike(filteredVideos[0].id)}
-                            className={`flex items-center space-x-2 text-sm transition-colors ${
-                              filteredVideos[0].isLiked ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'
-                            }`}
-                          >
-                            <Heart className={`h-4 w-4 ${filteredVideos[0].isLiked ? 'fill-current' : ''}`} />
-                            <span>{filteredVideos[0].likes} Likes</span>
-                          </button>
-                          <button
-                            onClick={() => handleShare(filteredVideos[0].id)}
-                            className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-                          >
-                            <Share2 className="h-4 w-4" />
-                            <span>Share</span>
-                          </button>
-                        </div>
-
-                        {/* VIP Contact Info */}
-                        {filteredVideos[0].isVIP && filteredVideos[0].celebrity.phone_number && (
-                          <div className="flex items-center space-x-3 pt-3 border-t border-yellow-200">
-                            <a 
-                              href={`tel:${filteredVideos[0].celebrity.phone_number}`}
-                              className="flex items-center space-x-2 text-green-600 hover:text-green-700 text-sm font-medium"
-                            >
-                              <Phone className="h-4 w-4" />
-                              <span>Call Now</span>
-                            </a>
-                            <a 
-                              href={`https://wa.me/${filteredVideos[0].celebrity.phone_number.replace(/\D/g, '')}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center space-x-2 text-green-500 hover:text-green-600 text-sm font-medium"
-                            >
-                              <MessageCircle className="h-4 w-4" />
-                              <span>WhatsApp</span>
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                </div>
-              )}
-              
-              {/* All Videos Grid */}
-              <div>
-                <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">📺 All Videos ({filteredVideos.length})</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
-                  {filteredVideos.map((video) => (
-                    <Card key={video.id} className="group hover:shadow-celebrity transition-all duration-300 hover:-translate-y-1 border-primary/20 overflow-hidden bg-gradient-to-br from-background to-primary/5">
-                      {/* Video Thumbnail */}
-                      <div className="relative h-32 sm:h-40 cursor-pointer" onClick={() => {
-                        setSelectedVideo(video);
-                        handleVideoView(video.id);
-                      }}>
-                        <video
-                          src={getVideoUrl(video.file_path)}
-                          className="w-full h-full object-cover"
-                          muted
-                        />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-all">
-                          <div className="bg-white/20 backdrop-blur-sm rounded-full p-2 sm:p-3">
-                            <Play className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-                          </div>
-                        </div>
-                        
-                        {/* Stats Overlay */}
-                        <div className="absolute top-2 right-2 bg-black/60 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
-                          <Eye className="h-3 w-3" />
-                          <span>{video.views}</span>
-                        </div>
-                        
-                        {/* VIP Badge */}
-                        {video.isVIP && (
-                          <div className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-2 py-1 rounded-full text-xs font-bold">
-                            VIP
-                          </div>
-                        )}
-                      </div>
-
-                      <CardContent className="p-3 sm:p-4 space-y-2 sm:space-y-3">
-                        {/* Celebrity Info */}
-                        <div className="flex items-center space-x-2">
-                          <User className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
-                          <span className="font-semibold text-primary text-sm truncate">{video.celebrity.stage_name}</span>
-                          {video.celebrity.is_verified && (
-                            <Badge variant="secondary" className="text-xs">✓</Badge>
-                          )}
-                        </div>
-
-                        {/* Video Details */}
-                        {video.title && (
-                          <h3 className="font-medium text-xs sm:text-sm line-clamp-2">{video.title}</h3>
-                        )}
-                        {video.description && (
-                          <p className="text-xs text-muted-foreground line-clamp-2">{video.description}</p>
-                        )}
-
-                        <p className="text-xs text-muted-foreground">
-                          📅 {new Date(video.upload_date).toLocaleDateString()}
-                        </p>
-
-                        {/* Video Actions */}
-                        <div className="flex items-center justify-between pt-2 border-t">
-                          <div className="flex items-center space-x-3">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleLike(video.id);
-                              }}
-                              className={`flex items-center space-x-1 text-xs transition-colors ${
-                                video.isLiked ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'
-                              }`}
-                            >
-                              <Heart className={`h-3 w-3 ${video.isLiked ? 'fill-current' : ''}`} />
-                              <span>{video.likes}</span>
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleShare(video.id);
-                              }}
-                              className="flex items-center space-x-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-                            >
-                              <Share2 className="h-3 w-3" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* VIP Contact Info */}
-                        {video.isVIP && video.celebrity.phone_number && (
-                          <div className="flex items-center justify-center space-x-2 pt-2 border-t border-yellow-200">
-                            <a 
-                              href={`tel:${video.celebrity.phone_number}`}
-                              className="flex items-center space-x-1 text-green-600 hover:text-green-700 text-xs"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Phone className="h-3 w-3" />
-                              <span>Call</span>
-                            </a>
-                            <a 
-                              href={`https://wa.me/${video.celebrity.phone_number.replace(/\D/g, '')}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center space-x-1 text-green-500 hover:text-green-600 text-xs"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <MessageCircle className="h-3 w-3" />
-                              <span>WhatsApp</span>
-                            </a>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+            <div>
+              <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">📺 Celebrity Videos ({filteredVideos.length})</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                {filteredVideos.map((video) => (
+                  <VideoCard
+                    key={video.id}
+                    video={video}
+                    videoUrl={getVideoUrl(video.file_path)}
+                    onPlay={() => handleVideoPlay(video)}
+                    onLike={() => handleLike(video.id)}
+                  />
+                ))}
               </div>
-            </>
+            </div>
           )}
         </div>
       </section>
 
       {/* Video Modal */}
       {selectedVideo && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="relative max-w-4xl w-full">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute -top-12 right-0 text-white hover:text-gray-300"
-              onClick={() => setSelectedVideo(null)}
-            >
-              ✕ Close
-            </Button>
-            <video
-              src={getVideoUrl(selectedVideo.file_path)}
-              className="w-full h-auto max-h-[80vh] rounded-lg"
-              controls
-              autoPlay
-            />
-            <div className="mt-4 text-center text-white">
-              <h3 className="text-lg font-semibold">{selectedVideo.celebrity.stage_name}</h3>
-              {selectedVideo.title && <p className="text-sm">{selectedVideo.title}</p>}
-            </div>
-          </div>
-        </div>
+        <VideoModal
+          videoUrl={getVideoUrl(selectedVideo.file_path)}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
       )}
     </div>
   );

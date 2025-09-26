@@ -127,15 +127,15 @@ const Index = () => {
       <header className="border-b border-primary/20 backdrop-blur-sm bg-background/80 sticky top-0 z-50">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="relative">
-                <Crown className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-                <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-accent absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1" />
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="relative">
+                  <Crown className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-accent absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1" />
+                </div>
+                <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  Kenya Connect
+                </h1>
               </div>
-              <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Kenya Connect
-              </h1>
-            </div>
             
             <div className="flex items-center space-x-1 sm:space-x-4">
               <Button 

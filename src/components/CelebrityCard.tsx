@@ -151,22 +151,12 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
       
       {/* Profile Image/Video - 3/4 of card */}
       <div className="relative h-64 cursor-pointer" onClick={() => onViewProfile(celebrity.id)}>
-        {profileVideo && celebrity.is_verified ? (
-          <video 
-            src={profileVideo}
-            className="w-full h-full object-cover"
-            muted
-            autoPlay
-            loop
-            playsInline
-          />
-        ) : (
-          <img 
-            src={profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${celebrity.stage_name}`}
-            alt={celebrity.stage_name}
-            className="w-full h-full object-cover"
-          />
-        )}
+        {/* Always show profile image instead of video */}
+        <img 
+          src={profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${celebrity.stage_name}`}
+          alt={celebrity.stage_name}
+          className="w-full h-full object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         
         {/* VIP Badge */}
