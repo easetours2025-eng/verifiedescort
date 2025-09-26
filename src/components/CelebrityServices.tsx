@@ -11,8 +11,12 @@ import {
   Edit, 
   Trash2, 
   Clock, 
-  Briefcase
+  Briefcase,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
+import ServicesList from './ServicesList';
 
 interface Service {
   id: string;
@@ -40,7 +44,6 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
   const [formData, setFormData] = useState({
     service_name: '',
     description: '',
-    duration_minutes: 60,
   });
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -49,7 +52,6 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
     setFormData({
       service_name: '',
       description: '',
-      duration_minutes: 60,
     });
     setShowAddForm(false);
     setEditingService(null);
@@ -75,7 +77,6 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
           .update({
             service_name: formData.service_name,
             description: formData.description || null,
-            duration_minutes: formData.duration_minutes,
           })
           .eq('id', editingService.id);
 
@@ -93,7 +94,7 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
             celebrity_id: celebrityId,
             service_name: formData.service_name,
             description: formData.description || null,
-            duration_minutes: formData.duration_minutes,
+            duration_minutes: 60, // Default duration for internal tracking only
             is_active: true,
           });
 
@@ -123,7 +124,6 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
     setFormData({
       service_name: service.service_name,
       description: service.description || '',
-      duration_minutes: service.duration_minutes,
     });
     setEditingService(service);
     setShowAddForm(true);
@@ -216,35 +216,23 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
                     <Input
                       value={formData.service_name}
                       onChange={(e) => setFormData({ ...formData, service_name: e.target.value })}
-                      placeholder="e.g., Personal Meet & Greet"
+                      placeholder="e.g., Personal Meet & Greet, Photoshoot, Performance"
                       required
                     />
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center space-x-2">
-                    <Clock className="h-4 w-4" />
-                    <span>Duration (minutes)</span>
-                  </label>
-                  <Input
-                    type="number"
-                    min="15"
-                    max="480"
-                    value={formData.duration_minutes}
-                    onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) || 60 })}
-                    placeholder="60"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Description</label>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Describe what this service includes..."
-                    rows={3}
-                  />
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Description</label>
+                    <Textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Describe what this service includes..."
+                      rows={3}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Services will be displayed as bullet points. If you have many services, a "read more" option will be shown.
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
@@ -273,66 +261,13 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {services.map((service) => (
-              <Card key={service.id} className={`relative ${!service.is_active ? 'opacity-60' : ''}`}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-lg">{service.service_name}</h4>
-                      {service.description && (
-                        <p className="text-sm text-muted-foreground mt-1">{service.description}</p>
-                      )}
-                    </div>
-                    {!service.is_active && (
-                      <Badge variant="secondary" className="ml-2">
-                        Inactive
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                  {/* Internal duration info for editing mode only, not displayed publicly */}
-                  {isEditable && (
-                    <div className="flex items-center space-x-4 text-sm">
-                      <div className="flex items-center space-x-1">
-                        <Clock className="h-4 w-4 text-blue-600" />
-                        <span>{service.duration_minutes} min</span>
-                      </div>
-                    </div>
-                  )}
-
-                    {isEditable && (
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => toggleServiceStatus(service)}
-                        >
-                          {service.is_active ? 'Deactivate' : 'Activate'}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEdit(service)}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDelete(service.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <ServicesList 
+            services={services}
+            isEditable={isEditable}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onToggleStatus={toggleServiceStatus}
+          />
         )}
       </CardContent>
     </Card>

@@ -459,15 +459,18 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Bio</label>
-            <Textarea
-              value={formData.bio}
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              rows={4}
-              placeholder="Tell people about yourself..."
-            />
-          </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Bio</label>
+                <Textarea
+                  value={formData.bio}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  rows={4}
+                  placeholder="Tell people about yourself..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  Write an engaging bio that describes who you are and what makes you unique. This will be displayed with a "read more" option if it gets long.
+                </p>
+              </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
