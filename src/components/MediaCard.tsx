@@ -37,7 +37,6 @@ const MediaCard: React.FC<MediaCardProps> = ({ media }) => {
       const data = await response.json();
       return data.ip;
     } catch (error) {
-      console.error('Error getting IP:', error);
       return 'unknown';
     }
   };
@@ -54,7 +53,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ media }) => {
       const totalViews = data?.reduce((sum, row) => sum + (row.view_count || 0), 0) || 0;
       setViewCount(totalViews);
     } catch (error) {
-      console.error('Error fetching view count:', error);
+      // Error silently handled - view count will remain 0
     }
   };
 
@@ -75,7 +74,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ media }) => {
       
       setLikeCounts(counts);
     } catch (error) {
-      console.error('Error fetching like counts:', error);
+      // Error silently handled - like counts will remain 0
     }
   };
 
@@ -93,7 +92,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ media }) => {
       const likes = data?.map(like => like.like_type) || [];
       setUserLikes(likes);
     } catch (error) {
-      console.error('Error fetching user likes:', error);
+      // Error silently handled - user likes will not be displayed
     }
   };
 
@@ -112,7 +111,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ media }) => {
       // Update local view count
       setViewCount(prev => prev + 1);
     } catch (error) {
-      console.error('Error recording view:', error);
+      // Error silently handled - view count will not be updated
     }
   };
 
@@ -153,7 +152,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ media }) => {
         }));
       }
     } catch (error) {
-      console.error('Error handling like:', error);
+      // Error silently handled - like action will not be processed
     }
   };
 

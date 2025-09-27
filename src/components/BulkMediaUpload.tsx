@@ -133,12 +133,11 @@ const BulkMediaUpload: React.FC<BulkMediaUploadProps> = ({ celebrityId, onUpload
       ));
 
     } catch (error: any) {
-      console.error('Error uploading file:', error);
       setFiles(prev => prev.map((f, i) => 
         i === index ? { 
           ...f, 
           status: 'error', 
-          progress: 0, 
+          progress: 0,
           error: error.message || 'Upload failed' 
         } : f
       ));
@@ -192,7 +191,6 @@ const BulkMediaUpload: React.FC<BulkMediaUploadProps> = ({ celebrityId, onUpload
       }
 
     } catch (error: any) {
-      console.error('Bulk upload error:', error);
       toast({
         title: "Upload error",
         description: "An unexpected error occurred during upload",

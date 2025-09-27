@@ -110,7 +110,6 @@ const MessagingModal = ({ open, onOpenChange, celebrityId, celebrityName }: Mess
         })));
       }
     } catch (error) {
-      console.error('Error initializing conversation:', error);
       toast({
         title: "Error",
         description: "Failed to load conversation",
@@ -150,7 +149,6 @@ const MessagingModal = ({ open, onOpenChange, celebrityId, celebrityName }: Mess
         description: "Your message has been sent to the celebrity",
       });
     } catch (error) {
-      console.error('Error sending message:', error);
       toast({
         title: "Error",
         description: "Failed to send message",

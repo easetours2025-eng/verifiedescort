@@ -97,7 +97,7 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
 
       setMediaStats(stats);
     } catch (error) {
-      console.error('Error fetching media stats:', error);
+      // Error silently handled - media stats will not be updated
     }
   };
 

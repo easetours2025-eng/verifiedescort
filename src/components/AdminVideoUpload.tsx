@@ -117,7 +117,6 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
           successCount++;
 
         } catch (error: any) {
-          console.error(`Error uploading ${file.name}:`, error);
           failCount++;
           setUploadProgress(prev => ({ ...prev, [fileId]: -1 })); // Mark as failed
         }
@@ -157,7 +156,6 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
       }
 
     } catch (error: any) {
-      console.error('Error uploading videos:', error);
       toast({
         title: "Upload Failed",
         description: error.message || "Failed to upload videos. Please try again.",

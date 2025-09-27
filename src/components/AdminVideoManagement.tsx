@@ -82,7 +82,6 @@ const AdminVideoManagement = ({ refreshTrigger }: AdminVideoManagementProps) => 
       if (error) throw error;
       setVideos(data || []);
     } catch (error: any) {
-      console.error('Error fetching videos:', error);
       toast({
         title: "Error",
         description: "Failed to load videos.",
@@ -109,7 +108,6 @@ const AdminVideoManagement = ({ refreshTrigger }: AdminVideoManagementProps) => 
 
       fetchVideos();
     } catch (error: any) {
-      console.error('Error updating video status:', error);
       toast({
         title: "Error",
         description: "Failed to update video status.",
@@ -139,7 +137,6 @@ const AdminVideoManagement = ({ refreshTrigger }: AdminVideoManagementProps) => 
         .remove([storagePath]);
 
       if (storageError) {
-        console.warn('Storage deletion error:', storageError);
         // Don't throw - database deletion was successful
       }
 
@@ -150,7 +147,6 @@ const AdminVideoManagement = ({ refreshTrigger }: AdminVideoManagementProps) => 
 
       fetchVideos();
     } catch (error: any) {
-      console.error('Error deleting video:', error);
       toast({
         title: "Error",
         description: "Failed to delete video.",
@@ -192,7 +188,6 @@ const AdminVideoManagement = ({ refreshTrigger }: AdminVideoManagementProps) => 
       setEditingVideo(null);
       fetchVideos();
     } catch (error: any) {
-      console.error('Error updating video:', error);
       toast({
         title: "Error",
         description: "Failed to update video.",

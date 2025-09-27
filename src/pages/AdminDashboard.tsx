@@ -87,7 +87,6 @@ const AdminDashboard = () => {
 
       try {
         const session = JSON.parse(adminSession);
-        console.log('Admin session:', session);
         
         // For development - skip time validation
         // Set admin user data
@@ -97,7 +96,6 @@ const AdminDashboard = () => {
           loginTime: session.loginTime
         });
       } catch (error) {
-        console.error('Invalid admin session:', error);
         // For development - allow fallback
         setAdminUser({
           id: 'dev-admin-id',
@@ -121,7 +119,6 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      console.log('Fetching admin data directly from database...');
       
       // Since the edge function isn't working, let's query directly using admin privileges
       // First, try to get payments data - query without joins to avoid RLS complexity
@@ -130,14 +127,10 @@ const AdminDashboard = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      console.log('Payments query result:', { paymentsData, paymentsError });
-
       // Get celebrity profiles for joining with payments
       const { data: celebrityProfilesData, error: profilesError } = await supabase
         .from('celebrity_profiles')
         .select('id, stage_name, real_name, email, is_verified');
-
-      console.log('Celebrity profiles result:', { celebrityProfilesData, profilesError });
 
       // Get celebrities data
       const { data: celebritiesData, error: celebritiesError } = await supabase
@@ -151,10 +144,8 @@ const AdminDashboard = () => {
         `)
         .order('created_at', { ascending: false });
 
-      console.log('Celebrities query result:', { celebritiesData, celebritiesError });
-
       if (celebritiesError) {
-        console.error('Celebrities error:', celebritiesError);
+        // Error handled - will show empty data
       }
 
       // Process the data
@@ -185,15 +176,9 @@ const AdminDashboard = () => {
         };
       });
 
-      console.log('Setting data:', {
-        paymentsCount: processedPayments.length,
-        celebritiesCount: processedCelebrities.length
-      });
-
       setPayments(processedPayments);
       setCelebrities(processedCelebrities);
     } catch (error) {
-      console.error('Error fetching data:', error);
       toast({
         title: "Error",
         description: "Failed to load admin data. Please try again.",
@@ -216,7 +201,6 @@ const AdminDashboard = () => {
           table: 'payment_verification'
         },
         (payload) => {
-          console.log('Payment change detected:', payload);
           fetchData();
         }
       )
@@ -233,7 +217,6 @@ const AdminDashboard = () => {
           table: 'celebrity_profiles'
         },
         (payload) => {
-          console.log('Celebrity change detected:', payload);
           fetchData();
         }
       )
@@ -250,7 +233,6 @@ const AdminDashboard = () => {
           table: 'celebrity_subscriptions'
         },
         (payload) => {
-          console.log('Subscription change detected:', payload);
           fetchData();
         }
       )
@@ -269,7 +251,6 @@ const AdminDashboard = () => {
 
   const verifyPayment = async (paymentId: string, celebrityId: string) => {
     try {
-      console.log('Starting payment verification for:', { paymentId, celebrityId });
       
       // First, mark payment as verified
       const { error: paymentError } = await supabase
@@ -282,7 +263,6 @@ const AdminDashboard = () => {
         .eq('id', paymentId);
 
       if (paymentError) {
-        console.error('Payment update error:', paymentError);
         throw paymentError;
       }
 

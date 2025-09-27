@@ -67,7 +67,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
         setProfileImage(urlData.publicUrl);
       }
     } catch (error) {
-      console.error('Error fetching profile image:', error);
+      // Error silently handled - profile image will not display
     }
   };
 
@@ -90,7 +90,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
         setProfileVideo(urlData.publicUrl);
       }
     } catch (error) {
-      console.error('Error fetching profile video:', error);
+      // Error silently handled - profile video will not display
     }
   };
 
@@ -105,7 +105,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
 
       setHasVideos((count || 0) > 0);
     } catch (error) {
-      console.error('Error checking for videos:', error);
+      // Error silently handled - videos check will not display
     }
   };
 
@@ -121,7 +121,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
 
       setIsVIP(data && data.length > 0);
     } catch (error) {
-      console.error('Error checking VIP status:', error);
+      // Error silently handled - VIP status will not display
     }
   };
 
@@ -137,7 +137,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
 
       setServices(data || []);
     } catch (error) {
-      console.error('Error fetching services:', error);
+      // Error silently handled - services will not display
     }
   };
 

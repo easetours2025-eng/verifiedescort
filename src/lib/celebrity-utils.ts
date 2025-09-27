@@ -77,7 +77,6 @@ export const canAccessSensitiveData = async (celebrityUserId: string): Promise<b
     
     return data === true;
   } catch (error) {
-    console.error('Error in canAccessSensitiveData:', error);
     return false;
   }
 };

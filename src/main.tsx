@@ -8,9 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-console.log("About to import Videos");
 import Videos from "./pages/Videos";
-console.log("Videos imported successfully:", Videos);
 import AdminAuth from "./pages/AdminAuth";
 import AdminDashboard from "./pages/AdminDashboard";
 import CelebrityDashboard from "./pages/CelebrityDashboard";

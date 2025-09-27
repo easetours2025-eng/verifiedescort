@@ -73,7 +73,6 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
         description: `Your ${tier} plan payment verification has been submitted${isOffer ? ' (Special Offer)' : ''}. An admin will review it shortly.`,
       });
     } catch (error: any) {
-      console.error('Error submitting payment:', error);
       toast({
         title: "Submission Failed",
         description: error.message || "Failed to submit payment verification",

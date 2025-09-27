@@ -30,13 +30,11 @@ const AdminAuth = () => {
         .limit(1);
       
       if (error) {
-        console.error('Error checking admin users:', error);
         setHasAdmins(false);
       } else {
         setHasAdmins(data && data.length > 0);
       }
     } catch (error) {
-      console.error('Error checking admin users:', error);
       setHasAdmins(false);
     } finally {
       setCheckingAdmins(false);
