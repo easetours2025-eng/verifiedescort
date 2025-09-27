@@ -46,12 +46,14 @@ const CelebrityMediaVideoCard: React.FC<CelebrityMediaVideoCardProps> = ({ media
   const fetchViewCount = async () => {
     try {
       const { data, error } = await supabase
-        .from('media_views')
-        .select('id')
+        .from('media_stats')
+        .select('view_count')
         .eq('media_id', media.id);
       
       if (error) throw error;
-      setViewCount(data?.length || 0);
+      // Sum up view counts across all dates for this media
+      const totalViews = data?.reduce((sum, row) => sum + (row.view_count || 0), 0) || 0;
+      setViewCount(totalViews);
     } catch (error) {
       console.error('Error fetching view count:', error);
     }

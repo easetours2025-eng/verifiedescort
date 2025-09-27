@@ -131,8 +131,8 @@ const Videos = () => {
               .eq('is_verified', true)
               .limit(1),
             supabase
-              .from('media_views')
-              .select('id')
+              .from('media_stats')
+              .select('view_count')
               .eq('media_id', video.id),
             supabase
               .from('media_likes')

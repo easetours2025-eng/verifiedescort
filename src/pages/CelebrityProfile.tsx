@@ -108,8 +108,8 @@ const CelebrityProfile = () => {
     try {
       const mediaIds = media.map(m => m.id);
       const { data, error } = await supabase
-        .from('media_views')
-        .select('media_id, id')
+        .from('media_stats')
+        .select('media_id, view_count')
         .in('media_id', mediaIds);
       
       if (error) throw error;
@@ -117,8 +117,9 @@ const CelebrityProfile = () => {
       const counts: Record<string, number> = {};
       mediaIds.forEach(id => counts[id] = 0);
       
-      data?.forEach(view => {
-        counts[view.media_id] = (counts[view.media_id] || 0) + 1;
+      // Sum up view counts for each media across all dates
+      data?.forEach(stat => {
+        counts[stat.media_id] = (counts[stat.media_id] || 0) + (stat.view_count || 0);
       });
       
       setViewCounts(counts);

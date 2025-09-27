@@ -646,6 +646,38 @@ export type Database = {
       }
     }
     Views: {
+      admin_video_stats: {
+        Row: {
+          video_id: string | null
+          view_count: number | null
+          view_date: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_video_views_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "admin_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_stats: {
+        Row: {
+          media_id: string | null
+          view_count: number | null
+          view_date: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_views_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_media"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_celebrity_profiles: {
         Row: {
           age: number | null
@@ -702,6 +734,22 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      video_stats: {
+        Row: {
+          video_id: string | null
+          view_count: number | null
+          view_date: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_views_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_media"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {

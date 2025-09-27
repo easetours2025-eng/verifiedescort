@@ -66,8 +66,8 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
       
       // Fetch views
       const { data: viewsData } = await supabase
-        .from('media_views')
-        .select('media_id, id')
+        .from('media_stats')
+        .select('media_id, view_count')
         .in('media_id', mediaIds);
 
       // Fetch likes
@@ -84,7 +84,7 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
       });
 
       viewsData?.forEach(view => {
-        stats[view.media_id].views++;
+        stats[view.media_id].views += view.view_count || 0;
       });
 
       likesData?.forEach(like => {
