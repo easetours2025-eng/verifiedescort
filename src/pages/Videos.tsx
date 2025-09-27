@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { Video, ArrowLeft } from 'lucide-react';
+import { Video, ArrowLeft, Play, Eye, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import VideoCard from '@/components/VideoCard';
 import VideoModal from '@/components/VideoModal';
@@ -30,17 +30,29 @@ interface VideoData {
   isLiked: boolean;
 }
 
+interface AdminVideo {
+  id: string;
+  title: string;
+  description?: string;
+  file_path: string;
+  view_count: number;
+  created_at: string;
+}
+
 const Videos = () => {
   const [videos, setVideos] = useState<VideoData[]>([]);
+  const [adminVideos, setAdminVideos] = useState<AdminVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
+  const [selectedAdminVideo, setSelectedAdminVideo] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     fetchVideos();
+    fetchAdminVideos();
   }, []);
 
   const fetchVideos = async () => {
@@ -177,6 +189,21 @@ const Videos = () => {
     }
   };
 
+  const fetchAdminVideos = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_videos')
+        .select('id, title, description, file_path, view_count, created_at')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAdminVideos(data || []);
+    } catch (error: any) {
+      console.error('Error fetching admin videos:', error);
+    }
+  };
+
   const handleVideoView = async (videoId: string) => {
     const clientIP = await getClientIP();
     try {
@@ -230,6 +257,7 @@ const Videos = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedVideo(null);
+    setSelectedAdminVideo('');
   };
 
   const getVideoUrl = (filePath: string) => {
@@ -239,9 +267,58 @@ const Videos = () => {
     return data.publicUrl;
   };
 
+  const handleAdminVideoClick = async (video: AdminVideo) => {
+    // Track video view
+    try {
+      const userIp = await fetch('https://api.ipify.org?format=json')
+        .then(res => res.json())
+        .then(data => data.ip)
+        .catch(() => null);
+
+      await supabase
+        .from('admin_video_views')
+        .insert({
+          video_id: video.id,
+          user_ip: userIp
+        });
+
+      // Update view count in videos table
+      await supabase
+        .from('admin_videos')
+        .update({ view_count: video.view_count + 1 })
+        .eq('id', video.id);
+
+      // Update local state
+      setAdminVideos(prev => prev.map(v => 
+        v.id === video.id 
+          ? { ...v, view_count: v.view_count + 1 }
+          : v
+      ));
+
+    } catch (error) {
+      console.warn('Error tracking video view:', error);
+    }
+
+    setSelectedAdminVideo(video.file_path);
+    setIsModalOpen(true);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
   const filteredVideos = videos.filter(video =>
     video.celebrity.stage_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     video.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    video.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredAdminVideos = adminVideos.filter(video =>
+    video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     video.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -265,7 +342,7 @@ const Videos = () => {
               </h1>
             </div>
             <Badge variant="secondary" className="hidden sm:inline-flex">
-              {videos.length} Videos
+              {adminVideos.length + videos.length} Total Videos
             </Badge>
           </div>
         </div>
@@ -311,7 +388,7 @@ const Videos = () => {
                 </Card>
               ))}
             </div>
-          ) : filteredVideos.length === 0 ? (
+          ) : filteredVideos.length === 0 && filteredAdminVideos.length === 0 ? (
             <div className="text-center py-12 sm:py-20 px-4">
               <div className="max-w-md mx-auto">
                 <Video className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto mb-4" />
@@ -322,28 +399,93 @@ const Videos = () => {
               </div>
             </div>
           ) : (
-            <div>
-              <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">📺 Celebrity Videos ({filteredVideos.length})</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                {filteredVideos.map((video) => (
-                  <VideoCard
-                    key={video.id}
-                    video={video}
-                    videoUrl={getVideoUrl(video.file_path)}
-                    onPlay={() => handleVideoPlay(video)}
-                    onLike={() => handleLike(video.id)}
-                  />
-                ))}
-              </div>
+            <div className="space-y-8">
+              {/* Admin Videos Section */}
+              {filteredAdminVideos.length > 0 && (
+                <div>
+                  <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 flex items-center">
+                    🎬 Featured Videos ({filteredAdminVideos.length})
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                    {filteredAdminVideos.map((video) => (
+                      <Card 
+                        key={video.id} 
+                        className="overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 group"
+                        onClick={() => handleAdminVideoClick(video)}
+                      >
+                        <div className="aspect-video bg-muted relative overflow-hidden">
+                          <video
+                            src={video.file_path}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            preload="metadata"
+                            onError={(e) => {
+                              const target = e.target as HTMLVideoElement;
+                              target.style.display = 'none';
+                            }}
+                            onContextMenu={(e) => e.preventDefault()}
+                            controlsList="nodownload"
+                          />
+                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
+                              <Play className="h-8 w-8 text-white" />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <CardContent className="p-4">
+                          <h3 className="font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                            {video.title}
+                          </h3>
+                          
+                          {video.description && (
+                            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                              {video.description}
+                            </p>
+                          )}
+                          
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <div className="flex items-center space-x-1">
+                              <Eye className="h-3 w-3" />
+                              <span>{video.view_count} views</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>{formatDate(video.created_at)}</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Celebrity Videos Section */}
+              {filteredVideos.length > 0 && (
+                <div>
+                  <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">📺 Celebrity Videos ({filteredVideos.length})</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                    {filteredVideos.map((video) => (
+                      <VideoCard
+                        key={video.id}
+                        video={video}
+                        videoUrl={getVideoUrl(video.file_path)}
+                        onPlay={() => handleVideoPlay(video)}
+                        onLike={() => handleLike(video.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
       </section>
 
       {/* Video Modal */}
-      {selectedVideo && (
+      {(selectedVideo || selectedAdminVideo) && (
         <VideoModal
-          videoUrl={getVideoUrl(selectedVideo.file_path)}
+          videoUrl={selectedVideo ? getVideoUrl(selectedVideo.file_path) : selectedAdminVideo}
           isOpen={isModalOpen}
           onClose={handleCloseModal}
         />
