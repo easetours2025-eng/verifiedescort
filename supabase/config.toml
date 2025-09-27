@@ -1,4 +1,7 @@
 project_id = "kpjqcrhoablsllkgonbl"
 
+[functions.admin-auth]
+verify_jwt = false
+
 [functions.admin-data]
 verify_jwt = false
