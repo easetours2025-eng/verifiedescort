@@ -228,9 +228,14 @@ const Videos = () => {
   const handleVideoView = async (videoId: string) => {
     const clientIP = await getClientIP();
     try {
-      await supabase
+      const { error } = await supabase
         .from('media_views')
         .insert({ media_id: videoId, user_ip: clientIP });
+      
+      if (error) {
+        console.error('Error recording video view:', error);
+        return false;
+      }
       
       // Update local state
       setVideos(prev => prev.map(video => 
@@ -238,8 +243,35 @@ const Videos = () => {
           ? { ...video, views: video.views + 1 }
           : video
       ));
+      return true;
     } catch (error) {
       console.error('Error recording view:', error);
+      return false;
+    }
+  };
+
+  const handleAdminVideoView = async (videoId: string) => {
+    const clientIP = await getClientIP();
+    try {
+      const { error } = await supabase
+        .from('admin_video_views')
+        .insert({ video_id: videoId, user_ip: clientIP });
+      
+      if (error) {
+        console.error('Error recording admin video view:', error);
+        return false;
+      }
+
+      // Update local state
+      setAdminVideos(prev => prev.map(v => 
+        v.id === videoId 
+          ? { ...v, view_count: v.view_count + 1 }
+          : v
+      ));
+      return true;
+    } catch (error) {
+      console.error('Error recording admin video view:', error);
+      return false;
     }
   };
 
@@ -270,9 +302,15 @@ const Videos = () => {
   };
 
   const handleVideoPlay = (video: VideoData) => {
-    setSelectedVideo(video);
-    setIsModalOpen(true);
-    handleVideoView(video.id);
+    // Record the view first, then open modal
+    handleVideoView(video.id).then(() => {
+      setSelectedVideo(video);
+      setIsModalOpen(true);
+    }).catch(() => {
+      // Still open modal even if view recording fails
+      setSelectedVideo(video);
+      setIsModalOpen(true);
+    });
   };
 
   const handleCloseModal = () => {
@@ -289,31 +327,11 @@ const Videos = () => {
   };
 
   const handleAdminVideoClick = async (video: AdminVideo) => {
-    // Track video view
+    // Record view first, then open modal
     try {
-      const userIp = await fetch('https://api.ipify.org?format=json')
-        .then(res => res.json())
-        .then(data => data.ip)
-        .catch(() => null);
-
-      await supabase
-        .from('admin_video_views')
-        .insert({
-          video_id: video.id,
-          user_ip: userIp
-        });
-
-      // No need to update admin_videos table since we're counting from admin_video_views
-
-      // Update local state
-      setAdminVideos(prev => prev.map(v => 
-        v.id === video.id 
-          ? { ...v, view_count: v.view_count + 1 }
-          : v
-      ));
-
+      await handleAdminVideoView(video.id);
     } catch (error) {
-      console.warn('Error tracking video view:', error);
+      console.warn('Error tracking admin video view:', error);
     }
 
     setSelectedAdminVideo(video.file_path);
