@@ -224,6 +224,7 @@ export type Database = {
           hourly_rate: number | null
           id: string
           is_available: boolean | null
+          is_special_offer_active: boolean | null
           is_verified: boolean | null
           location: string | null
           phone_number: string | null
@@ -232,6 +233,7 @@ export type Database = {
           social_instagram: string | null
           social_tiktok: string | null
           social_twitter: string | null
+          special_offer_registered_at: string | null
           stage_name: string
           updated_at: string
           user_id: string
@@ -247,6 +249,7 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           is_available?: boolean | null
+          is_special_offer_active?: boolean | null
           is_verified?: boolean | null
           location?: string | null
           phone_number?: string | null
@@ -255,6 +258,7 @@ export type Database = {
           social_instagram?: string | null
           social_tiktok?: string | null
           social_twitter?: string | null
+          special_offer_registered_at?: string | null
           stage_name: string
           updated_at?: string
           user_id: string
@@ -270,6 +274,7 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           is_available?: boolean | null
+          is_special_offer_active?: boolean | null
           is_verified?: boolean | null
           location?: string | null
           phone_number?: string | null
@@ -278,6 +283,7 @@ export type Database = {
           social_instagram?: string | null
           social_tiktok?: string | null
           social_twitter?: string | null
+          special_offer_registered_at?: string | null
           stage_name?: string
           updated_at?: string
           user_id?: string
@@ -820,6 +826,13 @@ export type Database = {
       }
       is_current_user_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_special_offer_active: {
+        Args: {
+          profile_created_at: string
+          special_offer_registered_at: string
+        }
         Returns: boolean
       }
     }
