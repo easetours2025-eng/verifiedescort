@@ -38,16 +38,59 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [selectedOfferTier, setSelectedOfferTier] = useState<'basic' | 'premium'>('basic');
   const [isNewCelebrity, setIsNewCelebrity] = useState(false);
+  const [specialOfferStatus, setSpecialOfferStatus] = useState<{
+    isActive: boolean;
+    daysLeft: number;
+    registeredAt?: string;
+  } | null>(null);
   const { toast } = useToast();
 
   // Check if celebrity is new (created within last 30 days)
   useEffect(() => {
     if (profile) {
-      // For demo purposes, we'll consider all celebrities as new
-      // In real implementation, you'd check the profile creation date
       setIsNewCelebrity(true);
+      checkSpecialOfferStatus();
     }
   }, [profile]);
+
+  const checkSpecialOfferStatus = async () => {
+    if (!profile?.id) return;
+
+    try {
+      const { data: fullProfile, error } = await supabase
+        .from('celebrity_profiles')
+        .select('special_offer_registered_at, is_special_offer_active, created_at')
+        .eq('id', profile.id)
+        .single();
+
+      if (error || !fullProfile) return;
+
+      const now = new Date();
+      const offerStartDate = new Date('2025-01-27T00:00:00Z');
+      const offerEndDate = new Date('2025-02-01T23:59:59Z');
+      
+      const registeredAt = fullProfile.special_offer_registered_at 
+        ? new Date(fullProfile.special_offer_registered_at)
+        : new Date(fullProfile.created_at);
+
+      const registeredDuringOffer = fullProfile.special_offer_registered_at && 
+        registeredAt >= offerStartDate && registeredAt <= offerEndDate;
+
+      if (registeredDuringOffer) {
+        const offerExpiryDate = new Date(registeredAt.getTime() + (5 * 24 * 60 * 60 * 1000));
+        const timeLeft = offerExpiryDate.getTime() - now.getTime();
+        const daysLeft = Math.max(0, Math.ceil(timeLeft / (24 * 60 * 60 * 1000)));
+
+        setSpecialOfferStatus({
+          isActive: timeLeft > 0,
+          daysLeft,
+          registeredAt: fullProfile.special_offer_registered_at
+        });
+      }
+    } catch (error) {
+      console.error('Error checking special offer status:', error);
+    }
+  };
 
   const handleTierSubmission = async (tier: 'basic' | 'premium', mpesaCode: string, phoneNumber: string, isOffer: boolean = false) => {
     try {
@@ -100,6 +143,9 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
     : true;
 
   const getStatusIcon = () => {
+    if (specialOfferStatus?.isActive) {
+      return <CheckCircle className="h-5 w-5 text-green-500" />;
+    }
     if (subscriptionStatus?.is_active && !isExpired) {
       return <CheckCircle className="h-5 w-5 text-green-500" />;
     }
@@ -110,12 +156,14 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
   };
 
   const getStatusText = () => {
+    if (specialOfferStatus?.isActive) return "Free Active";
     if (subscriptionStatus?.is_active && !isExpired) return "Active";
     if (isExpired) return "Expired";
     return "Inactive";
   };
 
   const getStatusVariant = (): "default" | "secondary" | "destructive" => {
+    if (specialOfferStatus?.isActive) return "default";
     if (subscriptionStatus?.is_active && !isExpired) return "default";
     if (isExpired) return "destructive";
     return "secondary";
@@ -123,6 +171,34 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
 
   return (
     <div className="space-y-6">
+      {/* Special 5-Day Offer Status */}
+      {specialOfferStatus && (
+        <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 rounded-full bg-green-100">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-green-800">🎉 5-Day Free Visibility Active!</h3>
+                {specialOfferStatus.isActive ? (
+                  <p className="text-sm text-green-700">
+                    Your profile is publicly visible for free! {specialOfferStatus.daysLeft} day{specialOfferStatus.daysLeft !== 1 ? 's' : ''} remaining in your free period.
+                  </p>
+                ) : (
+                  <p className="text-sm text-green-700">
+                    Your 5-day free visibility period has ended. Subscribe to continue being visible to users.
+                  </p>
+                )}
+              </div>
+              <Badge className="bg-green-500 text-white">
+                {specialOfferStatus.isActive ? 'ACTIVE' : 'EXPIRED'}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Special Joining Offer Banner */}
       {isNewCelebrity && !subscriptionStatus?.is_active && (
         <JoiningOfferBanner 
@@ -178,15 +254,17 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
           )}
 
           <div className="flex items-center space-x-2 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-            {subscriptionStatus?.is_active && !isExpired ? (
+            {(subscriptionStatus?.is_active && !isExpired) || specialOfferStatus?.isActive ? (
               <Eye className="h-4 w-4 text-blue-500" />
             ) : (
               <EyeOff className="h-4 w-4 text-gray-500" />
             )}
             <p className="text-sm">
-              {subscriptionStatus?.is_active && !isExpired
-                ? "Your profile is visible to users browsing celebrities"
-                : "Your profile is hidden from public view. Subscribe to become visible."
+              {specialOfferStatus?.isActive 
+                ? "Your profile is visible via 5-day free offer!"
+                : (subscriptionStatus?.is_active && !isExpired)
+                  ? "Your profile is visible to users browsing celebrities"
+                  : "Your profile is hidden from public view. Subscribe to become visible or wait for special offers."
               }
             </p>
           </div>

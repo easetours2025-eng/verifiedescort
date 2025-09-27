@@ -89,6 +89,52 @@ const JoiningOfferBanner = ({ onSelectOffer, isNewCelebrity = true }: JoiningOff
       </CardHeader>
 
       <CardContent className="space-y-6">
+        {/* FREE 5-Day Offer - Priority Section */}
+        <Card className="border-2 border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 shadow-md">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="p-2 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 text-white">
+                <Zap className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-green-800 text-lg">🆓 FREE 5-Day Visibility!</h3>
+                <p className="text-xs text-green-600">No payment required - Start immediately!</p>
+              </div>
+              <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white animate-bounce">
+                FREE
+              </Badge>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="bg-white/50 p-3 rounded-lg border border-green-200">
+                <h4 className="font-semibold text-green-800 mb-2">What you get instantly:</h4>
+                <ul className="text-sm text-green-700 space-y-1">
+                  <li>✅ Profile visible to all users immediately</li>
+                  <li>✅ No payment or verification required</li>
+                  <li>✅ Full 5 days to test the platform</li>
+                  <li>✅ All basic features included</li>
+                </ul>
+              </div>
+              
+              <div className="bg-gradient-to-r from-green-100 to-emerald-100 p-3 rounded-lg border border-green-200">
+                <p className="text-sm text-green-800 font-medium text-center">
+                  🚀 Complete your profile setup and you'll be visible to users right away!
+                </p>
+                <p className="text-xs text-green-600 text-center mt-1">
+                  Perfect for testing the platform before committing to a paid plan
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Divider */}
+        <div className="flex items-center space-x-4">
+          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+          <span className="text-sm font-medium text-muted-foreground bg-background px-3">OR Choose Paid Plan</span>
+          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+        </div>
+
         {/* Special Pricing */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Basic Offer */}
