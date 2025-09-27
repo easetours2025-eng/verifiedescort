@@ -478,7 +478,8 @@ const Videos = () => {
                               target.style.display = 'none';
                             }}
                             onContextMenu={(e) => e.preventDefault()}
-                            controlsList="nodownload"
+                            controlsList="nodownload nofullscreen noremoteplayback"
+                            disablePictureInPicture
                           />
                           <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                             <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
@@ -488,16 +489,6 @@ const Videos = () => {
                         </div>
                         
                         <CardContent className="p-4">
-                          <h3 className="font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                            {video.title || 'Video'}
-                          </h3>
-                          
-                          {video.description && (
-                            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                              {video.description}
-                            </p>
-                          )}
-                          
                           <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
                             <div className="flex items-center space-x-1">
                               <Eye className="h-3 w-3" />
