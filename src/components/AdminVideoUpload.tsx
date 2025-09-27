@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,8 +13,6 @@ interface AdminVideoUploadProps {
 
 const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
     isActive: true
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -52,10 +48,10 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedFile || !formData.title.trim()) {
+    if (!selectedFile) {
       toast({
         title: "Missing Information",
-        description: "Please select a video file and enter a title.",
+        description: "Please select a video file.",
         variant: "destructive",
       });
       return;
@@ -85,8 +81,6 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
       const { error: dbError } = await supabase
         .from('admin_videos')
         .insert({
-          title: formData.title.trim(),
-          description: formData.description.trim() || null,
           file_path: publicUrl,
           is_active: formData.isActive
         });
@@ -100,8 +94,6 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
 
       // Reset form
       setFormData({
-        title: '',
-        description: '',
         isActive: true
       });
       setSelectedFile(null);
@@ -189,29 +181,6 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
             </div>
           </div>
 
-          {/* Title */}
-          <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="Enter video title"
-              required
-            />
-          </div>
-
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Enter video description (optional)"
-              rows={3}
-            />
-          </div>
 
           {/* Active Status */}
           <div className="flex items-center space-x-2">
@@ -226,7 +195,7 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
           {/* Submit Button */}
           <Button
             type="submit"
-            disabled={uploading || !selectedFile || !formData.title.trim()}
+            disabled={uploading || !selectedFile}
             className="w-full"
           >
             {uploading ? (

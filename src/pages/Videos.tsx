@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { Video, ArrowLeft, Play, Eye, Calendar } from 'lucide-react';
+import { Video, ArrowLeft, Play, Eye, Calendar, Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import VideoCard from '@/components/VideoCard';
 import VideoModal from '@/components/VideoModal';
@@ -32,11 +32,13 @@ interface VideoData {
 
 interface AdminVideo {
   id: string;
-  title: string;
+  title?: string;
   description?: string;
   file_path: string;
   view_count: number;
   created_at: string;
+  likes: number;
+  isLiked: boolean;
 }
 
 const Videos = () => {
@@ -191,14 +193,41 @@ const Videos = () => {
 
   const fetchAdminVideos = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: adminData, error } = await supabase
         .from('admin_videos')
         .select('id, title, description, file_path, view_count, created_at')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAdminVideos(data || []);
+
+      const clientIP = await getClientIP();
+
+      // Get likes data for each admin video
+      const adminVideosWithLikes = await Promise.all(
+        (adminData || []).map(async (video: any) => {
+          const [likesData, userLikeData] = await Promise.all([
+            supabase
+              .from('admin_video_likes')
+              .select('id')
+              .eq('video_id', video.id),
+            supabase
+              .from('admin_video_likes')
+              .select('id')
+              .eq('video_id', video.id)
+              .eq('user_ip', clientIP)
+              .limit(1)
+          ]);
+
+          return {
+            ...video,
+            likes: likesData.data?.length || 0,
+            isLiked: userLikeData.data && userLikeData.data.length > 0,
+          };
+        })
+      );
+
+      setAdminVideos(adminVideosWithLikes);
     } catch (error: any) {
       console.error('Error fetching admin videos:', error);
     }
@@ -303,6 +332,32 @@ const Videos = () => {
     setIsModalOpen(true);
   };
 
+  const handleAdminVideoLike = async (videoId: string) => {
+    const clientIP = await getClientIP();
+    const video = adminVideos.find(v => v.id === videoId);
+    
+    try {
+      if (video?.isLiked) {
+        // Unlike
+        await supabase
+          .from('admin_video_likes')
+          .delete()
+          .eq('video_id', videoId)
+          .eq('user_ip', clientIP);
+      } else {
+        // Like
+        await supabase
+          .from('admin_video_likes')
+          .insert({ video_id: videoId, user_ip: clientIP });
+      }
+      
+      // Refresh admin videos to update counts
+      fetchAdminVideos();
+    } catch (error) {
+      console.error('Error handling admin video like:', error);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -318,7 +373,7 @@ const Videos = () => {
   );
 
   const filteredAdminVideos = adminVideos.filter(video =>
-    video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    video.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     video.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -434,7 +489,7 @@ const Videos = () => {
                         
                         <CardContent className="p-4">
                           <h3 className="font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                            {video.title}
+                            {video.title || 'Video'}
                           </h3>
                           
                           {video.description && (
@@ -443,7 +498,7 @@ const Videos = () => {
                             </p>
                           )}
                           
-                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
                             <div className="flex items-center space-x-1">
                               <Eye className="h-3 w-3" />
                               <span>{video.view_count} views</span>
@@ -451,6 +506,27 @@ const Videos = () => {
                             <div className="flex items-center space-x-1">
                               <Calendar className="h-3 w-3" />
                               <span>{formatDate(video.created_at)}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAdminVideoLike(video.id);
+                                }}
+                                className={`flex items-center space-x-1 px-2 py-1 rounded-full transition-colors ${
+                                  video.isLiked 
+                                    ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                              >
+                                <Heart 
+                                  className={`h-3 w-3 ${video.isLiked ? 'fill-current' : ''}`} 
+                                />
+                                <span className="text-xs">{video.likes}</span>
+                              </button>
                             </div>
                           </div>
                         </CardContent>

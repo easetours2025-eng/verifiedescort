@@ -38,6 +38,38 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_video_likes: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string | null
+          user_ip: string | null
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id?: string | null
+          user_ip?: string | null
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string | null
+          user_ip?: string | null
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_video_likes_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "admin_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_video_views: {
         Row: {
           created_at: string
@@ -80,7 +112,7 @@ export type Database = {
           id: string
           is_active: boolean
           thumbnail_path: string | null
-          title: string
+          title: string | null
           updated_at: string
           view_count: number
         }
@@ -93,7 +125,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           thumbnail_path?: string | null
-          title: string
+          title?: string | null
           updated_at?: string
           view_count?: number
         }
@@ -106,7 +138,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           thumbnail_path?: string | null
-          title?: string
+          title?: string | null
           updated_at?: string
           view_count?: number
         }
