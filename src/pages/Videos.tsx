@@ -125,8 +125,8 @@ const Videos = () => {
               .eq('is_verified', true)
               .limit(1),
             supabase
-              .from('media_stats')
-              .select('view_count')
+              .from('media_views')
+              .select('id')
               .eq('media_id', video.id),
             supabase
               .rpc('get_media_like_count', { media_uuid: video.id }),
@@ -185,7 +185,7 @@ const Videos = () => {
     try {
       const { data: adminData, error } = await supabase
         .from('admin_videos')
-        .select('id, title, description, file_path, view_count, created_at')
+        .select('id, title, description, file_path, created_at')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
@@ -193,10 +193,14 @@ const Videos = () => {
 
       const clientIP = await getClientIP();
 
-      // Get likes data for each admin video
-      const adminVideosWithLikes = await Promise.all(
+      // Get views and likes data for each admin video
+      const adminVideosWithData = await Promise.all(
         (adminData || []).map(async (video: any) => {
-          const [likesData, userLikeData] = await Promise.all([
+          const [viewsData, likesData, userLikeData] = await Promise.all([
+            supabase
+              .from('admin_video_views')
+              .select('id')
+              .eq('video_id', video.id),
             supabase
               .rpc('get_admin_video_like_count', { video_uuid: video.id }),
             supabase
@@ -208,13 +212,14 @@ const Videos = () => {
 
           return {
             ...video,
+            view_count: viewsData.data?.length || 0,
             likes: likesData.data || 0,
             isLiked: userLikeData.data || false,
           };
         })
       );
 
-      setAdminVideos(adminVideosWithLikes);
+      setAdminVideos(adminVideosWithData);
     } catch (error: any) {
       console.error('Error fetching admin videos:', error);
     }
@@ -298,11 +303,7 @@ const Videos = () => {
           user_ip: userIp
         });
 
-      // Update view count in videos table
-      await supabase
-        .from('admin_videos')
-        .update({ view_count: video.view_count + 1 })
-        .eq('id', video.id);
+      // No need to update admin_videos table since we're counting from admin_video_views
 
       // Update local state
       setAdminVideos(prev => prev.map(v => 
