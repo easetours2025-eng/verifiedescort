@@ -89,15 +89,6 @@ const JoiningOfferBanner = ({ onSelectOffer, isNewCelebrity = true }: JoiningOff
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Offer Image */}
-        <div className="w-full h-32 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg flex items-center justify-center overflow-hidden">
-          <img 
-            src={offerBanner} 
-            alt="Special Joining Offer" 
-            className="w-full h-full object-cover rounded-lg"
-          />
-        </div>
-
         {/* Special Pricing */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Basic Offer */}
