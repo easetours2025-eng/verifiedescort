@@ -63,6 +63,9 @@ interface CelebrityProfile {
   created_at: string;
   subscription_status: 'active' | 'inactive' | 'expired';
   subscription_end?: string;
+  is_special_offer_active?: boolean;
+  special_offer_registered_at?: string;
+  subscription_tier?: string;
 }
 
 const AdminDashboard = () => {
@@ -73,6 +76,7 @@ const AdminDashboard = () => {
   const [searchPayment, setSearchPayment] = useState('');
   const [searchCelebrity, setSearchCelebrity] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const navigate = useNavigate();
 
@@ -139,7 +143,8 @@ const AdminDashboard = () => {
           *,
           celebrity_subscriptions (
             is_active,
-            subscription_end
+            subscription_end,
+            subscription_tier
           )
         `)
         .order('created_at', { ascending: false });
@@ -172,7 +177,8 @@ const AdminDashboard = () => {
         return {
           ...celebrity,
           subscription_status,
-          subscription_end: activeSubscription?.subscription_end
+          subscription_end: activeSubscription?.subscription_end,
+          subscription_tier: activeSubscription?.subscription_tier || 'basic'
         };
       });
 
@@ -452,11 +458,23 @@ const AdminDashboard = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const filteredCelebrities = celebrities.filter(celebrity =>
-    !searchCelebrity ||
-    celebrity.stage_name.toLowerCase().includes(searchCelebrity.toLowerCase()) ||
-    celebrity.email.toLowerCase().includes(searchCelebrity.toLowerCase())
-  );
+  const filteredCelebrities = celebrities.filter(celebrity => {
+    const matchesSearch = !searchCelebrity ||
+      celebrity.stage_name.toLowerCase().includes(searchCelebrity.toLowerCase()) ||
+      celebrity.email.toLowerCase().includes(searchCelebrity.toLowerCase());
+
+    const matchesCategory = categoryFilter === 'all' ||
+      (categoryFilter === 'special' && celebrity.is_special_offer_active) ||
+      (categoryFilter === 'premium' && celebrity.subscription_status === 'active' && celebrity.subscription_tier === 'premium') ||
+      (categoryFilter === 'basic' && celebrity.subscription_status === 'active' && celebrity.subscription_tier === 'basic');
+
+    return matchesSearch && matchesCategory;
+  });
+
+  // Category counts
+  const specialOfferUsers = celebrities.filter(c => c.is_special_offer_active);
+  const premiumUsers = celebrities.filter(c => c.subscription_status === 'active' && c.subscription_tier === 'premium');
+  const basicUsers = celebrities.filter(c => c.subscription_status === 'active' && c.subscription_tier === 'basic');
 
   if (loading) {
     return (
@@ -498,7 +516,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Summary Statistics */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6 mb-6 md:mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xs md:text-sm font-medium">Total Celebrities</CardTitle>
@@ -511,25 +529,34 @@ const AdminDashboard = () => {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium">Active Subscriptions</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
+              <CardTitle className="text-xs md:text-sm font-medium">Special Offer</CardTitle>
+              <CheckCircle className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-xl md:text-2xl font-bold">
-                {celebrities.filter(c => c.subscription_status === 'active').length}
-              </div>
+              <div className="text-xl md:text-2xl font-bold">{specialOfferUsers.length}</div>
+              <p className="text-xs text-muted-foreground">5-day free visibility</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium">Pending Payments</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-600" />
+              <CardTitle className="text-xs md:text-sm font-medium">Premium Users</CardTitle>
+              <CheckCircle className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-xl md:text-2xl font-bold">
-                {payments.filter(p => !p.is_verified).length}
-              </div>
+              <div className="text-xl md:text-2xl font-bold">{premiumUsers.length}</div>
+              <p className="text-xs text-muted-foreground">Active premium plan</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium">Basic Users</CardTitle>
+              <CheckCircle className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl md:text-2xl font-bold">{basicUsers.length}</div>
+              <p className="text-xs text-muted-foreground">Active basic plan</p>
             </CardContent>
           </Card>
 
@@ -674,7 +701,7 @@ const AdminDashboard = () => {
                 <p className="text-xs md:text-sm text-gray-600">View and manage celebrity profiles and subscriptions</p>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mb-4 md:mb-6">
+                <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4 mb-4 md:mb-6">
                   <div className="flex-1 relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
@@ -684,6 +711,17 @@ const AdminDashboard = () => {
                       className="pl-10 text-sm"
                     />
                   </div>
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="w-full md:w-[200px]">
+                      <SelectValue placeholder="Filter by category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Users</SelectItem>
+                      <SelectItem value="special">Special Offer (5-day)</SelectItem>
+                      <SelectItem value="premium">Premium Users</SelectItem>
+                      <SelectItem value="basic">Basic Users</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <div className="flex space-x-2">
                     <Button
                       variant={viewMode === 'cards' ? 'default' : 'outline'}
@@ -715,20 +753,35 @@ const AdminDashboard = () => {
                             <div className="space-y-2">
                               <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-2">
                                 <h3 className="font-semibold text-sm md:text-base">{celebrity.stage_name}</h3>
-                                <div className="flex flex-wrap gap-1">
-                                  <Badge variant={celebrity.subscription_status === 'active' ? 'default' : 'secondary'}>
-                                    {celebrity.subscription_status === 'active' ? 'Active' : 'Inactive'}
-                                  </Badge>
-                                  <Badge variant={celebrity.is_available ? 'default' : 'secondary'}>
-                                    {celebrity.is_available ? 'Available' : 'Unavailable'}
-                                  </Badge>
-                                  {celebrity.is_verified && (
-                                    <Badge variant="default" className="bg-blue-100 text-blue-800">
-                                      <ShieldCheck className="h-3 w-3 mr-1" />
-                                      Verified
-                                    </Badge>
-                                  )}
-                                </div>
+                                 <div className="flex flex-wrap gap-1">
+                                   {celebrity.is_special_offer_active && (
+                                     <Badge variant="default" className="bg-orange-100 text-orange-800">
+                                       Special Offer (5-day)
+                                     </Badge>
+                                   )}
+                                   {celebrity.subscription_status === 'active' && celebrity.subscription_tier === 'premium' && (
+                                     <Badge variant="default" className="bg-purple-100 text-purple-800">
+                                       Premium Plan
+                                     </Badge>
+                                   )}
+                                   {celebrity.subscription_status === 'active' && celebrity.subscription_tier === 'basic' && (
+                                     <Badge variant="default" className="bg-blue-100 text-blue-800">
+                                       Basic Plan
+                                     </Badge>
+                                   )}
+                                   <Badge variant={celebrity.subscription_status === 'active' ? 'default' : 'secondary'}>
+                                     {celebrity.subscription_status === 'active' ? 'Active' : 'Inactive'}
+                                   </Badge>
+                                   <Badge variant={celebrity.is_available ? 'default' : 'secondary'}>
+                                     {celebrity.is_available ? 'Available' : 'Unavailable'}
+                                   </Badge>
+                                   {celebrity.is_verified && (
+                                     <Badge variant="default" className="bg-green-100 text-green-800">
+                                       <ShieldCheck className="h-3 w-3 mr-1" />
+                                       Verified
+                                     </Badge>
+                                   )}
+                                 </div>
                               </div>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs md:text-sm text-gray-600">
                                 <p><strong>Email:</strong> {celebrity.email}</p>
