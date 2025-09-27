@@ -325,21 +325,13 @@ const Index = () => {
       <section className="pb-8 sm:pb-20">
         <div className="container mx-auto px-3 sm:px-4">
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardHeader className="pb-3 sm:pb-6">
-                    <div className="h-16 w-16 sm:h-20 sm:w-20 bg-muted rounded-full mx-auto" />
-                    <div className="h-4 sm:h-6 bg-muted rounded mx-auto w-24 sm:w-32" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 sm:space-y-3">
-                      <div className="h-3 sm:h-4 bg-muted rounded" />
-                      <div className="h-3 sm:h-4 bg-muted rounded w-3/4" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="flex flex-col items-center justify-center py-12 sm:py-20">
+              <div className="relative">
+                <Crown className="h-16 w-16 sm:h-20 sm:w-20 text-primary animate-spin" />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent rounded-full opacity-20 animate-pulse"></div>
+              </div>
+              <h3 className="text-lg sm:text-xl font-semibold mt-4 mb-2 text-primary">Loading Celebrities...</h3>
+              <p className="text-muted-foreground text-sm sm:text-base">Discovering amazing profiles for you</p>
             </div>
           ) : filteredCelebrities.length === 0 ? (
             <div className="text-center py-12 sm:py-20 px-4">

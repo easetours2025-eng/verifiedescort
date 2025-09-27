@@ -422,19 +422,13 @@ const Videos = () => {
       <section className="pb-8 sm:pb-20">
         <div className="container mx-auto px-3 sm:px-4">
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
-              {[...Array(8)].map((_, i) => (
-                <Card key={i} className="animate-pulse overflow-hidden">
-                  <div className="h-40 sm:h-48 bg-gradient-to-br from-muted to-muted-foreground/20" />
-                  <CardContent className="p-3 sm:p-4">
-                    <div className="space-y-2 sm:space-y-3">
-                      <div className="h-3 sm:h-4 bg-muted rounded" />
-                      <div className="h-3 sm:h-4 bg-muted rounded w-3/4" />
-                      <div className="h-3 sm:h-4 bg-muted rounded w-1/2" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="flex flex-col items-center justify-center py-12 sm:py-20">
+              <div className="relative">
+                <Video className="h-16 w-16 sm:h-20 sm:w-20 text-primary animate-spin" />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent rounded-full opacity-20 animate-pulse"></div>
+              </div>
+              <h3 className="text-lg sm:text-xl font-semibold mt-4 mb-2 text-primary">Loading Videos...</h3>
+              <p className="text-muted-foreground text-sm sm:text-base">Please wait while we fetch the latest content</p>
             </div>
           ) : filteredVideos.length === 0 && filteredAdminVideos.length === 0 ? (
             <div className="text-center py-12 sm:py-20 px-4">
