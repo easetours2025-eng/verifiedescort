@@ -763,6 +763,14 @@ export type Database = {
         Args: { profile_user_id: string }
         Returns: boolean
       }
+      get_admin_video_like_count: {
+        Args: { video_uuid: string }
+        Returns: number
+      }
+      get_media_like_count: {
+        Args: { media_uuid: string }
+        Returns: number
+      }
       get_public_celebrity_data: {
         Args: { celebrity_profile_id?: string }
         Returns: {
@@ -803,6 +811,22 @@ export type Database = {
           social_twitter: string
           stage_name: string
         }[]
+      }
+      get_video_like_count: {
+        Args: { video_uuid: string }
+        Returns: number
+      }
+      has_user_liked_admin_video: {
+        Args: { user_ip_param: string; video_uuid: string }
+        Returns: boolean
+      }
+      has_user_liked_media: {
+        Args: { media_uuid: string; user_ip_param: string }
+        Returns: boolean
+      }
+      has_user_liked_video: {
+        Args: { user_ip_param: string; video_uuid: string }
+        Returns: boolean
       }
       is_admin: {
         Args: Record<PropertyKey, never>

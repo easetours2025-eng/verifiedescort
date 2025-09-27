@@ -60,20 +60,14 @@ const CelebrityMediaVideoCard: React.FC<CelebrityMediaVideoCardProps> = ({ media
 
   const fetchLikeCounts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('media_likes')
-        .select('like_type')
-        .eq('media_id', media.id);
+      const { data: likeCount, error: likeError } = await supabase
+        .rpc('get_media_like_count', { media_uuid: media.id });
       
-      if (error) throw error;
+      if (likeError) throw likeError;
       
-      const counts = { likes: 0, loves: 0 };
-      data?.forEach(like => {
-        if (like.like_type === 'like') counts.likes++;
-        else if (like.like_type === 'love') counts.loves++;
-      });
-      
-      setLikeCounts(counts);
+      // For now, we'll show total likes as "likes" and set loves to 0
+      // since the secure function returns total count without type breakdown
+      setLikeCounts({ likes: likeCount || 0, loves: 0 });
     } catch (error) {
       // Error silently handled - like counts will remain 0
     }
@@ -82,16 +76,16 @@ const CelebrityMediaVideoCard: React.FC<CelebrityMediaVideoCardProps> = ({ media
   const fetchUserLikes = async () => {
     try {
       const userIP = await getUserIP();
-      const { data, error } = await supabase
-        .from('media_likes')
-        .select('like_type')
-        .eq('media_id', media.id)
-        .eq('user_ip', userIP);
+      const { data: hasLiked, error } = await supabase
+        .rpc('has_user_liked_media', { 
+          media_uuid: media.id, 
+          user_ip_param: userIP 
+        });
       
       if (error) throw error;
       
-      const likes = data?.map(like => like.like_type) || [];
-      setUserLikes(likes);
+      // Set likes based on whether user has liked (simplified to just 'like' type)
+      setUserLikes(hasLiked ? ['like'] : []);
     } catch (error) {
       // Error silently handled - user likes will not be displayed
     }

@@ -129,15 +129,12 @@ const Videos = () => {
               .select('view_count')
               .eq('media_id', video.id),
             supabase
-              .from('media_likes')
-              .select('id')
-              .eq('media_id', video.id),
+              .rpc('get_media_like_count', { media_uuid: video.id }),
             supabase
-              .from('media_likes')
-              .select('id')
-              .eq('media_id', video.id)
-              .eq('user_ip', clientIP)
-              .limit(1)
+              .rpc('has_user_liked_media', { 
+                media_uuid: video.id, 
+                user_ip_param: clientIP 
+              })
           ]);
 
           return {
@@ -153,8 +150,8 @@ const Videos = () => {
             },
             isVIP: vipData.data && vipData.data.length > 0,
             views: viewsData.data?.length || 0,
-            likes: likesData.data?.length || 0,
-            isLiked: userLikeData.data && userLikeData.data.length > 0,
+            likes: likesData.data || 0,
+            isLiked: userLikeData.data || false,
           };
         })
       );
@@ -201,21 +198,18 @@ const Videos = () => {
         (adminData || []).map(async (video: any) => {
           const [likesData, userLikeData] = await Promise.all([
             supabase
-              .from('admin_video_likes')
-              .select('id')
-              .eq('video_id', video.id),
+              .rpc('get_admin_video_like_count', { video_uuid: video.id }),
             supabase
-              .from('admin_video_likes')
-              .select('id')
-              .eq('video_id', video.id)
-              .eq('user_ip', clientIP)
-              .limit(1)
+              .rpc('has_user_liked_admin_video', { 
+                video_uuid: video.id, 
+                user_ip_param: clientIP 
+              })
           ]);
 
           return {
             ...video,
-            likes: likesData.data?.length || 0,
-            isLiked: userLikeData.data && userLikeData.data.length > 0,
+            likes: likesData.data || 0,
+            isLiked: userLikeData.data || false,
           };
         })
       );

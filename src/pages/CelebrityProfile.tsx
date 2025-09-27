@@ -131,22 +131,19 @@ const CelebrityProfile = () => {
   const fetchLikeCounts = async () => {
     try {
       const mediaIds = media.map(m => m.id);
-      const { data, error } = await supabase
-        .from('media_likes')
-        .select('media_id, like_type')
-        .in('media_id', mediaIds);
       
-      if (error) throw error;
+      // Use secure function to get like counts
+      const likesPromises = mediaIds.map(id => 
+        supabase.rpc('get_media_like_count', { media_uuid: id })
+      );
+      const likesResults = await Promise.all(likesPromises);
       
       const counts: Record<string, { likes: number; loves: number }> = {};
-      mediaIds.forEach(id => counts[id] = { likes: 0, loves: 0 });
-      
-      data?.forEach(like => {
-        if (like.like_type === 'like') {
-          counts[like.media_id].likes++;
-        } else if (like.like_type === 'love') {
-          counts[like.media_id].loves++;
-        }
+      mediaIds.forEach((id, index) => {
+        counts[id] = { 
+          likes: likesResults[index]?.data || 0, 
+          loves: 0 // Simplified - no type breakdown
+        };
       });
       
       setLikeCounts(counts);
@@ -159,19 +156,19 @@ const CelebrityProfile = () => {
     try {
       const userIP = await getUserIP();
       const mediaIds = media.map(m => m.id);
-      const { data, error } = await supabase
-        .from('media_likes')
-        .select('media_id, like_type')
-        .in('media_id', mediaIds)
-        .eq('user_ip', userIP);
       
-      if (error) throw error;
+      // Use secure function to check user likes
+      const userLikesPromises = mediaIds.map(id => 
+        supabase.rpc('has_user_liked_media', { 
+          media_uuid: id, 
+          user_ip_param: userIP 
+        })
+      );
+      const userLikesResults = await Promise.all(userLikesPromises);
       
       const likes: Record<string, string[]> = {};
-      mediaIds.forEach(id => likes[id] = []);
-      
-      data?.forEach(like => {
-        likes[like.media_id].push(like.like_type);
+      mediaIds.forEach((id, index) => {
+        likes[id] = userLikesResults[index]?.data ? ['like'] : [];
       });
       
       setUserLikes(likes);
