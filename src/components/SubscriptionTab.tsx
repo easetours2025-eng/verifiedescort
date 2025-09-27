@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import {
   EyeOff
 } from 'lucide-react';
 import SubscriptionTierModal from './SubscriptionTierModal';
+import JoiningOfferBanner from './JoiningOfferBanner';
 
 interface CelebrityProfile {
   id: string;
@@ -34,17 +35,34 @@ interface SubscriptionTabProps {
 
 const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: SubscriptionTabProps) => {
   const [showTierModal, setShowTierModal] = useState(false);
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [selectedOfferTier, setSelectedOfferTier] = useState<'basic' | 'premium'>('basic');
+  const [isNewCelebrity, setIsNewCelebrity] = useState(false);
   const { toast } = useToast();
 
-  const handleTierSubmission = async (tier: 'basic' | 'premium', mpesaCode: string, phoneNumber: string) => {
+  // Check if celebrity is new (created within last 30 days)
+  useEffect(() => {
+    if (profile) {
+      // For demo purposes, we'll consider all celebrities as new
+      // In real implementation, you'd check the profile creation date
+      setIsNewCelebrity(true);
+    }
+  }, [profile]);
+
+  const handleTierSubmission = async (tier: 'basic' | 'premium', mpesaCode: string, phoneNumber: string, isOffer: boolean = false) => {
     try {
+      // Calculate offer pricing
+      const offerAmount = isOffer 
+        ? (tier === 'premium' ? 1750 : 1500)
+        : (tier === 'premium' ? 2500 : 2000);
+
       const { error } = await supabase
         .from('payment_verification')
         .insert({
           celebrity_id: profile?.id,
           phone_number: phoneNumber,
           mpesa_code: mpesaCode,
-          amount: tier === 'premium' ? 2500 : 2000,
+          amount: offerAmount,
           is_verified: false,
         });
 
@@ -52,7 +70,7 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
 
       toast({
         title: "Payment Verification Submitted",
-        description: `Your ${tier} plan payment verification has been submitted. An admin will review it shortly.`,
+        description: `Your ${tier} plan payment verification has been submitted${isOffer ? ' (Special Offer)' : ''}. An admin will review it shortly.`,
       });
     } catch (error: any) {
       console.error('Error submitting payment:', error);
@@ -63,6 +81,11 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
       });
       throw error;
     }
+  };
+
+  const handleOfferSelection = (tier: 'basic' | 'premium') => {
+    setSelectedOfferTier(tier);
+    setShowOfferModal(true);
   };
 
   const formatDate = (dateString: string) => {
@@ -101,6 +124,13 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
 
   return (
     <div className="space-y-6">
+      {/* Special Joining Offer Banner */}
+      {isNewCelebrity && !subscriptionStatus?.is_active && (
+        <JoiningOfferBanner 
+          onSelectOffer={handleOfferSelection}
+          isNewCelebrity={isNewCelebrity}
+        />
+      )}
       {/* Subscription Status Card */}
       <Card className="border-primary/20">
         <CardHeader>
@@ -232,7 +262,17 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
         open={showTierModal}
         onOpenChange={setShowTierModal}
         celebrityId={profile?.id || ''}
-        onSubmit={handleTierSubmission}
+        onSubmit={(tier, mpesaCode, phoneNumber) => handleTierSubmission(tier, mpesaCode, phoneNumber, false)}
+      />
+
+      {/* Special Offer Modal */}
+      <SubscriptionTierModal
+        open={showOfferModal}
+        onOpenChange={setShowOfferModal}
+        celebrityId={profile?.id || ''}
+        onSubmit={(tier, mpesaCode, phoneNumber) => handleTierSubmission(tier, mpesaCode, phoneNumber, true)}
+        isSpecialOffer={true}
+        preselectedTier={selectedOfferTier}
       />
     </div>
   );
