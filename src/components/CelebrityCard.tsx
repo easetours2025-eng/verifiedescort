@@ -14,7 +14,7 @@ import ReadMoreText from './ReadMoreText';
 import ServicesList from './ServicesList';
 
 interface CelebrityCardProps {
-  celebrity: PrivateCelebrityProfile;
+  celebrity: PublicCelebrityProfile | PrivateCelebrityProfile;
   onViewProfile: (id: string) => void;
 }
 
@@ -187,8 +187,8 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
           <h3 className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             {celebrity.stage_name}
           </h3>
-          {/* Show real name for everyone */}
-          {celebrity.real_name && (
+          {/* Show real name only for private profiles */}
+          {isPrivateProfile(celebrity) && celebrity.real_name && (
             <p className="text-sm text-muted-foreground">({celebrity.real_name})</p>
           )}
           <div className="flex items-center justify-center space-x-2">
@@ -237,7 +237,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
         )}
 
         {/* Call Button */}
-        {celebrity.phone_number && (
+        {isPrivateProfile(celebrity) && celebrity.phone_number && (
           <div className="pt-2">
             <Button
               variant="outline"

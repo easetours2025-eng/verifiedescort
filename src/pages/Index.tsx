@@ -18,7 +18,7 @@ import {
 } from '@/lib/celebrity-utils';
 
 const Index = () => {
-  const [celebrities, setCelebrities] = useState<PrivateCelebrityProfile[]>([]);
+  const [celebrities, setCelebrities] = useState<PublicCelebrityProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
@@ -63,7 +63,7 @@ const Index = () => {
     try {
       // Fetch celebrities with active subscriptions
       const { data, error } = await supabase
-        .from('celebrity_profiles')
+        .from('public_celebrity_profiles')
         .select(`
           *,
           celebrity_subscriptions!inner(
@@ -79,10 +79,8 @@ const Index = () => {
 
       if (error) throw error;
       
-      // Filter sensitive data based on user permissions
-      const rawProfiles = data || [];
-      const filteredProfiles = await filterCelebrityDataArray(rawProfiles as FullCelebrityProfile[]);
-      setCelebrities(filteredProfiles);
+      // Data is already filtered by the secure view
+      setCelebrities(data || []);
     } catch (error) {
       console.error('Error fetching celebrities:', error);
       toast({

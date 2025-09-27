@@ -57,10 +57,10 @@ interface MediaItem {
 
 const CelebrityProfile = () => {
   const { id } = useParams<{ id: string }>();
-  const [profile, setProfile] = useState<PrivateCelebrityProfile | null>(null);
+  const [profile, setProfile] = useState<PublicCelebrityProfile | null>(null);
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [services, setServices] = useState<any[]>([]);
-  const [otherCelebrities, setOtherCelebrities] = useState<PrivateCelebrityProfile[]>([]);
+  const [otherCelebrities, setOtherCelebrities] = useState<PublicCelebrityProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoadingMedia, setIsLoadingMedia] = useState(true);
   const [isLoadingOthers, setIsLoadingOthers] = useState(true);
@@ -182,16 +182,17 @@ const CelebrityProfile = () => {
   const fetchProfile = async () => {
     try {
       const { data: celebrityData, error: celebrityError } = await supabase
-        .from('celebrity_profiles')
-        .select('*')
-        .eq('id', id)
-        .single();
+        .rpc('get_public_celebrity_data', { celebrity_profile_id: id });
 
       if (celebrityError) throw celebrityError;
 
-      // Return all data as public since authorization is removed
-      const filteredProfile = await filterCelebrityData(celebrityData as FullCelebrityProfile);
-      setProfile(filteredProfile);
+      // Use the first result from the function (it returns an array)
+      const celebrityProfile = celebrityData?.[0];
+      if (!celebrityProfile) {
+        throw new Error('Celebrity profile not found');
+      }
+
+      setProfile(celebrityProfile);
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
@@ -272,29 +273,21 @@ const CelebrityProfile = () => {
 
 
   const handleContact = () => {
-    if (profile?.phone_number) {
-      window.open(`tel:${profile.phone_number}`, '_self');
-    } else {
-      toast({
-        title: "Contact Info",
-        description: "Phone number not available for this celebrity",
-        variant: "destructive",
-      });
-    }
+    // Phone numbers are not available in public profiles for security
+    toast({
+      title: "Contact Info",
+      description: "Direct phone contact is not available. Please use messaging instead.",
+      variant: "destructive",
+    });
   };
 
   const handleWhatsApp = () => {
-    if (profile?.phone_number) {
-      const cleanPhone = profile.phone_number.replace(/[^\d+]/g, '');
-      const message = encodeURIComponent(`Hi ${profile.stage_name}, I'm interested in booking you through Celebrity Connect.`);
-      window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
-    } else {
-      toast({
-        title: "Contact Info",
-        description: "Phone number not available for this celebrity",
-        variant: "destructive",
-      });
-    }
+    // Phone numbers are not available in public profiles for security
+    toast({
+      title: "Contact Info",
+      description: "Direct phone contact is not available. Please use messaging instead.",
+      variant: "destructive",
+    });
   };
 
   const handleSocialClick = (platform: 'instagram' | 'twitter') => {
