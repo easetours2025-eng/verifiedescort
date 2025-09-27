@@ -61,26 +61,32 @@ const Index = () => {
 
   const fetchCelebrities = async () => {
     try {
-      // Fetch celebrities with active subscriptions
-      const { data, error } = await supabase
-        .from('public_celebrity_profiles')
-        .select(`
-          *,
-          celebrity_subscriptions!inner(
-            is_active,
-            subscription_end,
-            subscription_tier,
-            subscription_start
-          )
-        `)
-        .eq('celebrity_subscriptions.is_active', true)
-        .gte('celebrity_subscriptions.subscription_end', new Date().toISOString())
-        .order('created_at', { ascending: false });
+      // Fetch celebrities using the secure function
+      const { data: celebrityData, error: celebrityError } = await supabase
+        .rpc('get_safe_celebrity_profiles');
+      
+      if (celebrityError) throw celebrityError;
 
-      if (error) throw error;
+      // Fetch active subscriptions separately
+      const { data: subscriptionData, error: subscriptionError } = await supabase
+        .from('celebrity_subscriptions')
+        .select('*')
+        .eq('is_active', true)
+        .gte('subscription_end', new Date().toISOString());
+        
+      if (subscriptionError) throw subscriptionError;
+
+      // Combine celebrity data with subscriptions
+      const celebritiesWithSubscriptions = celebrityData?.map(celebrity => {
+        const subscription = subscriptionData?.find(sub => sub.celebrity_id === celebrity.id);
+        return subscription ? { 
+          ...celebrity, 
+          celebrity_subscriptions: [subscription]
+        } : null;
+      }).filter(Boolean) || [];
       
       // Data is already filtered by the secure view
-      setCelebrities(data || []);
+      setCelebrities(celebritiesWithSubscriptions);
     } catch (error) {
       console.error('Error fetching celebrities:', error);
       toast({

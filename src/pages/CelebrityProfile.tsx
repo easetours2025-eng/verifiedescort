@@ -183,7 +183,7 @@ const CelebrityProfile = () => {
   const fetchProfile = async () => {
     try {
       const { data: celebrityData, error: celebrityError } = await supabase
-        .rpc('get_public_celebrity_data', { celebrity_profile_id: id });
+        .rpc('get_safe_celebrity_profiles', { celebrity_id: id });
 
       if (celebrityError) throw celebrityError;
 
@@ -250,10 +250,7 @@ const CelebrityProfile = () => {
     
     try {
       const { data, error } = await supabase
-        .from('celebrity_profiles')
-        .select('*')
-        .neq('id', id)
-        .eq('is_available', true)
+        .rpc('get_safe_celebrity_profiles')
         .limit(6)
         .order('created_at', { ascending: false });
 

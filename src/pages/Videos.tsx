@@ -96,15 +96,9 @@ const Videos = () => {
       // Get unique celebrity IDs
       const celebrityIds = [...new Set(uniqueVideos.map(video => video.celebrity_id))];
       
-      // Fetch celebrity profiles
+      // Fetch celebrity profiles (limited safe data only)
       const { data: celebrityData, error: celebrityError } = await supabase
-        .from('celebrity_profiles')
-        .select(`
-          id,
-          stage_name,
-          phone_number,
-          is_verified
-        `)
+        .rpc('get_safe_celebrity_profiles')
         .in('id', celebrityIds);
 
       if (celebrityError) throw celebrityError;
@@ -155,7 +149,6 @@ const Videos = () => {
             celebrity: {
               id: celebrity.id,
               stage_name: celebrity.stage_name,
-              phone_number: celebrity.phone_number,
               is_verified: celebrity.is_verified,
             },
             isVIP: vipData.data && vipData.data.length > 0,

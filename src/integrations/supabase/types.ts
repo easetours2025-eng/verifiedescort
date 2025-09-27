@@ -778,6 +778,26 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_safe_celebrity_profiles: {
+        Args: { celebrity_id?: string }
+        Returns: {
+          age: number
+          base_price: number
+          bio: string
+          created_at: string
+          gender: string
+          hourly_rate: number
+          id: string
+          is_available: boolean
+          is_verified: boolean
+          location: string
+          profile_picture_path: string
+          social_instagram: string
+          social_tiktok: string
+          social_twitter: string
+          stage_name: string
+        }[]
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
