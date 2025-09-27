@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Star, Crown, Sparkles } from 'lucide-react';
+import { Star, Crown, Sparkles, Mail, CheckCircle2 } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -15,7 +16,9 @@ const Auth = () => {
   const [stageName, setStageName] = useState('');
   const [age, setAge] = useState<number>(18);
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp, user } = useAuth();
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
+  const { login, register, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -25,7 +28,7 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       toast({
@@ -37,24 +40,24 @@ const Auth = () => {
     }
 
     setLoading(true);
-    const { error } = await signIn(email, password);
+    const { error } = await login(email, password);
     
     if (error) {
       toast({
-        title: "Sign In Error",
+        title: "Login Error",
         description: error.message,
         variant: "destructive",
       });
     } else {
       toast({
         title: "Welcome back!",
-        description: "You have successfully signed in.",
+        description: "You have successfully logged in.",
       });
     }
     setLoading(false);
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password || !stageName || age < 18) {
       toast({
@@ -66,19 +69,22 @@ const Auth = () => {
     }
 
     setLoading(true);
-    const { error } = await signUp(email, password, stageName);
+    const { error } = await register(email, password, stageName);
     
     if (error) {
       toast({
-        title: "Sign Up Error",
+        title: "Registration Error",
         description: error.message,
         variant: "destructive",
       });
     } else {
-      toast({
-        title: "Account created!",
-        description: "Please check your email to confirm your account.",
-      });
+      setRegisteredEmail(email);
+      setShowVerificationModal(true);
+      // Clear form after successful registration
+      setEmail('');
+      setPassword('');
+      setStageName('');
+      setAge(18);
     }
     setLoading(false);
   };
@@ -109,22 +115,22 @@ const Auth = () => {
               <Star className="h-5 w-5 text-accent" />
             </div>
             <CardDescription className="text-center">
-              Sign in to your account or create a new celebrity profile
+              Login to your account or register as a new celebrity
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="signin" className="space-y-4">
+            <Tabs defaultValue="login" className="space-y-4">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="register">Register</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="signin" className="space-y-4">
-                <form onSubmit={handleSignIn} className="space-y-4">
+              <TabsContent value="login" className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="login-email">Email</Label>
                     <Input
-                      id="signin-email"
+                      id="login-email"
                       type="email"
                       placeholder="Enter your email"
                       value={email}
@@ -133,9 +139,9 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <Label htmlFor="login-password">Password</Label>
                     <Input
-                      id="signin-password"
+                      id="login-password"
                       type="password"
                       placeholder="Enter your password"
                       value={password}
@@ -148,17 +154,17 @@ const Auth = () => {
                     className="w-full bg-gradient-to-r from-primary to-primary-glow hover:shadow-celebrity"
                     disabled={loading}
                   >
-                    {loading ? "Signing In..." : "Sign In"}
+                    {loading ? "Logging In..." : "Login"}
                   </Button>
                 </form>
               </TabsContent>
               
-              <TabsContent value="signup" className="space-y-4">
-                <form onSubmit={handleSignUp} className="space-y-4">
+              <TabsContent value="register" className="space-y-4">
+                <form onSubmit={handleRegister} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-stage-name">Stage Name</Label>
+                    <Label htmlFor="register-stage-name">Stage Name</Label>
                     <Input
-                      id="signup-stage-name"
+                      id="register-stage-name"
                       type="text"
                       placeholder="Your celebrity name"
                       value={stageName}
@@ -167,9 +173,9 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="register-email">Email</Label>
                     <Input
-                      id="signup-email"
+                      id="register-email"
                       type="email"
                       placeholder="Enter your email"
                       value={email}
@@ -178,9 +184,9 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-age">Age</Label>
+                    <Label htmlFor="register-age">Age</Label>
                     <Input
-                      id="signup-age"
+                      id="register-age"
                       type="number"
                       min="18"
                       max="100"
@@ -192,9 +198,9 @@ const Auth = () => {
                     <p className="text-xs text-muted-foreground">Must be 18 or older</p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label htmlFor="register-password">Password</Label>
                     <Input
-                      id="signup-password"
+                      id="register-password"
                       type="password"
                       placeholder="Create a password"
                       value={password}
@@ -207,13 +213,73 @@ const Auth = () => {
                     className="w-full bg-gradient-to-r from-accent to-accent/80 text-accent-foreground hover:shadow-lg"
                     disabled={loading}
                   >
-                    {loading ? "Creating Account..." : "Create Celebrity Profile"}
+                    {loading ? "Creating Account..." : "Register as Celebrity"}
                   </Button>
                 </form>
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
+
+        {/* Email Verification Modal */}
+        <Dialog open={showVerificationModal} onOpenChange={setShowVerificationModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader className="text-center space-y-4">
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="h-8 w-8 text-green-600" />
+              </div>
+              <DialogTitle className="text-2xl font-bold text-green-600">
+                Account Created Successfully!
+              </DialogTitle>
+              <DialogDescription className="text-base">
+                Your celebrity account has been created successfully.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Mail className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-blue-800">Check Your Email</h3>
+                </div>
+                <p className="text-blue-700 text-sm">
+                  We've sent a verification email to:
+                </p>
+                <div className="bg-white rounded p-2 border border-blue-200">
+                  <p className="font-mono text-sm text-blue-800">{registeredEmail}</p>
+                </div>
+                <p className="text-blue-700 text-sm">
+                  Please click the verification link in your email to activate your account and start using the platform.
+                </p>
+              </div>
+              
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-yellow-800 text-xs">
+                  <strong>Note:</strong> Check your spam folder if you don't see the email within a few minutes.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex space-x-2">
+              <Button 
+                onClick={() => setShowVerificationModal(false)}
+                className="flex-1"
+                variant="outline"
+              >
+                I'll Check Later
+              </Button>
+              <Button 
+                onClick={() => {
+                  setShowVerificationModal(false);
+                  navigate('/');
+                }}
+                className="flex-1 bg-gradient-to-r from-green-600 to-green-700"
+              >
+                Go to Homepage
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
         
         <div className="text-center mt-6">
           <Button

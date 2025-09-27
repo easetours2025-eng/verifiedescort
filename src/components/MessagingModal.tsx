@@ -184,12 +184,12 @@ const MessagingModal = ({ open, onOpenChange, celebrityId, celebrityName }: Mess
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <MessageCircle className="h-5 w-5" />
-              <span>Sign In Required</span>
+              <span>Login Required</span>
             </DialogTitle>
           </DialogHeader>
           <div className="text-center py-6">
             <p className="text-muted-foreground mb-4">
-              Please sign in to start messaging with celebrities.
+              Please login to start messaging with celebrities.
             </p>
             <Button onClick={() => onOpenChange(false)}>
               Close
