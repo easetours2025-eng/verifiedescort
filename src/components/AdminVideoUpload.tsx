@@ -15,99 +15,152 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
   const [formData, setFormData] = useState({
     isActive: true
   });
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
   const { toast } = useToast();
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
 
-    // Validate file type
-    if (!file.type.startsWith('video/')) {
-      toast({
-        title: "Invalid File Type",
-        description: "Please select a video file.",
-        variant: "destructive",
-      });
-      return;
+    const validFiles: File[] = [];
+    
+    for (const file of files) {
+      // Validate file type
+      if (!file.type.startsWith('video/')) {
+        toast({
+          title: "Invalid File Type",
+          description: `${file.name} is not a video file.`,
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      // Validate file size (max 100MB)
+      if (file.size > 100 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: `${file.name} is larger than 100MB.`,
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      validFiles.push(file);
     }
 
-    // Validate file size (max 100MB)
-    if (file.size > 100 * 1024 * 1024) {
-      toast({
-        title: "File Too Large",
-        description: "Please select a video file smaller than 100MB.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setSelectedFile(file);
+    setSelectedFiles(validFiles);
   };
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedFile) {
+    if (selectedFiles.length === 0) {
       toast({
         title: "Missing Information",
-        description: "Please select a video file.",
+        description: "Please select at least one video file.",
         variant: "destructive",
       });
       return;
     }
 
     setUploading(true);
+    setUploadProgress({});
 
     try {
-      // Generate unique file name
-      const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `admin-videos/${fileName}`;
+      let successCount = 0;
+      let failCount = 0;
 
-      // Upload video to storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('admin-videos')
-        .upload(filePath, selectedFile);
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const fileId = `${file.name}-${i}`;
+        
+        try {
+          // Update progress
+          setUploadProgress(prev => ({ ...prev, [fileId]: 10 }));
 
-      if (uploadError) throw uploadError;
+          // Generate unique file name
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+          const filePath = `admin-videos/${fileName}`;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('admin-videos')
-        .getPublicUrl(filePath);
+          // Update progress
+          setUploadProgress(prev => ({ ...prev, [fileId]: 30 }));
 
-      // Save video metadata to database
-      const { error: dbError } = await supabase
-        .from('admin_videos')
-        .insert({
-          file_path: publicUrl,
-          is_active: formData.isActive
+          // Upload video to storage
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('admin-videos')
+            .upload(filePath, file);
+
+          if (uploadError) throw uploadError;
+
+          // Update progress
+          setUploadProgress(prev => ({ ...prev, [fileId]: 70 }));
+
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('admin-videos')
+            .getPublicUrl(filePath);
+
+          // Save video metadata to database
+          const { error: dbError } = await supabase
+            .from('admin_videos')
+            .insert({
+              file_path: publicUrl,
+              is_active: formData.isActive
+            });
+
+          if (dbError) throw dbError;
+
+          // Update progress to complete
+          setUploadProgress(prev => ({ ...prev, [fileId]: 100 }));
+          successCount++;
+
+        } catch (error: any) {
+          console.error(`Error uploading ${file.name}:`, error);
+          failCount++;
+          setUploadProgress(prev => ({ ...prev, [fileId]: -1 })); // Mark as failed
+        }
+      }
+
+      // Show results
+      if (successCount > 0 && failCount === 0) {
+        toast({
+          title: "Videos Uploaded",
+          description: `Successfully uploaded ${successCount} video${successCount > 1 ? 's' : ''}.`,
         });
+      } else if (successCount > 0 && failCount > 0) {
+        toast({
+          title: "Partial Success",
+          description: `Uploaded ${successCount} video${successCount > 1 ? 's' : ''}, failed ${failCount}.`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Upload Failed",
+          description: "Failed to upload any videos. Please try again.",
+          variant: "destructive",
+        });
+      }
 
-      if (dbError) throw dbError;
+      // Reset form if any uploads succeeded
+      if (successCount > 0) {
+        setFormData({ isActive: true });
+        setSelectedFiles([]);
+        setUploadProgress({});
+        
+        // Reset file input
+        const fileInput = document.getElementById('video-upload') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
 
-      toast({
-        title: "Video Uploaded",
-        description: "Video has been uploaded successfully.",
-      });
+        onUploadSuccess();
+      }
 
-      // Reset form
-      setFormData({
-        isActive: true
-      });
-      setSelectedFile(null);
-      
-      // Reset file input
-      const fileInput = document.getElementById('video-upload') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
-
-      onUploadSuccess();
     } catch (error: any) {
-      console.error('Error uploading video:', error);
+      console.error('Error uploading videos:', error);
       toast({
         title: "Upload Failed",
-        description: error.message || "Failed to upload video. Please try again.",
+        description: error.message || "Failed to upload videos. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -115,10 +168,15 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
     }
   };
 
-  const removeSelectedFile = () => {
-    setSelectedFile(null);
+  const removeSelectedFiles = () => {
+    setSelectedFiles([]);
+    setUploadProgress({});
     const fileInput = document.getElementById('video-upload') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -133,33 +191,75 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
         <form onSubmit={handleUpload} className="space-y-4">
           {/* File Upload */}
           <div className="space-y-2">
-            <Label htmlFor="video-upload">Video File</Label>
+            <Label htmlFor="video-upload">Video Files</Label>
             <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-muted-foreground/50 transition-colors">
-              {selectedFile ? (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-                    <Video className="h-4 w-4" />
-                    <span>{selectedFile.name}</span>
+              {selectedFiles.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-medium">{selectedFiles.length} video{selectedFiles.length > 1 ? 's' : ''} selected</p>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={removeSelectedFile}
-                      className="h-6 w-6 p-0"
+                      onClick={removeSelectedFiles}
+                      className="h-6 px-2"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-4 w-4 mr-1" />
+                      Clear All
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Size: {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
-                  </p>
+                  
+                  <div className="max-h-40 overflow-y-auto space-y-2">
+                    {selectedFiles.map((file, index) => {
+                      const fileId = `${file.name}-${index}`;
+                      const progress = uploadProgress[fileId];
+                      
+                      return (
+                        <div key={index} className="flex items-center justify-between p-2 bg-muted/50 rounded text-sm">
+                          <div className="flex items-center space-x-2 flex-1 min-w-0">
+                            <Video className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate">{file.name}</span>
+                            <span className="text-xs text-muted-foreground flex-shrink-0">
+                              {(file.size / (1024 * 1024)).toFixed(2)} MB
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            {progress !== undefined && (
+                              <div className="flex items-center space-x-1">
+                                {progress === -1 ? (
+                                  <span className="text-xs text-red-500">Failed</span>
+                                ) : progress === 100 ? (
+                                  <span className="text-xs text-green-500">Done</span>
+                                ) : progress > 0 ? (
+                                  <span className="text-xs text-blue-500">{progress}%</span>
+                                ) : null}
+                              </div>
+                            )}
+                            
+                            {!uploading && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeFile(index)}
+                                className="h-6 w-6 p-0"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-2">
                   <Video className="h-8 w-8 mx-auto text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium">Choose a video file</p>
-                    <p className="text-xs text-muted-foreground">MP4, MOV, AVI up to 100MB</p>
+                    <p className="text-sm font-medium">Choose video files</p>
+                    <p className="text-xs text-muted-foreground">MP4, MOV, AVI up to 100MB each</p>
                   </div>
                 </div>
               )}
@@ -167,6 +267,7 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
                 id="video-upload"
                 type="file"
                 accept="video/*"
+                multiple
                 onChange={handleFileSelect}
                 className="sr-only"
               />
@@ -195,18 +296,18 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
           {/* Submit Button */}
           <Button
             type="submit"
-            disabled={uploading || !selectedFile}
+            disabled={uploading || selectedFiles.length === 0}
             className="w-full"
           >
             {uploading ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                Uploading...
+                Uploading {selectedFiles.length} video{selectedFiles.length > 1 ? 's' : ''}...
               </>
             ) : (
               <>
                 <Upload className="h-4 w-4 mr-2" />
-                Upload Video
+                Upload {selectedFiles.length > 0 ? `${selectedFiles.length} Video${selectedFiles.length > 1 ? 's' : ''}` : 'Videos'}
               </>
             )}
           </Button>
