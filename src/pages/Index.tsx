@@ -16,6 +16,7 @@ import {
   PrivateCelebrityProfile,
   CelebrityProfile as FullCelebrityProfile
 } from '@/lib/celebrity-utils';
+import HomeVideoSection from '@/components/HomeVideoSection';
 
 const Index = () => {
   const [celebrities, setCelebrities] = useState<PrivateCelebrityProfile[]>([]);
@@ -180,6 +181,8 @@ const Index = () => {
         </div>
       </header>
 
+      {/* Admin Videos Section */}
+      <HomeVideoSection />
 
       {/* Search and Filter */}
       <section className="py-4 sm:pb-8">

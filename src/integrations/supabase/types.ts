@@ -38,6 +38,80 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_video_views: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string | null
+          user_ip: string | null
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id?: string | null
+          user_ip?: string | null
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string | null
+          user_ip?: string | null
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_video_views_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "admin_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_videos: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          duration_seconds: number | null
+          file_path: string
+          id: string
+          is_active: boolean
+          thumbnail_path: string | null
+          title: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          file_path: string
+          id?: string
+          is_active?: boolean
+          thumbnail_path?: string | null
+          title: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          file_path?: string
+          id?: string
+          is_active?: boolean
+          thumbnail_path?: string | null
+          title?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
       celebrity_media: {
         Row: {
           celebrity_id: string

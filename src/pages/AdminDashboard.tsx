@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, Clock, Users, CreditCard, TrendingUp, RefreshCw, Search, Eye, EyeOff, Trash2, Shield, ShieldCheck, LayoutGrid, Table2, LogOut } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Users, CreditCard, TrendingUp, RefreshCw, Search, Eye, EyeOff, Trash2, Shield, ShieldCheck, LayoutGrid, Table2, LogOut, Video } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import AdminVideoSection from '@/components/AdminVideoSection';
 
 // Data Interfaces
 interface PaymentRecord {
@@ -566,7 +567,7 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="payments" className="space-y-4 md:space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="payments" className="flex items-center space-x-2 text-xs md:text-sm">
               <CreditCard className="h-4 w-4" />
               <span className="hidden sm:inline">Payment Verification</span>
@@ -576,6 +577,11 @@ const AdminDashboard = () => {
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Celebrity Management</span>
               <span className="sm:hidden">Celebrities</span>
+            </TabsTrigger>
+            <TabsTrigger value="videos" className="flex items-center space-x-2 text-xs md:text-sm">
+              <Video className="h-4 w-4" />
+              <span className="hidden sm:inline">Video Management</span>
+              <span className="sm:hidden">Videos</span>
             </TabsTrigger>
           </TabsList>
 
@@ -944,6 +950,10 @@ const AdminDashboard = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="videos" className="space-y-4 md:space-y-6">
+            <AdminVideoSection />
           </TabsContent>
         </Tabs>
       </div>
