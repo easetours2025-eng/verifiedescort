@@ -108,9 +108,7 @@ const CelebrityProfile = () => {
     try {
       const mediaIds = media.map(m => m.id);
       const { data, error } = await supabase
-        .from('media_stats')
-        .select('media_id, view_count')
-        .in('media_id', mediaIds);
+        .rpc('get_media_statistics');
       
       if (error) throw error;
       
@@ -118,6 +116,13 @@ const CelebrityProfile = () => {
       mediaIds.forEach(id => counts[id] = 0);
       
       // Sum up view counts for each media across all dates
+      if (data) {
+        data.forEach((row: any) => {
+          if (mediaIds.includes(row.media_id)) {
+            counts[row.media_id] += row.view_count || 0;
+          }
+        });
+      }
       data?.forEach(stat => {
         counts[stat.media_id] = (counts[stat.media_id] || 0) + (stat.view_count || 0);
       });
