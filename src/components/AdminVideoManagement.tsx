@@ -94,12 +94,33 @@ const AdminVideoManagement = ({ refreshTrigger }: AdminVideoManagementProps) => 
 
   const toggleVideoStatus = async (videoId: string, isActive: boolean) => {
     try {
-      const { error } = await supabase
-        .from('admin_videos')
-        .update({ is_active: isActive })
-        .eq('id', videoId);
+      // Get admin email from localStorage
+      const adminSession = localStorage.getItem('admin_session');
+      if (!adminSession) {
+        throw new Error("Admin session not found");
+      }
 
-      if (error) throw error;
+      const session = JSON.parse(adminSession);
+      
+      // Use admin video operations edge function
+      const response = await fetch(`https://kpjqcrhoablsllkgonbl.supabase.co/functions/v1/admin-video-operations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'toggle_status',
+          videoId,
+          isActive,
+          adminEmail: session.email
+        })
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
 
       toast({
         title: isActive ? "Video Published" : "Video Unpublished",
@@ -110,7 +131,7 @@ const AdminVideoManagement = ({ refreshTrigger }: AdminVideoManagementProps) => 
     } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to update video status.",
+        description: error.message || "Failed to update video status.",
         variant: "destructive",
       });
     }
@@ -118,26 +139,31 @@ const AdminVideoManagement = ({ refreshTrigger }: AdminVideoManagementProps) => 
 
   const deleteVideo = async (videoId: string, filePath: string) => {
     try {
-      // Delete from database first
-      const { error: dbError } = await supabase
-        .from('admin_videos')
-        .delete()
-        .eq('id', videoId);
+      // Get admin email from localStorage
+      const adminSession = localStorage.getItem('admin_session');
+      if (!adminSession) {
+        throw new Error("Admin session not found");
+      }
 
-      if (dbError) throw dbError;
+      const session = JSON.parse(adminSession);
+      
+      // Use admin video operations edge function
+      const response = await fetch(`https://kpjqcrhoablsllkgonbl.supabase.co/functions/v1/admin-video-operations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'delete',
+          videoId,
+          adminEmail: session.email
+        })
+      });
 
-      // Extract file path from URL for storage deletion
-      const urlParts = filePath.split('/');
-      const fileName = urlParts[urlParts.length - 1];
-      const storagePath = `admin-videos/${fileName}`;
+      const result = await response.json();
 
-      // Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from('admin-videos')
-        .remove([storagePath]);
-
-      if (storageError) {
-        // Don't throw - database deletion was successful
+      if (!result.success) {
+        throw new Error(result.message);
       }
 
       toast({
@@ -149,7 +175,7 @@ const AdminVideoManagement = ({ refreshTrigger }: AdminVideoManagementProps) => 
     } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to delete video.",
+        description: error.message || "Failed to delete video.",
         variant: "destructive",
       });
     }

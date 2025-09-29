@@ -29,6 +29,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import AdminVideoSection from '@/components/AdminVideoSection';
+import UserManagement from '@/components/UserManagement';
+import AdminManagement from '@/components/AdminManagement';
 
 // Data Interfaces
 interface PaymentRecord {
@@ -493,6 +495,8 @@ const AdminDashboard = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 md:mb-8 space-y-4 md:space-y-0">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
           <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
+            <UserManagement onUserCreated={fetchData} />
+            <AdminManagement onAdminCreated={() => {}} />
             <Button
               onClick={refreshData}
               disabled={refreshing}
