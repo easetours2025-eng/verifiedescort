@@ -1,0 +1,375 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  Users, 
+  Search, 
+  Edit, 
+  Trash2, 
+  Eye,
+  UserCheck,
+  UserX,
+  Calendar,
+  Mail,
+  Phone
+} from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Switch } from '@/components/ui/switch';
+
+interface User {
+  id: string;
+  email?: string;
+  created_at: string;
+  last_sign_in_at?: string;
+  email_confirmed_at?: string;
+  phone?: string;
+  stage_name?: string;
+  real_name?: string;
+  is_verified?: boolean;
+  is_available?: boolean;
+  user_id?: string;
+}
+
+const AllUsersManagement = () => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      
+      // Get admin email from localStorage for authentication
+      const adminSession = localStorage.getItem('admin_session');
+      if (!adminSession) {
+        throw new Error("Admin session not found");
+      }
+
+      const session = JSON.parse(adminSession);
+      
+      // Call admin-data edge function to get all users
+      const response = await fetch(`https://kpjqcrhoablsllkgonbl.supabase.co/functions/v1/admin-data`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwanFjcmhvYWJsc2xsa2dvbmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3MTY3NTksImV4cCI6MjA3MTI5Mjc1OX0.Guwh9JOeCCYUsqQfVANA-Kiqwl9yi_jGv92ZARqxl1w`,
+        },
+        body: JSON.stringify({
+          action: 'get_all_users',
+          adminEmail: session.email
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      setUsers(result.users || []);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to load users.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteUser = async (userId: string, email: string) => {
+    try {
+      const adminSession = localStorage.getItem('admin_session');
+      if (!adminSession) {
+        throw new Error("Admin session not found");
+      }
+
+      const session = JSON.parse(adminSession);
+      
+      const response = await fetch(`https://kpjqcrhoablsllkgonbl.supabase.co/functions/v1/admin-data`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwanFjcmhvYWJsc2xsa2dvbmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3MTY3NTksImV4cCI6MjA3MTI5Mjc1OX0.Guwh9JOeCCYUsqQfVANA-Kiqwl9yi_jGv92ZARqxl1w`,
+        },
+        body: JSON.stringify({
+          action: 'delete_user',
+          userId,
+          adminEmail: session.email
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      toast({
+        title: "User Deleted",
+        description: `User ${email} has been deleted successfully.`,
+      });
+
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete user.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleUserVerification = async (userId: string, isVerified: boolean) => {
+    try {
+      const adminSession = localStorage.getItem('admin_session');
+      if (!adminSession) {
+        throw new Error("Admin session not found");
+      }
+
+      const session = JSON.parse(adminSession);
+      
+      const response = await fetch(`https://kpjqcrhoablsllkgonbl.supabase.co/functions/v1/admin-data`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwanFjcmhvYWJsc2xsa2dvbmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3MTY3NTksImV4cCI6MjA3MTI5Mjc1OX0.Guwh9JOeCCYUsqQfVANA-Kiqwl9yi_jGv92ZARqxl1w`,
+        },
+        body: JSON.stringify({
+          action: 'toggle_user_verification',
+          userId,
+          isVerified,
+          adminEmail: session.email
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      toast({
+        title: isVerified ? "User Verified" : "User Unverified",
+        description: `User verification status updated successfully.`,
+      });
+
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update user verification.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const filteredUsers = users.filter(user =>
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.stage_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.real_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Never';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Users className="h-5 w-5" />
+            <span>All Users</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading users...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Users className="h-5 w-5" />
+            <span>All Users ({users.length})</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="relative">
+              <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search users..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-64"
+              />
+            </div>
+            <Button onClick={fetchUsers} variant="outline" size="sm">
+              Refresh
+            </Button>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {filteredUsers.length === 0 ? (
+          <div className="text-center py-8">
+            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">
+              {searchTerm ? 'No users found matching your search.' : 'No users found.'}
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left p-3 font-medium">User</th>
+                  <th className="text-left p-3 font-medium">Contact</th>
+                  <th className="text-left p-3 font-medium">Status</th>
+                  <th className="text-left p-3 font-medium">Dates</th>
+                  <th className="text-right p-3 font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((user) => (
+                  <tr key={user.id} className="border-b hover:bg-muted/50">
+                    <td className="p-3">
+                      <div className="space-y-1">
+                        <p className="font-medium">{user.stage_name || 'No stage name'}</p>
+                        {user.real_name && (
+                          <p className="text-sm text-muted-foreground">{user.real_name}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground font-mono">{user.id}</p>
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <div className="space-y-1">
+                        {user.email && (
+                          <div className="flex items-center space-x-2">
+                            <Mail className="h-3 w-3" />
+                            <span className="text-sm">{user.email}</span>
+                          </div>
+                        )}
+                        {user.phone && (
+                          <div className="flex items-center space-x-2">
+                            <Phone className="h-3 w-3" />
+                            <span className="text-sm">{user.phone}</span>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={user.is_verified ? "default" : "secondary"}>
+                            {user.is_verified ? "Verified" : "Unverified"}
+                          </Badge>
+                          <Switch
+                            checked={user.is_verified || false}
+                            onCheckedChange={(checked) => toggleUserVerification(user.user_id || user.id, checked)}
+                          />
+                        </div>
+                        <Badge variant={user.is_available ? "outline" : "destructive"}>
+                          {user.is_available ? "Available" : "Unavailable"}
+                        </Badge>
+                        {user.email_confirmed_at && (
+                          <Badge variant="outline" className="text-xs">
+                            Email Confirmed
+                          </Badge>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>Created: {formatDate(user.created_at)}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Eye className="h-3 w-3" />
+                          <span>Last login: {formatDate(user.last_sign_in_at)}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <div className="flex items-center justify-end space-x-2">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete User</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete user "{user.stage_name || user.email}"? 
+                                This will permanently delete their account and all associated data. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteUser(user.user_id || user.id, user.email || '')}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete User
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default AllUsersManagement;

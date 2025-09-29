@@ -31,6 +31,7 @@ import {
 import AdminVideoSection from '@/components/AdminVideoSection';
 import UserManagement from '@/components/UserManagement';
 import AdminManagement from '@/components/AdminManagement';
+import AllUsersManagement from '@/components/AllUsersManagement';
 
 // Data Interfaces
 interface PaymentRecord {
@@ -578,23 +579,32 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="payments" className="space-y-4 md:space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="payments" className="flex items-center space-x-2 text-xs md:text-sm">
               <CreditCard className="h-4 w-4" />
-              <span className="hidden sm:inline">Payment Verification</span>
-              <span className="sm:hidden">Payments</span>
+              <span className="hidden sm:inline">Payments</span>
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center space-x-2 text-xs md:text-sm">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Users</span>
             </TabsTrigger>
             <TabsTrigger value="celebrities" className="flex items-center space-x-2 text-xs md:text-sm">
               <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Celebrity Management</span>
-              <span className="sm:hidden">Celebrities</span>
+              <span className="hidden sm:inline">Celebrities</span>
             </TabsTrigger>
             <TabsTrigger value="videos" className="flex items-center space-x-2 text-xs md:text-sm">
               <Video className="h-4 w-4" />
-              <span className="hidden sm:inline">Video Management</span>
-              <span className="sm:hidden">Videos</span>
+              <span className="hidden sm:inline">Videos</span>
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="users" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <UserManagement onUserCreated={fetchData} />
+              <AdminManagement onAdminCreated={() => {}} />
+            </div>
+            <AllUsersManagement />
+          </TabsContent>
 
           <TabsContent value="payments" className="space-y-4 md:space-y-6">
             <Card>
