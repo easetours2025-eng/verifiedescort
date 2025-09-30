@@ -15,179 +15,33 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Parse body once and reuse it
-    const requestBody = await req.json();
-    const { action, adminEmail } = requestBody;
-
-    // Create Supabase client with service role key
-    const supabaseServiceRole = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
-
-    // Verify admin access
-    const { data: admin, error: adminError } = await supabaseServiceRole
-      .from('admin_users')
-      .select('id, email')
-      .eq('email', adminEmail)
-      .single();
-
-    if (adminError || !admin) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: "Unauthorized - Admin access required" 
-        }),
-        { 
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 403 
+    console.log('Starting admin-data function...')
+    
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    
+    console.log('Environment check:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!serviceRoleKey,
+      urlPrefix: supabaseUrl?.substring(0, 20)
+    })
+    // Create service role client
+    const supabaseAdmin = createClient(
+      supabaseUrl ?? '',
+      serviceRoleKey ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
         }
-      );
-    }
-
-    if (action === "get_celebrities") {
-      const { data: celebrities, error } = await supabaseServiceRole
-        .from('celebrity_profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error("Error fetching celebrities:", error);
-        throw new Error("Failed to fetch celebrities");
       }
-
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          celebrities: celebrities || [] 
-        }),
-        { 
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200 
-        }
-      );
-    }
-
-    if (action === "get_all_users") {
-      // Get both auth users and celebrity profiles
-      const { data: authUsers, error: authError } = await supabaseServiceRole.auth.admin.listUsers();
-      
-      if (authError) {
-        console.error("Error fetching auth users:", authError);
-        throw new Error("Failed to fetch auth users");
-      }
-
-      const { data: celebrityProfiles, error: profileError } = await supabaseServiceRole
-        .from('celebrity_profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (profileError) {
-        console.error("Error fetching celebrity profiles:", profileError);
-        throw new Error("Failed to fetch celebrity profiles");
-      }
-
-      // Merge auth users with their celebrity profiles
-      const users = authUsers.users.map(authUser => {
-        const profile = celebrityProfiles?.find(p => p.user_id === authUser.id);
-        return {
-          id: authUser.id,
-          email: authUser.email,
-          created_at: authUser.created_at,
-          last_sign_in_at: authUser.last_sign_in_at,
-          email_confirmed_at: authUser.email_confirmed_at,
-          phone: authUser.phone,
-          user_id: authUser.id,
-          // Celebrity profile data
-          stage_name: profile?.stage_name,
-          real_name: profile?.real_name,
-          is_verified: profile?.is_verified,
-          is_available: profile?.is_available,
-        };
-      });
-
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          users: users || [] 
-        }),
-        { 
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200 
-        }
-      );
-    }
-
-    if (action === "delete_user") {
-      const { userId } = requestBody;
-      
-      if (!userId) {
-        throw new Error("User ID is required");
-      }
-
-      // Delete celebrity profile first
-      const { error: profileError } = await supabaseServiceRole
-        .from('celebrity_profiles')
-        .delete()
-        .eq('user_id', userId);
-
-      if (profileError) {
-        console.error("Error deleting celebrity profile:", profileError);
-      }
-
-      // Delete auth user
-      const { error: authError } = await supabaseServiceRole.auth.admin.deleteUser(userId);
-
-      if (authError) {
-        console.error("Error deleting auth user:", authError);
-        throw new Error("Failed to delete user");
-      }
-
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: "User deleted successfully" 
-        }),
-        { 
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200 
-        }
-      );
-    }
-
-    if (action === "toggle_user_verification") {
-      const { userId, isVerified } = requestBody;
-      
-      if (!userId) {
-        throw new Error("User ID is required");
-      }
-
-      const { error } = await supabaseServiceRole
-        .from('celebrity_profiles')
-        .update({ is_verified: isVerified })
-        .eq('user_id', userId);
-
-      if (error) {
-        console.error("Error updating user verification:", error);
-        throw new Error("Failed to update user verification");
-      }
-
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: `User ${isVerified ? 'verified' : 'unverified'} successfully` 
-        }),
-        { 
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200 
-        }
-      );
-    }
+    )
+    
+    console.log('Supabase client created successfully')
 
     // Fetch payment verification data with celebrity profiles
     console.log('Fetching payment verification data...');
-    const { data: paymentsData, error: paymentsError } = await supabaseServiceRole
+    const { data: paymentsData, error: paymentsError } = await supabaseAdmin
       .from('payment_verification')
       .select('*')
       .order('created_at', { ascending: false })
@@ -201,7 +55,7 @@ Deno.serve(async (req) => {
 
     // Fetch celebrity profiles
     console.log('Fetching celebrity profiles...');
-    const { data: celebrityProfilesData, error: celebrityError } = await supabaseServiceRole
+    const { data: celebrityProfilesData, error: celebrityError } = await supabaseAdmin
       .from('celebrity_profiles')
       .select('id, stage_name, real_name, email, is_verified')
 
@@ -214,7 +68,7 @@ Deno.serve(async (req) => {
 
     // Fetch celebrity profiles with subscription status
     console.log('Fetching celebrities with subscriptions...');
-    const { data: celebritiesData, error: celebritiesError } = await supabaseServiceRole
+    const { data: celebritiesData, error: celebritiesError } = await supabaseAdmin
       .from('celebrity_profiles')
       .select(`
         *,
@@ -276,7 +130,7 @@ Deno.serve(async (req) => {
     console.error('Error in admin-data function:', error)
     return new Response(JSON.stringify({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+      error: error.message
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500

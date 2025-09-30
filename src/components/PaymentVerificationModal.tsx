@@ -62,6 +62,7 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
       if (error) throw error;
       setPaymentRecords(data || []);
     } catch (error) {
+      console.error('Error fetching payment records:', error);
       toast({
         title: "Error",
         description: "Failed to load payment records",
@@ -77,24 +78,20 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
 
     setSubmitting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('payment-verification', {
-        body: {
-          celebrityId,
-          phoneNumber: phoneNumber.trim(),
-          mpesaCode: mpesaCode.trim().toUpperCase(),
+      const { data, error } = await supabase
+        .from('payment_verification')
+        .insert({
+          celebrity_id: celebrityId,
+          phone_number: phoneNumber.trim(),
+          mpesa_code: mpesaCode.trim().toUpperCase(),
           amount: 10
-        }
-      });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      if (!data.success) {
-        throw new Error(data.message || 'Failed to submit payment verification');
-      }
-
-      // Refresh payment records
-      await fetchPaymentRecords();
-      
+      setPaymentRecords(prev => [data, ...prev]);
       setPhoneNumber('');
       setMpesaCode('');
 
@@ -103,10 +100,10 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
         description: "Your payment verification has been submitted for admin review",
       });
     } catch (error) {
-      console.error('Payment submission error:', error);
+      console.error('Error submitting payment:', error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to submit payment verification",
+        description: "Failed to submit payment verification",
         variant: "destructive",
       });
     } finally {

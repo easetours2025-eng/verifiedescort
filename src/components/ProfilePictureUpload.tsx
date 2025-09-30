@@ -94,6 +94,7 @@ const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
       onUpload(publicUrl);
       clearSelection();
     } catch (error) {
+      console.error('Error uploading profile picture:', error);
       toast({
         title: "Upload failed",
         description: "Failed to upload profile picture. Please try again.",

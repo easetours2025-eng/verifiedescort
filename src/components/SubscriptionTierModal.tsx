@@ -6,26 +6,17 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Check, Crown, Star, Zap, Smartphone } from 'lucide-react';
+import { Check, Crown, Star, Zap } from 'lucide-react';
 
 interface SubscriptionTierModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   celebrityId: string;
   onSubmit: (tier: 'basic' | 'premium', mpesaCode: string, phoneNumber: string) => void;
-  isSpecialOffer?: boolean;
-  preselectedTier?: 'basic' | 'premium';
 }
 
-const SubscriptionTierModal = ({ 
-  open, 
-  onOpenChange, 
-  celebrityId, 
-  onSubmit,
-  isSpecialOffer = false,
-  preselectedTier = 'basic'
-}: SubscriptionTierModalProps) => {
-  const [selectedTier, setSelectedTier] = useState<'basic' | 'premium'>(preselectedTier);
+const SubscriptionTierModal = ({ open, onOpenChange, celebrityId, onSubmit }: SubscriptionTierModalProps) => {
+  const [selectedTier, setSelectedTier] = useState<'basic' | 'premium'>('basic');
   const [mpesaCode, setMpesaCode] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -34,8 +25,7 @@ const SubscriptionTierModal = ({
   const plans = {
     basic: {
       name: 'Basic Plan',
-      price: isSpecialOffer ? 1500 : 2000,
-      originalPrice: isSpecialOffer ? 2000 : null,
+      price: 2000,
       duration: '30 days',
       features: [
         'Profile visibility to public',
@@ -48,9 +38,8 @@ const SubscriptionTierModal = ({
       color: 'bg-blue-500'
     },
     premium: {
-      name: 'Premium Plan', 
-      price: isSpecialOffer ? 1750 : 2500,
-      originalPrice: isSpecialOffer ? 2500 : null,
+      name: 'Premium Plan',
+      price: 2500,
       duration: '30 days',
       features: [
         'Priority profile placement (FIFO)',
@@ -117,15 +106,8 @@ const SubscriptionTierModal = ({
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Zap className="h-6 w-6 text-primary" />
-            <span>
-              {isSpecialOffer ? '🎉 Special Joining Offer!' : 'Choose Your Subscription Plan'}
-            </span>
+            <span>Choose Your Subscription Plan</span>
           </DialogTitle>
-          {isSpecialOffer && (
-            <p className="text-sm text-muted-foreground">
-              Limited time offer - Save up to 30% on your first month!
-            </p>
-          )}
         </DialogHeader>
 
         <div className="space-y-6">
@@ -153,22 +135,12 @@ const SubscriptionTierModal = ({
                       </div>
                     </div>
                     <div className="text-right">
-                      {plan.originalPrice && (
-                        <div className="flex items-center justify-end space-x-2 mb-1">
-                          <span className="text-sm line-through text-muted-foreground">
-                            KSh {plan.originalPrice.toLocaleString()}
-                          </span>
-                          <Badge className="bg-green-500 text-white text-xs">
-                            -{Math.round(((plan.originalPrice - plan.price) / plan.originalPrice) * 100)}% OFF
-                          </Badge>
-                        </div>
-                      )}
                       <div className="text-2xl font-bold text-primary">
                         KSh {plan.price.toLocaleString()}
                       </div>
                       {key === 'premium' && (
                         <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
-                          {isSpecialOffer ? 'BEST DEAL' : 'Most Popular'}
+                          Most Popular
                         </Badge>
                       )}
                     </div>
@@ -191,52 +163,21 @@ const SubscriptionTierModal = ({
           {/* Payment Instructions */}
           <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
             <CardHeader>
-              <CardTitle className="text-green-800 flex items-center space-x-2">
-                <Smartphone className="h-5 w-5" />
-                <span>M-Pesa Payment Instructions</span>
-              </CardTitle>
+              <CardTitle className="text-green-800">Payment Instructions</CardTitle>
             </CardHeader>
             <CardContent className="text-green-700">
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <p className="font-semibold">
                   Pay KSh {plans[selectedTier].price.toLocaleString()} via M-Pesa:
                 </p>
-                
-                {/* Secure Till Number Display */}
-                <div className="bg-white p-3 rounded-lg border border-green-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">M-Pesa Till Number:</p>
-                      <div className="flex items-center space-x-2">
-                        <code className="text-lg font-bold text-green-800 bg-green-100 px-2 py-1 rounded">
-                          8980316
-                        </code>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            navigator.clipboard.writeText('8980316');
-                            toast({
-                              title: "Copied!",
-                              description: "Till number copied to clipboard",
-                            });
-                          }}
-                          className="h-8 w-8 p-0 border-green-300 hover:bg-green-100"
-                        >
-                          <Check className="h-4 w-4 text-green-600" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 <ol className="list-decimal list-inside space-y-1 text-sm">
-                  <li>Open M-Pesa on your phone</li>
-                  <li>Select "Lipa na M-Pesa" → "Buy Goods and Services"</li>
-                  <li>Enter Till Number: <span className="font-bold">8980316</span> (tap copy above)</li>
+                  <li>Go to M-Pesa menu on your phone</li>
+                  <li>Select "Lipa na M-Pesa"</li>
+                  <li>Select "Buy Goods and Services"</li>
+                  <li>Enter Till Number: <span className="font-bold">123456</span></li>
                   <li>Enter Amount: <span className="font-bold">KSh {plans[selectedTier].price}</span></li>
                   <li>Enter your M-Pesa PIN</li>
-                  <li>Copy the M-Pesa confirmation code and enter below</li>
+                  <li>Copy the M-Pesa confirmation code and paste below</li>
                 </ol>
               </div>
             </CardContent>

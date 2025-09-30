@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { action, email, password, is_super_admin } = await req.json();
+    const { action, email, password } = await req.json();
 
     // Create Supabase client with service role key
     const supabaseServiceRole = createClient(
@@ -118,44 +118,6 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           admin: { id: admin.id, email: admin.email, is_super_admin: admin.is_super_admin }
-        }),
-        { 
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200 
-        }
-      );
-
-    } else if (action === "create") {
-      // Create new admin (requires existing admin to be authenticated)
-      // Hash password
-      const passwordHash = await crypto.subtle.digest(
-        "SHA-256",
-        new TextEncoder().encode(password + "admin_salt_key")
-      );
-      const passwordHashString = Array.from(new Uint8Array(passwordHash))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
-
-      // Create new admin
-      const { data: newAdmin, error: createError } = await supabaseServiceRole
-        .from('admin_users')
-        .insert({
-          email,
-          password_hash: passwordHashString,
-          is_super_admin: is_super_admin || false
-        })
-        .select()
-        .single();
-
-      if (createError) {
-        console.error("Create admin error:", createError);
-        throw new Error("Failed to create admin account");
-      }
-
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          admin: { id: newAdmin.id, email: newAdmin.email, is_super_admin: newAdmin.is_super_admin }
         }),
         { 
           headers: { ...corsHeaders, "Content-Type": "application/json" },

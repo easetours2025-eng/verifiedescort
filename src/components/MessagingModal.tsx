@@ -110,6 +110,7 @@ const MessagingModal = ({ open, onOpenChange, celebrityId, celebrityName }: Mess
         })));
       }
     } catch (error) {
+      console.error('Error initializing conversation:', error);
       toast({
         title: "Error",
         description: "Failed to load conversation",
@@ -149,6 +150,7 @@ const MessagingModal = ({ open, onOpenChange, celebrityId, celebrityName }: Mess
         description: "Your message has been sent to the celebrity",
       });
     } catch (error) {
+      console.error('Error sending message:', error);
       toast({
         title: "Error",
         description: "Failed to send message",
@@ -184,12 +186,12 @@ const MessagingModal = ({ open, onOpenChange, celebrityId, celebrityName }: Mess
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <MessageCircle className="h-5 w-5" />
-              <span>Login Required</span>
+              <span>Sign In Required</span>
             </DialogTitle>
           </DialogHeader>
           <div className="text-center py-6">
             <p className="text-muted-foreground mb-4">
-              Please login to start messaging with celebrities.
+              Please sign in to start messaging with celebrities.
             </p>
             <Button onClick={() => onOpenChange(false)}>
               Close

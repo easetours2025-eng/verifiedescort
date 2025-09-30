@@ -14,7 +14,7 @@ import ReadMoreText from './ReadMoreText';
 import ServicesList from './ServicesList';
 
 interface CelebrityCardProps {
-  celebrity: PublicCelebrityProfile | PrivateCelebrityProfile;
+  celebrity: PrivateCelebrityProfile;
   onViewProfile: (id: string) => void;
 }
 
@@ -67,7 +67,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
         setProfileImage(urlData.publicUrl);
       }
     } catch (error) {
-      // Error silently handled - profile image will not display
+      console.error('Error fetching profile image:', error);
     }
   };
 
@@ -90,7 +90,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
         setProfileVideo(urlData.publicUrl);
       }
     } catch (error) {
-      // Error silently handled - profile video will not display
+      console.error('Error fetching profile video:', error);
     }
   };
 
@@ -105,7 +105,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
 
       setHasVideos((count || 0) > 0);
     } catch (error) {
-      // Error silently handled - videos check will not display
+      console.error('Error checking for videos:', error);
     }
   };
 
@@ -121,7 +121,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
 
       setIsVIP(data && data.length > 0);
     } catch (error) {
-      // Error silently handled - VIP status will not display
+      console.error('Error checking VIP status:', error);
     }
   };
 
@@ -137,7 +137,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
 
       setServices(data || []);
     } catch (error) {
-      // Error silently handled - services will not display
+      console.error('Error fetching services:', error);
     }
   };
 
@@ -187,8 +187,8 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
           <h3 className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             {celebrity.stage_name}
           </h3>
-          {/* Show real name only for private profiles */}
-          {isPrivateProfile(celebrity) && celebrity.real_name && (
+          {/* Show real name for everyone */}
+          {celebrity.real_name && (
             <p className="text-sm text-muted-foreground">({celebrity.real_name})</p>
           )}
           <div className="flex items-center justify-center space-x-2">
@@ -237,7 +237,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
         )}
 
         {/* Call Button */}
-        {isPrivateProfile(celebrity) && celebrity.phone_number && (
+        {celebrity.phone_number && (
           <div className="pt-2">
             <Button
               variant="outline"

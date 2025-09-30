@@ -123,6 +123,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
 
       onUpload(); // Refresh media list
     } catch (error) {
+      console.error('Error uploading media:', error);
       toast({
         title: "Upload failed",
         description: "Failed to upload media. Please try again.",

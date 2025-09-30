@@ -66,21 +66,15 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
       
       // Fetch views
       const { data: viewsData } = await supabase
-        .rpc('get_media_statistics');
-      // Group view counts by media_id
-      const viewCounts: Record<string, number> = {};
-      if (viewsData) {
-        viewsData.forEach((row: any) => {
-          if (!viewCounts[row.media_id]) {
-            viewCounts[row.media_id] = 0;
-          }
-          viewCounts[row.media_id] += row.view_count || 0;
-        });
-      }
-      const likesPromises = mediaIds.map(id => 
-        supabase.rpc('get_media_like_count', { media_uuid: id })
-      );
-      const likesResults = await Promise.all(likesPromises);
+        .from('media_views')
+        .select('media_id, id')
+        .in('media_id', mediaIds);
+
+      // Fetch likes
+      const { data: likesData } = await supabase
+        .from('media_likes')
+        .select('media_id, like_type')
+        .in('media_id', mediaIds);
 
       // Process stats
       const stats: Record<string, MediaStats> = {};
@@ -90,21 +84,20 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
       });
 
       viewsData?.forEach(view => {
-        stats[view.media_id].views += view.view_count || 0;
+        stats[view.media_id].views++;
       });
 
-      // Process likes results
-      likesResults.forEach((result, index) => {
-        const mediaId = mediaIds[index];
-        if (result.data) {
-          stats[mediaId].likes = result.data;
-          stats[mediaId].loves = 0; // Simplified - no type breakdown
+      likesData?.forEach(like => {
+        if (like.like_type === 'like') {
+          stats[like.media_id].likes++;
+        } else if (like.like_type === 'love') {
+          stats[like.media_id].loves++;
         }
       });
 
       setMediaStats(stats);
     } catch (error) {
-      // Error silently handled - media stats will not be updated
+      console.error('Error fetching media stats:', error);
     }
   };
 

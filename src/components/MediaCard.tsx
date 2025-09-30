@@ -37,6 +37,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ media }) => {
       const data = await response.json();
       return data.ip;
     } catch (error) {
+      console.error('Error getting IP:', error);
       return 'unknown';
     }
   };
@@ -44,46 +45,53 @@ const MediaCard: React.FC<MediaCardProps> = ({ media }) => {
   const fetchViewCount = async () => {
     try {
       const { data, error } = await supabase
-        .rpc('get_media_statistics');
+        .from('media_views')
+        .select('id')
+        .eq('media_id', media.id);
       
       if (error) throw error;
-      // Filter and sum up view counts for this specific media
-      const mediaStats = data?.filter(row => row.media_id === media.id) || [];
-      const totalViews = mediaStats.reduce((sum, row) => sum + (row.view_count || 0), 0);
-      setViewCount(totalViews);
+      setViewCount(data?.length || 0);
     } catch (error) {
-      // Error silently handled - view count will remain 0
+      console.error('Error fetching view count:', error);
     }
   };
 
   const fetchLikeCounts = async () => {
     try {
-      const { data: likeCount, error } = await supabase
-        .rpc('get_media_like_count', { media_uuid: media.id });
+      const { data, error } = await supabase
+        .from('media_likes')
+        .select('like_type')
+        .eq('media_id', media.id);
       
       if (error) throw error;
       
-      // Show total likes as "likes" and set loves to 0
-      setLikeCounts({ likes: likeCount || 0, loves: 0 });
+      const counts = { likes: 0, loves: 0 };
+      data?.forEach(like => {
+        if (like.like_type === 'like') counts.likes++;
+        else if (like.like_type === 'love') counts.loves++;
+      });
+      
+      setLikeCounts(counts);
     } catch (error) {
-      // Error silently handled - like counts will remain 0
+      console.error('Error fetching like counts:', error);
     }
   };
 
   const fetchUserLikes = async () => {
     try {
       const userIP = await getUserIP();
-      const { data: hasLiked, error } = await supabase
-        .rpc('has_user_liked_media', { 
-          media_uuid: media.id, 
-          user_ip_param: userIP 
-        });
+      const { data, error } = await supabase
+        .from('media_likes')
+        .select('like_type')
+        .eq('media_id', media.id)
+        .eq('user_ip', userIP);
       
       if (error) throw error;
       
-      setUserLikes(hasLiked ? ['like'] : []);
+      const likes = data?.map(like => like.like_type) || [];
+      setUserLikes(likes);
     } catch (error) {
-      // Error silently handled - user likes will not be displayed
+      console.error('Error fetching user likes:', error);
     }
   };
 
@@ -102,7 +110,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ media }) => {
       // Update local view count
       setViewCount(prev => prev + 1);
     } catch (error) {
-      // Error silently handled - view count will not be updated
+      console.error('Error recording view:', error);
     }
   };
 
@@ -143,7 +151,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ media }) => {
         }));
       }
     } catch (error) {
-      // Error silently handled - like action will not be processed
+      console.error('Error handling like:', error);
     }
   };
 

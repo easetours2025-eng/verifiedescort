@@ -57,10 +57,10 @@ interface MediaItem {
 
 const CelebrityProfile = () => {
   const { id } = useParams<{ id: string }>();
-  const [profile, setProfile] = useState<PublicCelebrityProfile | null>(null);
+  const [profile, setProfile] = useState<PrivateCelebrityProfile | null>(null);
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [services, setServices] = useState<any[]>([]);
-  const [otherCelebrities, setOtherCelebrities] = useState<PublicCelebrityProfile[]>([]);
+  const [otherCelebrities, setOtherCelebrities] = useState<PrivateCelebrityProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoadingMedia, setIsLoadingMedia] = useState(true);
   const [isLoadingOthers, setIsLoadingOthers] = useState(true);
@@ -108,23 +108,17 @@ const CelebrityProfile = () => {
     try {
       const mediaIds = media.map(m => m.id);
       const { data, error } = await supabase
-        .rpc('get_media_statistics');
+        .from('media_views')
+        .select('media_id, id')
+        .in('media_id', mediaIds);
       
       if (error) throw error;
       
       const counts: Record<string, number> = {};
       mediaIds.forEach(id => counts[id] = 0);
       
-      // Sum up view counts for each media across all dates
-      if (data) {
-        data.forEach((row: any) => {
-          if (mediaIds.includes(row.media_id)) {
-            counts[row.media_id] += row.view_count || 0;
-          }
-        });
-      }
-      data?.forEach(stat => {
-        counts[stat.media_id] = (counts[stat.media_id] || 0) + (stat.view_count || 0);
+      data?.forEach(view => {
+        counts[view.media_id] = (counts[view.media_id] || 0) + 1;
       });
       
       setViewCounts(counts);
@@ -136,19 +130,22 @@ const CelebrityProfile = () => {
   const fetchLikeCounts = async () => {
     try {
       const mediaIds = media.map(m => m.id);
+      const { data, error } = await supabase
+        .from('media_likes')
+        .select('media_id, like_type')
+        .in('media_id', mediaIds);
       
-      // Use secure function to get like counts
-      const likesPromises = mediaIds.map(id => 
-        supabase.rpc('get_media_like_count', { media_uuid: id })
-      );
-      const likesResults = await Promise.all(likesPromises);
+      if (error) throw error;
       
       const counts: Record<string, { likes: number; loves: number }> = {};
-      mediaIds.forEach((id, index) => {
-        counts[id] = { 
-          likes: likesResults[index]?.data || 0, 
-          loves: 0 // Simplified - no type breakdown
-        };
+      mediaIds.forEach(id => counts[id] = { likes: 0, loves: 0 });
+      
+      data?.forEach(like => {
+        if (like.like_type === 'like') {
+          counts[like.media_id].likes++;
+        } else if (like.like_type === 'love') {
+          counts[like.media_id].loves++;
+        }
       });
       
       setLikeCounts(counts);
@@ -161,19 +158,19 @@ const CelebrityProfile = () => {
     try {
       const userIP = await getUserIP();
       const mediaIds = media.map(m => m.id);
+      const { data, error } = await supabase
+        .from('media_likes')
+        .select('media_id, like_type')
+        .in('media_id', mediaIds)
+        .eq('user_ip', userIP);
       
-      // Use secure function to check user likes
-      const userLikesPromises = mediaIds.map(id => 
-        supabase.rpc('has_user_liked_media', { 
-          media_uuid: id, 
-          user_ip_param: userIP 
-        })
-      );
-      const userLikesResults = await Promise.all(userLikesPromises);
+      if (error) throw error;
       
       const likes: Record<string, string[]> = {};
-      mediaIds.forEach((id, index) => {
-        likes[id] = userLikesResults[index]?.data ? ['like'] : [];
+      mediaIds.forEach(id => likes[id] = []);
+      
+      data?.forEach(like => {
+        likes[like.media_id].push(like.like_type);
       });
       
       setUserLikes(likes);
@@ -185,17 +182,16 @@ const CelebrityProfile = () => {
   const fetchProfile = async () => {
     try {
       const { data: celebrityData, error: celebrityError } = await supabase
-        .rpc('get_safe_celebrity_profiles', { celebrity_id: id });
+        .from('celebrity_profiles')
+        .select('*')
+        .eq('id', id)
+        .single();
 
       if (celebrityError) throw celebrityError;
 
-      // Use the first result from the function (it returns an array)
-      const celebrityProfile = celebrityData?.[0];
-      if (!celebrityProfile) {
-        throw new Error('Celebrity profile not found');
-      }
-
-      setProfile(celebrityProfile);
+      // Return all data as public since authorization is removed
+      const filteredProfile = await filterCelebrityData(celebrityData as FullCelebrityProfile);
+      setProfile(filteredProfile);
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
@@ -252,7 +248,10 @@ const CelebrityProfile = () => {
     
     try {
       const { data, error } = await supabase
-        .rpc('get_safe_celebrity_profiles')
+        .from('celebrity_profiles')
+        .select('*')
+        .neq('id', id)
+        .eq('is_available', true)
         .limit(6)
         .order('created_at', { ascending: false });
 
@@ -273,21 +272,29 @@ const CelebrityProfile = () => {
 
 
   const handleContact = () => {
-    // Phone numbers are not available in public profiles for security
-    toast({
-      title: "Contact Info",
-      description: "Direct phone contact is not available. Please use messaging instead.",
-      variant: "destructive",
-    });
+    if (profile?.phone_number) {
+      window.open(`tel:${profile.phone_number}`, '_self');
+    } else {
+      toast({
+        title: "Contact Info",
+        description: "Phone number not available for this celebrity",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleWhatsApp = () => {
-    // Phone numbers are not available in public profiles for security
-    toast({
-      title: "Contact Info",
-      description: "Direct phone contact is not available. Please use messaging instead.",
-      variant: "destructive",
-    });
+    if (profile?.phone_number) {
+      const cleanPhone = profile.phone_number.replace(/[^\d+]/g, '');
+      const message = encodeURIComponent(`Hi ${profile.stage_name}, I'm interested in booking you through Celebrity Connect.`);
+      window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+    } else {
+      toast({
+        title: "Contact Info",
+        description: "Phone number not available for this celebrity",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSocialClick = (platform: 'instagram' | 'twitter') => {
