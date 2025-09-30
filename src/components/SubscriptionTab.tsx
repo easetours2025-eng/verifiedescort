@@ -99,23 +99,28 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
         ? (tier === 'premium' ? 1750 : 1500)
         : (tier === 'premium' ? 2500 : 2000);
 
-      const { error } = await supabase
-        .from('payment_verification')
-        .insert({
-          celebrity_id: profile?.id,
-          phone_number: phoneNumber,
-          mpesa_code: mpesaCode,
+      const { data, error } = await supabase.functions.invoke('payment-verification', {
+        body: {
+          celebrityId: profile?.id,
+          phoneNumber,
+          mpesaCode,
           amount: offerAmount,
-          is_verified: false,
-        });
+          tier
+        }
+      });
 
       if (error) throw error;
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to submit payment verification');
+      }
 
       toast({
         title: "Payment Verification Submitted",
         description: `Your ${tier} plan payment verification has been submitted${isOffer ? ' (Special Offer)' : ''}. An admin will review it shortly.`,
       });
     } catch (error: any) {
+      console.error('Payment submission error:', error);
       toast({
         title: "Submission Failed",
         description: error.message || "Failed to submit payment verification",
