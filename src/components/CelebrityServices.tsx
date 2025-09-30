@@ -109,7 +109,6 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
       resetForm();
       onServicesUpdate();
     } catch (error: any) {
-      console.error('Error saving service:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to save service",
@@ -146,7 +145,6 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
       });
       onServicesUpdate();
     } catch (error: any) {
-      console.error('Error deleting service:', error);
       toast({
         title: "Error",
         description: "Failed to delete service",
@@ -170,7 +168,6 @@ const CelebrityServices: React.FC<CelebrityServicesProps> = ({
       });
       onServicesUpdate();
     } catch (error: any) {
-      console.error('Error updating service status:', error);
       toast({
         title: "Error",
         description: "Failed to update service status",

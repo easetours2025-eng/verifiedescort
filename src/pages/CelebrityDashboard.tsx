@@ -405,44 +405,170 @@ const VisibilityStatusBanner = ({
   subscriptionStatus: SubscriptionStatus | null;
   profile: CelebrityProfile;
 }) => {
-  const isPubliclyVisible = subscriptionStatus?.is_active && 
+  const [specialOfferStatus, setSpecialOfferStatus] = useState<{
+    isActive: boolean;
+    daysLeft: number;
+    registeredAt?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    checkSpecialOfferStatus();
+  }, [profile]);
+
+  const checkSpecialOfferStatus = async () => {
+    if (!profile?.id) return;
+
+    try {
+      // Get the full profile to check special offer status
+      const { data: fullProfile, error } = await supabase
+        .from('celebrity_profiles')
+        .select('special_offer_registered_at, is_special_offer_active, created_at')
+        .eq('id', profile.id)
+        .single();
+
+      if (error || !fullProfile) return;
+
+      const now = new Date();
+      const offerStartDate = new Date('2025-01-27T00:00:00Z');
+      const offerEndDate = new Date('2025-02-01T23:59:59Z');
+      
+      // Check if user registered during offer period
+      const registeredAt = fullProfile.special_offer_registered_at 
+        ? new Date(fullProfile.special_offer_registered_at)
+        : new Date(fullProfile.created_at);
+
+      const isInOfferPeriod = now >= offerStartDate && now <= offerEndDate;
+      const registeredDuringOffer = fullProfile.special_offer_registered_at && 
+        registeredAt >= offerStartDate && registeredAt <= offerEndDate;
+
+      if (registeredDuringOffer) {
+        // Calculate days left in 5-day period
+        const offerExpiryDate = new Date(registeredAt.getTime() + (5 * 24 * 60 * 60 * 1000));
+        const timeLeft = offerExpiryDate.getTime() - now.getTime();
+        const daysLeft = Math.max(0, Math.ceil(timeLeft / (24 * 60 * 60 * 1000)));
+
+        setSpecialOfferStatus({
+          isActive: timeLeft > 0,
+          daysLeft,
+          registeredAt: fullProfile.special_offer_registered_at
+        });
+      } else if (isInOfferPeriod && !fullProfile.special_offer_registered_at) {
+        // Show offer availability for new users
+        setSpecialOfferStatus({
+          isActive: false,
+          daysLeft: 0
+        });
+      }
+    } catch (error) {
+      console.error('Error checking special offer status:', error);
+    }
+  };
+
+  const isPaidSubscriptionActive = subscriptionStatus?.is_active && 
     subscriptionStatus.subscription_end && 
     new Date(subscriptionStatus.subscription_end) > new Date();
 
+  const isSpecialOfferActive = specialOfferStatus?.isActive || false;
+  const isPubliclyVisible = isPaidSubscriptionActive || isSpecialOfferActive;
+
+  // Show special offer banner if currently in offer period
+  const now = new Date();
+  const offerStartDate = new Date('2025-01-27T00:00:00Z');
+  const offerEndDate = new Date('2025-02-01T23:59:59Z');
+  const isCurrentlyInOfferPeriod = now >= offerStartDate && now <= offerEndDate;
+
   return (
-    <Card className={`border-2 ${isPubliclyVisible ? 'border-green-200 bg-green-50' : 'border-yellow-200 bg-yellow-50'}`}>
-      <CardContent className="p-3 sm:p-4">
-        <div className="flex items-start sm:items-center space-x-2 sm:space-x-3">
-          {isPubliclyVisible ? (
-            <>
-              <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 flex-shrink-0 mt-0.5 sm:mt-0" />
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-green-800 text-sm sm:text-base">Your Profile is Publicly Visible</h3>
-                <p className="text-xs sm:text-sm text-green-700">
-                  Users can discover and book you. Subscription expires on{' '}
-                  {subscriptionStatus.subscription_end && new Date(subscriptionStatus.subscription_end).toLocaleDateString()}
-                </p>
+    <div className="space-y-3">
+      {/* Special 5-Day Offer Banner */}
+      {isCurrentlyInOfferPeriod && (
+        <Card className="border-2 border-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                  <span className="text-lg">🎉</span>
+                </div>
               </div>
-            </>
-          ) : (
-            <>
-              <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600 flex-shrink-0 mt-0.5 sm:mt-0" />
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-yellow-800 text-sm sm:text-base">Profile Not Publicly Visible</h3>
-                <p className="text-xs sm:text-sm text-yellow-700">
-                  Your profile is hidden from public view. Submit payment verification to become visible to users.
-                </p>
+                <div className="flex items-center space-x-2 mb-1">
+                  <h3 className="font-bold text-orange-800 text-sm sm:text-base">🔥 Special Joining Offer!</h3>
+                  <Badge className="bg-orange-500 hover:bg-orange-600 text-white text-xs">
+                    Limited Time
+                  </Badge>
+                </div>
+                {specialOfferStatus?.isActive ? (
+                  <div>
+                    <p className="text-xs sm:text-sm text-orange-700 font-medium">
+                      ✅ Your profile is publicly visible for FREE! 
+                    </p>
+                    <p className="text-xs text-orange-600">
+                      {specialOfferStatus.daysLeft} day{specialOfferStatus.daysLeft !== 1 ? 's' : ''} left in your 5-day free visibility period
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-xs sm:text-sm text-orange-700 font-medium">
+                      🚀 Get 5 days of FREE public visibility! No payment required.
+                    </p>
+                    <p className="text-xs text-orange-600">
+                      Complete your profile setup to activate this limited-time offer
+                    </p>
+                  </div>
+                )}
               </div>
-              <Badge variant="secondary" className="text-yellow-800 bg-yellow-100 ml-2 sm:ml-0 flex-shrink-0">
-                <Clock className="h-3 w-3 mr-1" />
-                <span className="hidden sm:inline">Pending Payment</span>
-                <span className="sm:hidden">Pending</span>
-              </Badge>
-            </>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Main Visibility Status */}
+      <Card className={`border-2 ${isPubliclyVisible ? 'border-green-200 bg-green-50' : 'border-yellow-200 bg-yellow-50'}`}>
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex items-start sm:items-center space-x-2 sm:space-x-3">
+            {isPubliclyVisible ? (
+              <>
+                <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 flex-shrink-0 mt-0.5 sm:mt-0" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-green-800 text-sm sm:text-base">Your Profile is Publicly Visible</h3>
+                  {isSpecialOfferActive ? (
+                    <p className="text-xs sm:text-sm text-green-700">
+                      🎉 Active via Special 5-Day Offer! {specialOfferStatus?.daysLeft} day{specialOfferStatus?.daysLeft !== 1 ? 's' : ''} remaining
+                    </p>
+                  ) : (
+                    <p className="text-xs sm:text-sm text-green-700">
+                      Users can discover and book you. Subscription expires on{' '}
+                      {subscriptionStatus?.subscription_end && new Date(subscriptionStatus.subscription_end).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600 flex-shrink-0 mt-0.5 sm:mt-0" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-yellow-800 text-sm sm:text-base">Profile Not Publicly Visible</h3>
+                  <p className="text-xs sm:text-sm text-yellow-700">
+                    {isCurrentlyInOfferPeriod 
+                      ? "Complete your profile setup to activate the 5-day free visibility offer!"
+                      : "Your profile is hidden from public view. Submit payment verification to become visible to users."
+                    }
+                  </p>
+                </div>
+                <Badge variant="secondary" className="text-yellow-800 bg-yellow-100 ml-2 sm:ml-0 flex-shrink-0">
+                  <Clock className="h-3 w-3 mr-1" />
+                  <span className="hidden sm:inline">
+                    {isCurrentlyInOfferPeriod ? "Setup Required" : "Pending Payment"}
+                  </span>
+                  <span className="sm:hidden">
+                    {isCurrentlyInOfferPeriod ? "Setup" : "Pending"}
+                  </span>
+                </Badge>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

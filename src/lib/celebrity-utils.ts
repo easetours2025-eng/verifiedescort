@@ -77,20 +77,36 @@ export const canAccessSensitiveData = async (celebrityUserId: string): Promise<b
     
     return data === true;
   } catch (error) {
-    console.error('Error in canAccessSensitiveData:', error);
     return false;
   }
 };
 
 /**
  * Filter celebrity profile data based on user permissions
- * Now returns all data as public since authorization is removed
+ * Returns safe public data only - sensitive fields are protected by database RLS
  */
 export const filterCelebrityData = async (
   profile: CelebrityProfile
-): Promise<PrivateCelebrityProfile> => {
-  // Return all data for everyone
-  return profile as PrivateCelebrityProfile;
+): Promise<PublicCelebrityProfile> => {
+  // Use the secure database function instead of client-side filtering
+  const { data } = await supabase.rpc('get_safe_celebrity_profiles', { celebrity_id: profile.id });
+  return data?.[0] || {
+    id: profile.id,
+    stage_name: profile.stage_name,
+    bio: profile.bio,
+    location: profile.location,
+    gender: profile.gender,
+    age: profile.age,
+    base_price: profile.base_price,
+    hourly_rate: profile.hourly_rate,
+    social_instagram: profile.social_instagram,
+    social_twitter: profile.social_twitter,
+    social_tiktok: profile.social_tiktok,
+    is_verified: profile.is_verified,
+    is_available: profile.is_available,
+    created_at: profile.created_at,
+    profile_picture_path: profile.profile_picture_path,
+  };
 };
 
 /**
@@ -113,11 +129,11 @@ export const isPrivateProfile = (
 
 /**
  * Filter array of celebrity profiles
- * Now returns all data as public
+ * Returns safe public data only
  */
 export const filterCelebrityDataArray = async (
   profiles: CelebrityProfile[]
-): Promise<PrivateCelebrityProfile[]> => {
+): Promise<PublicCelebrityProfile[]> => {
   const filteredProfiles = await Promise.all(
     profiles.map(profile => filterCelebrityData(profile))
   );

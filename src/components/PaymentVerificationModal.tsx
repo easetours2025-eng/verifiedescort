@@ -62,7 +62,6 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
       if (error) throw error;
       setPaymentRecords(data || []);
     } catch (error) {
-      console.error('Error fetching payment records:', error);
       toast({
         title: "Error",
         description: "Failed to load payment records",
@@ -100,7 +99,6 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
         description: "Your payment verification has been submitted for admin review",
       });
     } catch (error) {
-      console.error('Error submitting payment:', error);
       toast({
         title: "Error",
         description: "Failed to submit payment verification",
