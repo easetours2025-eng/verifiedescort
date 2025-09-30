@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  register: (email: string, password: string, stageName?: string) => Promise<{ error: any }>;
+  register: (email: string, password: string, stageName?: string, phoneNumber?: string) => Promise<{ error: any }>;
   login: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const register = async (email: string, password: string, stageName?: string) => {
+  const register = async (email: string, password: string, stageName?: string, phoneNumber?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -55,7 +55,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       options: {
         emailRedirectTo: redirectUrl,
         data: {
-          stage_name: stageName || 'New Celebrity'
+          stage_name: stageName || 'New Celebrity',
+          phone_number: phoneNumber || ''
         }
       }
     });

@@ -15,7 +15,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { action, adminEmail } = await req.json();
+    // Parse body once and reuse it
+    const requestBody = await req.json();
+    const { action, adminEmail } = requestBody;
 
     // Create Supabase client with service role key
     const supabaseServiceRole = createClient(
@@ -118,7 +120,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "delete_user") {
-      const { userId } = await req.json();
+      const { userId } = requestBody;
       
       if (!userId) {
         throw new Error("User ID is required");
@@ -155,7 +157,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "toggle_user_verification") {
-      const { userId, isVerified } = await req.json();
+      const { userId, isVerified } = requestBody;
       
       if (!userId) {
         throw new Error("User ID is required");
