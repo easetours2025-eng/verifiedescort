@@ -190,24 +190,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "celebrity_media_celebrity_id_fkey"
-            columns: ["celebrity_id"]
-            isOneToOne: false
-            referencedRelation: "public_celebrity_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fk_celebrity_media_celebrity_id"
             columns: ["celebrity_id"]
             isOneToOne: false
             referencedRelation: "celebrity_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_celebrity_media_celebrity_id"
-            columns: ["celebrity_id"]
-            isOneToOne: false
-            referencedRelation: "public_celebrity_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -375,13 +361,6 @@ export type Database = {
             referencedRelation: "celebrity_profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fk_celebrity_subscriptions_celebrity_id"
-            columns: ["celebrity_id"]
-            isOneToOne: false
-            referencedRelation: "public_celebrity_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       conversations: {
@@ -412,13 +391,6 @@ export type Database = {
             columns: ["celebrity_id"]
             isOneToOne: false
             referencedRelation: "celebrity_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_conversations_celebrity_id"
-            columns: ["celebrity_id"]
-            isOneToOne: false
-            referencedRelation: "public_celebrity_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -583,13 +555,6 @@ export type Database = {
             referencedRelation: "celebrity_profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fk_payment_verification_celebrity_id"
-            columns: ["celebrity_id"]
-            isOneToOne: false
-            referencedRelation: "public_celebrity_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       video_likes: {
@@ -652,111 +617,7 @@ export type Database = {
       }
     }
     Views: {
-      admin_video_stats: {
-        Row: {
-          video_id: string | null
-          view_count: number | null
-          view_date: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "admin_video_views_video_id_fkey"
-            columns: ["video_id"]
-            isOneToOne: false
-            referencedRelation: "admin_videos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      media_stats: {
-        Row: {
-          media_id: string | null
-          view_count: number | null
-          view_date: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "media_views_media_id_fkey"
-            columns: ["media_id"]
-            isOneToOne: false
-            referencedRelation: "celebrity_media"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      public_celebrity_profiles: {
-        Row: {
-          age: number | null
-          base_price: number | null
-          bio: string | null
-          created_at: string | null
-          gender: string | null
-          hourly_rate: number | null
-          id: string | null
-          is_available: boolean | null
-          is_verified: boolean | null
-          location: string | null
-          profile_picture_path: string | null
-          social_instagram: string | null
-          social_tiktok: string | null
-          social_twitter: string | null
-          stage_name: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          age?: number | null
-          base_price?: number | null
-          bio?: string | null
-          created_at?: string | null
-          gender?: string | null
-          hourly_rate?: number | null
-          id?: string | null
-          is_available?: boolean | null
-          is_verified?: boolean | null
-          location?: string | null
-          profile_picture_path?: string | null
-          social_instagram?: string | null
-          social_tiktok?: string | null
-          social_twitter?: string | null
-          stage_name?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          age?: number | null
-          base_price?: number | null
-          bio?: string | null
-          created_at?: string | null
-          gender?: string | null
-          hourly_rate?: number | null
-          id?: string | null
-          is_available?: boolean | null
-          is_verified?: boolean | null
-          location?: string | null
-          profile_picture_path?: string | null
-          social_instagram?: string | null
-          social_tiktok?: string | null
-          social_twitter?: string | null
-          stage_name?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      video_stats: {
-        Row: {
-          video_id: string | null
-          view_count: number | null
-          view_date: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "video_views_video_id_fkey"
-            columns: ["video_id"]
-            isOneToOne: false
-            referencedRelation: "celebrity_media"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       can_access_celebrity_sensitive_data: {
@@ -767,12 +628,49 @@ export type Database = {
         Args: { video_uuid: string }
         Returns: number
       }
+      get_admin_video_statistics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          video_id: string
+          view_count: number
+          view_date: string
+        }[]
+      }
       get_media_like_count: {
         Args: { media_uuid: string }
         Returns: number
       }
+      get_media_statistics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          media_id: string
+          view_count: number
+          view_date: string
+        }[]
+      }
       get_public_celebrity_data: {
         Args: { celebrity_profile_id?: string }
+        Returns: {
+          age: number
+          base_price: number
+          bio: string
+          created_at: string
+          gender: string
+          hourly_rate: number
+          id: string
+          is_available: boolean
+          is_verified: boolean
+          location: string
+          profile_picture_path: string
+          social_instagram: string
+          social_tiktok: string
+          social_twitter: string
+          stage_name: string
+          updated_at: string
+        }[]
+      }
+      get_public_celebrity_profiles: {
+        Args: Record<PropertyKey, never>
         Returns: {
           age: number
           base_price: number
@@ -815,6 +713,14 @@ export type Database = {
       get_video_like_count: {
         Args: { video_uuid: string }
         Returns: number
+      }
+      get_video_statistics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          video_id: string
+          view_count: number
+          view_date: string
+        }[]
       }
       has_user_liked_admin_video: {
         Args: { user_ip_param: string; video_uuid: string }

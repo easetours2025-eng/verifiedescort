@@ -44,13 +44,12 @@ const MediaCard: React.FC<MediaCardProps> = ({ media }) => {
   const fetchViewCount = async () => {
     try {
       const { data, error } = await supabase
-        .from('media_stats')
-        .select('view_count')
-        .eq('media_id', media.id);
+        .rpc('get_media_statistics');
       
       if (error) throw error;
-      // Sum up view counts across all dates for this media
-      const totalViews = data?.reduce((sum, row) => sum + (row.view_count || 0), 0) || 0;
+      // Filter and sum up view counts for this specific media
+      const mediaStats = data?.filter(row => row.media_id === media.id) || [];
+      const totalViews = mediaStats.reduce((sum, row) => sum + (row.view_count || 0), 0);
       setViewCount(totalViews);
     } catch (error) {
       // Error silently handled - view count will remain 0

@@ -66,11 +66,17 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
       
       // Fetch views
       const { data: viewsData } = await supabase
-        .from('media_stats')
-        .select('media_id, view_count')
-        .in('media_id', mediaIds);
-
-      // Fetch likes using secure function
+        .rpc('get_media_statistics');
+      // Group view counts by media_id
+      const viewCounts: Record<string, number> = {};
+      if (viewsData) {
+        viewsData.forEach((row: any) => {
+          if (!viewCounts[row.media_id]) {
+            viewCounts[row.media_id] = 0;
+          }
+          viewCounts[row.media_id] += row.view_count || 0;
+        });
+      }
       const likesPromises = mediaIds.map(id => 
         supabase.rpc('get_media_like_count', { media_uuid: id })
       );
