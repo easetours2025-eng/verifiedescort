@@ -107,6 +107,7 @@ const AdminVideoManagement = ({ refreshTrigger }: AdminVideoManagementProps) => 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwanFjcmhvYWJsc2xsa2dvbmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3MTY3NTksImV4cCI6MjA3MTI5Mjc1OX0.Guwh9JOeCCYUsqQfVANA-Kiqwl9yi_jGv92ZARqxl1w`,
         },
         body: JSON.stringify({
           action: 'toggle_status',
@@ -152,6 +153,7 @@ const AdminVideoManagement = ({ refreshTrigger }: AdminVideoManagementProps) => 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwanFjcmhvYWJsc2xsa2dvbmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3MTY3NTksImV4cCI6MjA3MTI5Mjc1OX0.Guwh9JOeCCYUsqQfVANA-Kiqwl9yi_jGv92ZARqxl1w`,
         },
         body: JSON.stringify({
           action: 'delete',

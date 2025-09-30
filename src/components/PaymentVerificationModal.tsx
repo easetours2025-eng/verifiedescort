@@ -77,20 +77,24 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
 
     setSubmitting(true);
     try {
-      const { data, error } = await supabase
-        .from('payment_verification')
-        .insert({
-          celebrity_id: celebrityId,
-          phone_number: phoneNumber.trim(),
-          mpesa_code: mpesaCode.trim().toUpperCase(),
+      const { data, error } = await supabase.functions.invoke('payment-verification', {
+        body: {
+          celebrityId,
+          phoneNumber: phoneNumber.trim(),
+          mpesaCode: mpesaCode.trim().toUpperCase(),
           amount: 10
-        })
-        .select()
-        .single();
+        }
+      });
 
       if (error) throw error;
 
-      setPaymentRecords(prev => [data, ...prev]);
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to submit payment verification');
+      }
+
+      // Refresh payment records
+      await fetchPaymentRecords();
+      
       setPhoneNumber('');
       setMpesaCode('');
 
@@ -99,9 +103,10 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
         description: "Your payment verification has been submitted for admin review",
       });
     } catch (error) {
+      console.error('Payment submission error:', error);
       toast({
         title: "Error",
-        description: "Failed to submit payment verification",
+        description: error instanceof Error ? error.message : "Failed to submit payment verification",
         variant: "destructive",
       });
     } finally {

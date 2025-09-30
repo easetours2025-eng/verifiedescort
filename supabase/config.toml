@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.admin-data]
 verify_jwt = false
+
+[functions.admin-video-operations]
+verify_jwt = false
+
+[functions.payment-verification]
+verify_jwt = false

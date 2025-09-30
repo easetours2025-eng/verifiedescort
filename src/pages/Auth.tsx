@@ -14,6 +14,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [stageName, setStageName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [age, setAge] = useState<number>(18);
   const [loading, setLoading] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
@@ -59,7 +60,7 @@ const Auth = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !stageName || age < 18) {
+    if (!email || !password || !stageName || !phoneNumber || age < 18) {
       toast({
         title: "Error",
         description: age < 18 ? "You must be 18 or older to register" : "Please fill in all fields",
@@ -68,8 +69,19 @@ const Auth = () => {
       return;
     }
 
+    // Validate phone number format (Kenyan format)
+    const phoneRegex = /^(?:\+254|254|0)[17]\d{8}$/;
+    if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Please enter a valid Kenyan phone number (e.g., 0712345678)",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
-    const { error } = await register(email, password, stageName);
+    const { error } = await register(email, password, stageName, phoneNumber);
     
     if (error) {
       toast({
@@ -84,6 +96,7 @@ const Auth = () => {
       setEmail('');
       setPassword('');
       setStageName('');
+      setPhoneNumber('');
       setAge(18);
     }
     setLoading(false);
@@ -196,6 +209,18 @@ const Auth = () => {
                       required
                     />
                     <p className="text-xs text-muted-foreground">Must be 18 or older</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="register-phone">Phone Number</Label>
+                    <Input
+                      id="register-phone"
+                      type="tel"
+                      placeholder="e.g., 0712345678"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">Kenyan phone number (required for M-Pesa)</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="register-password">Password</Label>
