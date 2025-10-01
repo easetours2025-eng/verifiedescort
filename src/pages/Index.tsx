@@ -61,12 +61,10 @@ const Index = () => {
 
   const fetchCelebrities = async () => {
     try {
-      // During grace period (until 30/09/2025), show ALL verified and available celebrity profiles
+      // Show ALL celebrity profiles on the landing page
       const { data: celebrityData, error: celebrityError } = await supabase
         .from('celebrity_profiles')
         .select('*')
-        .eq('is_verified', true)
-        .eq('is_available', true)
         .order('created_at', { ascending: false });
       
       if (celebrityError) throw celebrityError;
