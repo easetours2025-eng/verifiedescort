@@ -163,20 +163,27 @@ Deno.serve(async (req) => {
         throw new Error("User ID is required");
       }
 
-      const { error } = await supabaseServiceRole
+      console.log('Toggling user verification:', { userId, isVerified });
+
+      // Update celebrity profile verification status
+      const { data: updateData, error: updateError } = await supabaseServiceRole
         .from('celebrity_profiles')
         .update({ is_verified: isVerified })
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .select();
 
-      if (error) {
-        console.error("Error updating user verification:", error);
-        throw new Error("Failed to update user verification");
+      if (updateError) {
+        console.error("Error updating user verification:", updateError);
+        throw new Error(`Failed to update user verification: ${updateError.message}`);
       }
+
+      console.log('Update result:', updateData);
 
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: `User ${isVerified ? 'verified' : 'unverified'} successfully` 
+          message: `User ${isVerified ? 'verified' : 'unverified'} successfully`,
+          data: updateData
         }),
         { 
           headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -61,32 +61,36 @@ const Index = () => {
 
   const fetchCelebrities = async () => {
     try {
-      // Fetch celebrities using the secure function
+      // During grace period (until 30/09/2025), show ALL verified and available celebrity profiles
       const { data: celebrityData, error: celebrityError } = await supabase
-        .rpc('get_safe_celebrity_profiles');
+        .from('celebrity_profiles')
+        .select('*')
+        .eq('is_verified', true)
+        .eq('is_available', true)
+        .order('created_at', { ascending: false });
       
       if (celebrityError) throw celebrityError;
 
-      // Fetch active subscriptions separately
-      const { data: subscriptionData, error: subscriptionError } = await supabase
-        .from('celebrity_subscriptions')
-        .select('*')
-        .eq('is_active', true)
-        .gte('subscription_end', new Date().toISOString());
-        
-      if (subscriptionError) throw subscriptionError;
-
-      // Combine celebrity data with subscriptions
-      const celebritiesWithSubscriptions = celebrityData?.map(celebrity => {
-        const subscription = subscriptionData?.find(sub => sub.celebrity_id === celebrity.id);
-        return subscription ? { 
-          ...celebrity, 
-          celebrity_subscriptions: [subscription]
-        } : null;
-      }).filter(Boolean) || [];
+      // Map to the expected format
+      const celebrities = celebrityData?.map(celebrity => ({
+        id: celebrity.id,
+        stage_name: celebrity.stage_name,
+        bio: celebrity.bio,
+        profile_picture_path: celebrity.profile_picture_path,
+        base_price: celebrity.base_price,
+        hourly_rate: celebrity.hourly_rate,
+        is_verified: celebrity.is_verified,
+        is_available: celebrity.is_available,
+        location: celebrity.location,
+        gender: celebrity.gender,
+        social_instagram: celebrity.social_instagram,
+        social_twitter: celebrity.social_twitter,
+        social_tiktok: celebrity.social_tiktok,
+        age: celebrity.age,
+        created_at: celebrity.created_at
+      })) || [];
       
-      // Data is already filtered by the secure view
-      setCelebrities(celebritiesWithSubscriptions);
+      setCelebrities(celebrities);
     } catch (error) {
       console.error('Error fetching celebrities:', error);
       toast({

@@ -55,6 +55,7 @@ const AllUsersManagement = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'verified' | 'pending'>('all');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -191,11 +192,20 @@ const AllUsersManagement = () => {
     }
   };
 
-  const filteredUsers = users.filter(user =>
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.stage_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.real_name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.stage_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.real_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesFilter = filterStatus === 'all' || 
+      (filterStatus === 'verified' && user.is_verified) ||
+      (filterStatus === 'pending' && !user.is_verified);
+    
+    return matchesSearch && matchesFilter;
+  });
+
+  const verifiedCount = users.filter(u => u.is_verified).length;
+  const pendingCount = users.filter(u => !u.is_verified).length;
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Never';
@@ -233,7 +243,7 @@ const AllUsersManagement = () => {
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Users className="h-5 w-5" />
-            <span>All Users ({users.length})</span>
+            <span>User Management ({users.length})</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="relative">
@@ -252,6 +262,36 @@ const AllUsersManagement = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Filter Tabs */}
+        <div className="flex space-x-2 mb-6 border-b pb-2">
+          <Button
+            variant={filterStatus === 'all' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setFilterStatus('all')}
+            className="flex items-center space-x-2"
+          >
+            <Users className="h-4 w-4" />
+            <span>All Users ({users.length})</span>
+          </Button>
+          <Button
+            variant={filterStatus === 'verified' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setFilterStatus('verified')}
+            className="flex items-center space-x-2"
+          >
+            <UserCheck className="h-4 w-4" />
+            <span>Verified ({verifiedCount})</span>
+          </Button>
+          <Button
+            variant={filterStatus === 'pending' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setFilterStatus('pending')}
+            className="flex items-center space-x-2"
+          >
+            <UserX className="h-4 w-4" />
+            <span>Pending ({pendingCount})</span>
+          </Button>
+        </div>
         {filteredUsers.length === 0 ? (
           <div className="text-center py-8">
             <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -299,15 +339,17 @@ const AllUsersManagement = () => {
                         )}
                       </div>
                     </td>
-                    <td className="p-3">
+                     <td className="p-3">
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
                           <Badge variant={user.is_verified ? "default" : "secondary"}>
-                            {user.is_verified ? "Verified" : "Unverified"}
+                            {user.is_verified ? <UserCheck className="h-3 w-3 mr-1" /> : <UserX className="h-3 w-3 mr-1" />}
+                            {user.is_verified ? "Verified" : "Pending"}
                           </Badge>
                           <Switch
                             checked={user.is_verified || false}
                             onCheckedChange={(checked) => toggleUserVerification(user.user_id || user.id, checked)}
+                            title={user.is_verified ? "Unverify user" : "Verify user"}
                           />
                         </div>
                         <Badge variant={user.is_available ? "outline" : "destructive"}>
