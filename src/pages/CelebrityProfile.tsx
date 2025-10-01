@@ -185,17 +185,18 @@ const CelebrityProfile = () => {
   const fetchProfile = async () => {
     try {
       const { data: celebrityData, error: celebrityError } = await supabase
-        .rpc('get_safe_celebrity_profiles', { celebrity_id: id });
+        .from('celebrity_profiles')
+        .select('*')
+        .eq('id', id)
+        .single();
 
       if (celebrityError) throw celebrityError;
 
-      // Use the first result from the function (it returns an array)
-      const celebrityProfile = celebrityData?.[0];
-      if (!celebrityProfile) {
+      if (!celebrityData) {
         throw new Error('Celebrity profile not found');
       }
 
-      setProfile(celebrityProfile);
+      setProfile(celebrityData);
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
@@ -204,6 +205,8 @@ const CelebrityProfile = () => {
         variant: "destructive",
       });
       navigate('/');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -251,18 +254,33 @@ const CelebrityProfile = () => {
     if (!id) return;
     
     try {
+      // Get admin emails to filter them out
+      const { data: adminData } = await supabase
+        .from('admin_users')
+        .select('email');
+      
+      const adminEmails = adminData?.map(admin => admin.email) || [];
+      
+      // Get other celebrity profiles, excluding current profile
       const { data, error } = await supabase
-        .rpc('get_safe_celebrity_profiles')
-        .limit(6)
-        .order('created_at', { ascending: false });
+        .from('celebrity_profiles')
+        .select('*')
+        .neq('id', id)
+        .order('created_at', { ascending: false })
+        .limit(6);
 
       if (error) throw error;
       
       if (data) {
-        const filteredProfiles = await Promise.all(
-          data.map(profile => filterCelebrityData(profile as FullCelebrityProfile))
-        );
-        setOtherCelebrities(filteredProfiles);
+        // Filter out admin users by getting their auth emails
+        const filteredData = [];
+        for (const profile of data) {
+          const { data: userData } = await supabase.auth.admin.getUserById(profile.user_id);
+          if (userData?.user && !adminEmails.includes(userData.user.email || '')) {
+            filteredData.push(profile);
+          }
+        }
+        setOtherCelebrities(filteredData);
       }
     } catch (error) {
       console.error('Error fetching other celebrities:', error);

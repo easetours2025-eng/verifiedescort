@@ -61,7 +61,14 @@ const Index = () => {
 
   const fetchCelebrities = async () => {
     try {
-      // Show ALL celebrity profiles on the landing page
+      // Get admin emails to filter them out
+      const { data: adminData } = await supabase
+        .from('admin_users')
+        .select('email');
+      
+      const adminEmails = adminData?.map(admin => admin.email) || [];
+      
+      // Fetch all celebrity profiles
       const { data: celebrityData, error: celebrityError } = await supabase
         .from('celebrity_profiles')
         .select('*')
@@ -69,26 +76,42 @@ const Index = () => {
       
       if (celebrityError) throw celebrityError;
 
-      // Map to the expected format
-      const celebrities = celebrityData?.map(celebrity => ({
-        id: celebrity.id,
-        stage_name: celebrity.stage_name,
-        bio: celebrity.bio,
-        profile_picture_path: celebrity.profile_picture_path,
-        base_price: celebrity.base_price,
-        hourly_rate: celebrity.hourly_rate,
-        is_verified: celebrity.is_verified,
-        is_available: celebrity.is_available,
-        location: celebrity.location,
-        gender: celebrity.gender,
-        social_instagram: celebrity.social_instagram,
-        social_twitter: celebrity.social_twitter,
-        social_tiktok: celebrity.social_tiktok,
-        age: celebrity.age,
-        created_at: celebrity.created_at
-      })) || [];
+      // Filter out admin users
+      const filteredCelebrities = [];
+      if (celebrityData) {
+        for (const celebrity of celebrityData) {
+          try {
+            // Get user email from auth
+            const { data: { user } } = await supabase.auth.admin.getUserById(celebrity.user_id);
+            
+            // Only include if not an admin
+            if (user && !adminEmails.includes(user.email || '')) {
+              filteredCelebrities.push({
+                id: celebrity.id,
+                stage_name: celebrity.stage_name,
+                bio: celebrity.bio,
+                profile_picture_path: celebrity.profile_picture_path,
+                base_price: celebrity.base_price,
+                hourly_rate: celebrity.hourly_rate,
+                is_verified: celebrity.is_verified,
+                is_available: celebrity.is_available,
+                location: celebrity.location,
+                gender: celebrity.gender,
+                social_instagram: celebrity.social_instagram,
+                social_twitter: celebrity.social_twitter,
+                social_tiktok: celebrity.social_tiktok,
+                age: celebrity.age,
+                created_at: celebrity.created_at
+              });
+            }
+          } catch (error) {
+            // Skip profiles with errors
+            console.error('Error checking user:', error);
+          }
+        }
+      }
       
-      setCelebrities(celebrities);
+      setCelebrities(filteredCelebrities);
     } catch (error) {
       console.error('Error fetching celebrities:', error);
       toast({
