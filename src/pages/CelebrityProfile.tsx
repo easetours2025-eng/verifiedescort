@@ -285,12 +285,18 @@ const CelebrityProfile = () => {
   };
 
   const handleWhatsApp = () => {
-    // Phone numbers are not available in public profiles for security
-    toast({
-      title: "Contact Info",
-      description: "Direct phone contact is not available. Please use messaging instead.",
-      variant: "destructive",
-    });
+    // Check if profile has a phone number
+    if (profile && (profile as any).phone_number) {
+      const phoneNumber = (profile as any).phone_number.replace(/\D/g, ''); // Remove non-digits
+      // Open WhatsApp with the celebrity's phone number
+      window.open(`https://wa.me/${phoneNumber}`, '_blank');
+    } else {
+      toast({
+        title: "Contact Info",
+        description: "WhatsApp contact is not available for this profile.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSocialClick = (platform: 'instagram' | 'twitter') => {
@@ -539,9 +545,13 @@ const CelebrityProfile = () => {
                   )}
                 </div>
                 <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
-                  {profile.social_instagram && (
+                {profile.social_instagram && (
                     <Button variant="outline" size="sm" asChild className="text-xs">
-                      <a href={`https://instagram.com/${profile.social_instagram}`} target="_blank" rel="noopener noreferrer">
+                      <a 
+                        href={`https://instagram.com/${profile.social_instagram.replace('@', '')}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
                         <Instagram className="w-3 h-3 mr-1" />
                         Instagram
                       </a>
@@ -549,7 +559,11 @@ const CelebrityProfile = () => {
                   )}
                   {profile.social_twitter && (
                     <Button variant="outline" size="sm" asChild className="text-xs">
-                      <a href={`https://twitter.com/${profile.social_twitter}`} target="_blank" rel="noopener noreferrer">
+                      <a 
+                        href={`https://twitter.com/${profile.social_twitter.replace('@', '')}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
                         <Twitter className="w-3 h-3 mr-1" />
                         Twitter
                       </a>
@@ -557,7 +571,11 @@ const CelebrityProfile = () => {
                   )}
                   {profile.social_tiktok && (
                     <Button variant="outline" size="sm" asChild className="text-xs">
-                      <a href={`https://tiktok.com/@${profile.social_tiktok}`} target="_blank" rel="noopener noreferrer">
+                      <a 
+                        href={`https://tiktok.com/@${profile.social_tiktok.replace('@', '')}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
                         <Music className="w-3 h-3 mr-1" />
                         TikTok
                       </a>
