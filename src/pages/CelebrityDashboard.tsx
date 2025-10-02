@@ -99,8 +99,7 @@ const CelebrityDashboard = () => {
       return;
     }
     fetchProfile();
-    fetchMedia();
-    fetchServices();
+    // fetchMedia and fetchServices are called in the second useEffect after profile is loaded
     fetchSubscriptionStatus();
   }, [user]);
 
@@ -147,15 +146,18 @@ const CelebrityDashboard = () => {
     if (profile?.id) {
       fetchSubscriptionStatus();
       fetchServices();
+      fetchMedia(); // Fetch media after profile is loaded
     }
   }, [profile?.id]);
 
   const fetchMedia = async () => {
+    if (!profile?.id) return; // Don't fetch if profile ID is not available
+    
     try {
       const { data, error } = await supabase
         .from('celebrity_media')
         .select('*')
-        .eq('celebrity_id', profile?.id)
+        .eq('celebrity_id', profile.id)
         .order('upload_date', { ascending: false });
 
       if (error) throw error;

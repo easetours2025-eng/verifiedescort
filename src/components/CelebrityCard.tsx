@@ -236,17 +236,20 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
           </div>
         )}
 
-        {/* Call Button */}
-        {isPrivateProfile(celebrity) && celebrity.phone_number && (
+        {/* Call Button - Show for all profiles with phone number */}
+        {(celebrity as any).phone_number && (
           <div className="pt-2">
             <Button
               variant="outline"
               size="sm"
               className="w-full border-green-500 text-green-600 hover:bg-green-50"
-              onClick={() => window.open(`tel:${celebrity.phone_number}`, '_self')}
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(`tel:${(celebrity as any).phone_number}`, '_self');
+              }}
             >
               <Phone className="h-4 w-4 mr-2" />
-              Call me now: {celebrity.phone_number}
+              Call: {(celebrity as any).phone_number}
             </Button>
           </div>
         )}

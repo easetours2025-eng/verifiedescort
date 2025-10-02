@@ -169,6 +169,12 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
   };
 
   const getMediaUrl = (filePath: string, fileType: string) => {
+    // Check if the file path is already a full URL
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      return filePath;
+    }
+    
+    // Otherwise, construct the URL from the bucket
     const bucket = fileType === 'video' ? 'celebrity-videos' : 'celebrity-photos';
     const { data } = supabase.storage
       .from(bucket)

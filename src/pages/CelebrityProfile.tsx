@@ -314,6 +314,12 @@ const CelebrityProfile = () => {
   };
 
   const getMediaUrl = (filePath: string, type: 'image' | 'video') => {
+    // Check if the file path is already a full URL
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      return filePath;
+    }
+    
+    // Otherwise, construct the URL from the bucket
     const bucket = type === 'video' ? 'celebrity-videos' : 'celebrity-photos';
     const { data } = supabase.storage
       .from(bucket)
@@ -543,6 +549,12 @@ const CelebrityProfile = () => {
                       {profile.age} years old
                     </span>
                   )}
+                  {(profile as any).phone_number && (
+                    <span className="flex items-center gap-1 font-medium text-green-600">
+                      <Phone className="w-3 h-3" />
+                      {(profile as any).phone_number}
+                    </span>
+                  )}
                 </div>
                 <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
                 {profile.social_instagram && (
@@ -703,8 +715,10 @@ const CelebrityProfile = () => {
                     <div className="flex gap-3">
                       <Avatar className="w-12 h-12">
                         <AvatarImage 
-                          src={celebrity.profile_picture_path ? 
-                            `https://kpjqcrhoablsllkgonbl.supabase.co/storage/v1/object/public/celebrity-photos/${celebrity.profile_picture_path}` : 
+                          src={celebrity.profile_picture_path && celebrity.profile_picture_path.startsWith('http') ? 
+                            celebrity.profile_picture_path : 
+                            celebrity.profile_picture_path ?
+                            `https://kpjqcrhoablsllkgonbl.supabase.co/storage/v1/object/public/celebrity-photos/${celebrity.profile_picture_path}` :
                             undefined
                           } 
                           alt={celebrity.stage_name}
