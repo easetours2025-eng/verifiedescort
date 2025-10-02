@@ -672,6 +672,34 @@ export type Database = {
           view_date: string
         }[]
       }
+      get_non_admin_celebrities: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          age: number
+          base_price: number
+          bio: string
+          created_at: string
+          date_of_birth: string
+          email: string
+          gender: string
+          hourly_rate: number
+          id: string
+          is_available: boolean
+          is_special_offer_active: boolean
+          is_verified: boolean
+          location: string
+          phone_number: string
+          profile_picture_path: string
+          real_name: string
+          social_instagram: string
+          social_tiktok: string
+          social_twitter: string
+          special_offer_registered_at: string
+          stage_name: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       get_public_celebrity_data: {
         Args: { celebrity_profile_id?: string }
         Returns: {

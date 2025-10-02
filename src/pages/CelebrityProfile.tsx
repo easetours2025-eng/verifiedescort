@@ -254,32 +254,17 @@ const CelebrityProfile = () => {
     if (!id) return;
     
     try {
-      // Get admin emails to filter them out
-      const { data: adminData } = await supabase
-        .from('admin_users')
-        .select('email');
-      
-      const adminEmails = adminData?.map(admin => admin.email) || [];
-      
-      // Get other celebrity profiles, excluding current profile
+      // Use the database function to get non-admin celebrities
       const { data, error } = await supabase
-        .from('celebrity_profiles')
-        .select('*')
-        .neq('id', id)
-        .order('created_at', { ascending: false })
-        .limit(6);
+        .rpc('get_non_admin_celebrities');
 
       if (error) throw error;
       
       if (data) {
-        // Filter out admin users by getting their auth emails
-        const filteredData = [];
-        for (const profile of data) {
-          const { data: userData } = await supabase.auth.admin.getUserById(profile.user_id);
-          if (userData?.user && !adminEmails.includes(userData.user.email || '')) {
-            filteredData.push(profile);
-          }
-        }
+        // Filter out current celebrity and limit to 6
+        const filteredData = data
+          .filter(profile => profile.id !== id)
+          .slice(0, 6);
         setOtherCelebrities(filteredData);
       }
     } catch (error) {
