@@ -148,6 +148,11 @@ const MediaCard: React.FC<MediaCardProps> = ({ media }) => {
   };
 
   const getMediaUrl = (filePath: string, type: 'image' | 'video') => {
+    // Check if it's already a full URL
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      return filePath;
+    }
+    
     const bucket = type === 'video' ? 'celebrity-videos' : 'celebrity-photos';
     const { data } = supabase.storage
       .from(bucket)

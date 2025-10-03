@@ -79,6 +79,7 @@ const Index = () => {
         is_available: celebrity.is_available,
         location: celebrity.location,
         gender: celebrity.gender,
+        phone_number: celebrity.phone_number,
         social_instagram: celebrity.social_instagram,
         social_twitter: celebrity.social_twitter,
         social_tiktok: celebrity.social_tiktok,
