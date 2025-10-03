@@ -146,11 +146,11 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
   };
 
   return (
-    <Card className="group hover:shadow-celebrity transition-all duration-300 hover:-translate-y-1 border-primary/20 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+    <Card className="group hover:shadow-celebrity transition-all duration-300 hover:-translate-y-1 border-primary/20 overflow-hidden cursor-pointer" onClick={() => onViewProfile(celebrity.id)}>
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       
       {/* Profile Image/Video - 3/4 of card */}
-      <div className="relative h-64 cursor-pointer" onClick={() => onViewProfile(celebrity.id)}>
+      <div className="relative h-64">
         {/* Always show profile image instead of video */}
         <img 
           src={profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${celebrity.stage_name}`}
