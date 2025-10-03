@@ -237,19 +237,19 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
         )}
 
         {/* Call Button - Show for all profiles with phone number */}
-        {(celebrity as any).phone_number && (
+        {celebrity.phone_number && (
           <div className="pt-2">
             <Button
               variant="outline"
               size="sm"
-              className="w-full border-green-500 text-green-600 hover:bg-green-50"
+              className="w-full border-green-500 text-green-600 hover:bg-green-50 dark:border-green-600 dark:text-green-500 dark:hover:bg-green-950"
               onClick={(e) => {
                 e.stopPropagation();
-                window.open(`tel:${(celebrity as any).phone_number}`, '_self');
+                window.open(`tel:${celebrity.phone_number}`, '_self');
               }}
             >
               <Phone className="h-4 w-4 mr-2" />
-              Call: {(celebrity as any).phone_number}
+              Call: {celebrity.phone_number}
             </Button>
           </div>
         )}

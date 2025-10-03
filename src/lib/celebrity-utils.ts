@@ -33,6 +33,7 @@ export interface PublicCelebrityProfile {
   age?: number;
   base_price: number;
   hourly_rate?: number;
+  phone_number?: string;
   social_instagram?: string;
   social_twitter?: string;
   social_tiktok?: string;
@@ -99,6 +100,7 @@ export const filterCelebrityData = async (
     age: profile.age,
     base_price: profile.base_price,
     hourly_rate: profile.hourly_rate,
+    phone_number: profile.phone_number,
     social_instagram: profile.social_instagram,
     social_twitter: profile.social_twitter,
     social_tiktok: profile.social_tiktok,
