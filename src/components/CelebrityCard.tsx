@@ -146,7 +146,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
   };
 
   return (
-    <Card className="group hover:shadow-celebrity transition-all duration-300 hover:-translate-y-1 border-primary/20 overflow-hidden cursor-pointer" onClick={() => onViewProfile(celebrity.id)}>
+    <Card className="group hover:shadow-celebrity transition-all duration-300 hover:-translate-y-1 border-primary/20 overflow-hidden cursor-pointer flex flex-col h-full" onClick={() => onViewProfile(celebrity.id)}>
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       
       {/* Profile Image/Video - 3/4 of card */}
@@ -204,7 +204,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4 relative z-10">
+      <CardContent className="space-y-4 relative z-10 flex flex-col flex-grow">
         {celebrity.bio && (
           <ReadMoreText 
             text={celebrity.bio}
@@ -238,7 +238,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
 
         {/* Call Button - Show for all profiles with phone number */}
         {celebrity.phone_number && (
-          <div className="pt-2">
+          <div className="pt-2 mt-auto">
             <Button
               variant="outline"
               size="sm"
