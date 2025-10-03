@@ -284,6 +284,7 @@ export type Database = {
           duration_minutes: number | null
           id: string
           is_active: boolean | null
+          price: number | null
           service_name: string
           updated_at: string
         }
@@ -294,6 +295,7 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           is_active?: boolean | null
+          price?: number | null
           service_name: string
           updated_at?: string
         }
@@ -304,6 +306,7 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           is_active?: boolean | null
+          price?: number | null
           service_name?: string
           updated_at?: string
         }
