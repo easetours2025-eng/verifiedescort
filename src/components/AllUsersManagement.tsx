@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -36,6 +37,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Switch } from '@/components/ui/switch';
+import ImageModal from '@/components/ImageModal';
 
 interface User {
   id: string;
@@ -49,6 +51,7 @@ interface User {
   is_verified?: boolean;
   is_available?: boolean;
   user_id?: string;
+  profile_picture_path?: string;
 }
 
 const AllUsersManagement = () => {
@@ -56,6 +59,7 @@ const AllUsersManagement = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'verified' | 'pending'>('all');
+  const [selectedImage, setSelectedImage] = useState<{ url: string; title: string } | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -218,6 +222,22 @@ const AllUsersManagement = () => {
     });
   };
 
+  const getProfileImageUrl = (profilePicturePath?: string) => {
+    if (!profilePicturePath) return undefined;
+    if (profilePicturePath.startsWith('http')) return profilePicturePath;
+    return `https://kpjqcrhoablsllkgonbl.supabase.co/storage/v1/object/public/celebrity-photos/${profilePicturePath}`;
+  };
+
+  const handleProfilePictureClick = (user: User) => {
+    const imageUrl = getProfileImageUrl(user.profile_picture_path);
+    if (imageUrl) {
+      setSelectedImage({ 
+        url: imageUrl, 
+        title: user.stage_name || user.real_name || 'Profile Picture' 
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -315,12 +335,26 @@ const AllUsersManagement = () => {
                 {filteredUsers.map((user) => (
                   <tr key={user.id} className="border-b hover:bg-muted/50">
                     <td className="p-3">
-                      <div className="space-y-1">
-                        <p className="font-medium">{user.stage_name || 'No stage name'}</p>
-                        {user.real_name && (
-                          <p className="text-sm text-muted-foreground">{user.real_name}</p>
-                        )}
-                        <p className="text-xs text-muted-foreground font-mono">{user.id}</p>
+                      <div className="flex items-center space-x-3">
+                        <Avatar 
+                          className="h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => handleProfilePictureClick(user)}
+                        >
+                          <AvatarImage 
+                            src={getProfileImageUrl(user.profile_picture_path)} 
+                            alt={user.stage_name || 'User'}
+                          />
+                          <AvatarFallback>
+                            {(user.stage_name || user.real_name || 'U').charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-1">
+                          <p className="font-medium">{user.stage_name || 'No stage name'}</p>
+                          {user.real_name && (
+                            <p className="text-sm text-muted-foreground">{user.real_name}</p>
+                          )}
+                          <p className="text-xs text-muted-foreground font-mono">{user.id}</p>
+                        </div>
                       </div>
                     </td>
                     <td className="p-3">
@@ -409,6 +443,14 @@ const AllUsersManagement = () => {
             </table>
           </div>
         )}
+
+        {/* Image Modal */}
+        <ImageModal
+          imageUrl={selectedImage?.url || ''}
+          isOpen={!!selectedImage}
+          onClose={() => setSelectedImage(null)}
+          title={selectedImage?.title}
+        />
       </CardContent>
     </Card>
   );

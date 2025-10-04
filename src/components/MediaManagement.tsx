@@ -24,6 +24,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import ImageModal from '@/components/ImageModal';
+import VideoModal from '@/components/VideoModal';
 
 interface MediaItem {
   id: string;
@@ -52,6 +54,8 @@ interface MediaManagementProps {
 const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps) => {
   const [mediaStats, setMediaStats] = useState<Record<string, MediaStats>>({});
   const [loading, setLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{ url: string; title: string } | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -182,6 +186,15 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
     return data.publicUrl;
   };
 
+  const handleMediaClick = (item: MediaItem) => {
+    const mediaUrl = getMediaUrl(item.file_path, item.file_type);
+    if (item.file_type === 'image') {
+      setSelectedImage({ url: mediaUrl, title: item.title || 'Image' });
+    } else {
+      setSelectedVideo(mediaUrl);
+    }
+  };
+
   if (media.length === 0) {
     return (
       <Card>
@@ -246,7 +259,10 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
           return (
             <Card key={item.id} className="overflow-hidden">
               {/* Media Preview */}
-              <div className="relative aspect-video bg-muted">
+              <div 
+                className="relative aspect-video bg-muted cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => handleMediaClick(item)}
+              >
                 {item.file_type === 'image' ? (
                   <img
                     src={getMediaUrl(item.file_path, item.file_type)}
@@ -261,7 +277,7 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
                       muted
                       preload="metadata"
                     />
-                    <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
                         <Video className="h-6 w-6 text-white" />
                       </div>
@@ -366,6 +382,21 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
           );
         })}
       </div>
+
+      {/* Image Modal */}
+      <ImageModal
+        imageUrl={selectedImage?.url || ''}
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        title={selectedImage?.title}
+      />
+
+      {/* Video Modal */}
+      <VideoModal
+        videoUrl={selectedVideo || ''}
+        isOpen={!!selectedVideo}
+        onClose={() => setSelectedVideo(null)}
+      />
     </div>
   );
 };
