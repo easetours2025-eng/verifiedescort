@@ -12,6 +12,7 @@ import MessagingModal from '@/components/MessagingModal';
 import MediaCard from '@/components/MediaCard';
 import CelebrityMediaVideoCard from '@/components/CelebrityMediaVideoCard';
 import VideoModal from '@/components/VideoModal';
+import ImageModal from '@/components/ImageModal';
 import { 
   filterCelebrityData, 
   PublicCelebrityProfile, 
@@ -72,6 +73,7 @@ const CelebrityProfile = () => {
   const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
   const [likeCounts, setLikeCounts] = useState<Record<string, { likes: number; loves: number }>>({});
   const [userLikes, setUserLikes] = useState<Record<string, string[]>>({});
+  const [selectedProfileImage, setSelectedProfileImage] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -508,7 +510,17 @@ const CelebrityProfile = () => {
           <Card className="p-4 md:p-6">
             <div className="flex flex-col md:flex-row gap-4 md:gap-6">
               <div className="flex-shrink-0 mx-auto md:mx-0">
-                <div className="w-24 h-32 md:w-32 md:h-40 rounded-lg overflow-hidden bg-muted">
+                <div 
+                  className="w-24 h-32 md:w-32 md:h-40 rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => {
+                    if (profile.profile_picture_path) {
+                      const imageUrl = profile.profile_picture_path.startsWith('http') ? 
+                        profile.profile_picture_path : 
+                        `https://kpjqcrhoablsllkgonbl.supabase.co/storage/v1/object/public/celebrity-photos/${profile.profile_picture_path}`;
+                      setSelectedProfileImage(imageUrl);
+                    }
+                  }}
+                >
                   {profile.profile_picture_path ? (
                     <img 
                       src={profile.profile_picture_path.startsWith('http') ? 
@@ -753,6 +765,14 @@ const CelebrityProfile = () => {
           celebrityName={profile.stage_name}
         />
       )}
+
+      {/* Profile Picture Modal */}
+      <ImageModal
+        imageUrl={selectedProfileImage || ''}
+        isOpen={!!selectedProfileImage}
+        onClose={() => setSelectedProfileImage(null)}
+        title={`${profile.stage_name}'s Profile Picture`}
+      />
 
       {/* Image Modal */}
       {selectedMedia && selectedMedia.file_type === 'image' && (
