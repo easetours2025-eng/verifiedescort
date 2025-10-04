@@ -18,9 +18,10 @@ interface MediaItem {
 
 interface MediaCardProps {
   media: MediaItem;
+  onMediaClick?: (media: MediaItem) => void;
 }
 
-const MediaCard: React.FC<MediaCardProps> = ({ media }) => {
+const MediaCard: React.FC<MediaCardProps> = ({ media, onMediaClick }) => {
   const [viewCount, setViewCount] = useState(0);
   const [likeCounts, setLikeCounts] = useState({ likes: 0, loves: 0 });
   const [userLikes, setUserLikes] = useState<string[]>([]);
@@ -101,8 +102,17 @@ const MediaCard: React.FC<MediaCardProps> = ({ media }) => {
       
       // Update local view count
       setViewCount(prev => prev + 1);
+      
+      // Call parent callback to open modal if provided
+      if (onMediaClick) {
+        onMediaClick(media);
+      }
     } catch (error) {
       // Error silently handled - view count will not be updated
+      // Still open modal even if view recording fails
+      if (onMediaClick) {
+        onMediaClick(media);
+      }
     }
   };
 

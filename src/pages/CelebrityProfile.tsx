@@ -690,7 +690,11 @@ const CelebrityProfile = () => {
                       onPlay={() => handleVideoPlay(mediaItem)}
                     />
                   ) : (
-                    <MediaCard key={mediaItem.id} media={mediaItem} />
+                    <MediaCard 
+                      key={mediaItem.id} 
+                      media={mediaItem} 
+                      onMediaClick={handleMediaClick}
+                    />
                   )
                 ))}
               </div>
