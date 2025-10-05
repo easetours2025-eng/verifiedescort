@@ -13,9 +13,8 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import SubscriptionTierModal from './SubscriptionTierModal';
 import { NewSubscriptionModal } from './NewSubscriptionModal';
-import JoiningOfferBanner from './JoiningOfferBanner';
+import { useNavigate } from 'react-router-dom';
 
 interface CelebrityProfile {
   id: string;
@@ -35,10 +34,7 @@ interface SubscriptionTabProps {
 }
 
 const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: SubscriptionTabProps) => {
-  const [showTierModal, setShowTierModal] = useState(false);
   const [showNewModal, setShowNewModal] = useState(false);
-  const [showOfferModal, setShowOfferModal] = useState(false);
-  const [selectedOfferTier, setSelectedOfferTier] = useState<'basic' | 'premium'>('basic');
   const [isNewCelebrity, setIsNewCelebrity] = useState(false);
   const [specialOfferStatus, setSpecialOfferStatus] = useState<{
     isActive: boolean;
@@ -46,6 +42,7 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
     registeredAt?: string;
   } | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Check if celebrity is new (created within last 30 days)
   useEffect(() => {
@@ -170,11 +167,6 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
     }
   };
 
-  const handleOfferSelection = (tier: 'basic' | 'premium') => {
-    setSelectedOfferTier(tier);
-    setShowOfferModal(true);
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString([], {
       year: 'numeric',
@@ -244,13 +236,6 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
         </Card>
       )}
 
-      {/* Special Joining Offer Banner */}
-      {isNewCelebrity && !subscriptionStatus?.is_active && (
-        <JoiningOfferBanner 
-          onSelectOffer={handleOfferSelection}
-          isNewCelebrity={isNewCelebrity}
-        />
-      )}
       {/* Subscription Status Card */}
       <Card className="border-primary/20">
         <CardHeader>
@@ -384,7 +369,7 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
             </Button>
             
             <Button 
-              onClick={() => window.location.href = '/faq'}
+              onClick={() => navigate('/faq')}
               variant="outline"
               className="w-full"
               size="lg"
@@ -400,23 +385,6 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
         onOpenChange={setShowNewModal}
         celebrityId={profile?.id || ''}
         onSubmit={handleNewTierSubmission}
-      />
-
-      <SubscriptionTierModal
-        open={showTierModal}
-        onOpenChange={setShowTierModal}
-        celebrityId={profile?.id || ''}
-        onSubmit={(tier, mpesaCode, phoneNumber) => handleTierSubmission(tier, mpesaCode, phoneNumber, false)}
-      />
-
-      {/* Special Offer Modal */}
-      <SubscriptionTierModal
-        open={showOfferModal}
-        onOpenChange={setShowOfferModal}
-        celebrityId={profile?.id || ''}
-        onSubmit={(tier, mpesaCode, phoneNumber) => handleTierSubmission(tier, mpesaCode, phoneNumber, true)}
-        isSpecialOffer={true}
-        preselectedTier={selectedOfferTier}
       />
     </div>
   );

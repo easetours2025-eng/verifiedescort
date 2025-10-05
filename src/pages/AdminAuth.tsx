@@ -133,15 +133,26 @@ const AdminAuth = () => {
         </Card>
         
         <div className="text-center">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/')}
-            className="text-sm"
-          >
-            ← Back to Home
-          </Button>
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/')}
+              className="text-sm"
+            >
+              ← Back to Home
+            </Button>
+          </div>
+          
+          <div className="text-center mt-2">
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => navigate('/admin-signup')}
+              className="text-sm text-muted-foreground"
+            >
+              Need to create first admin? Sign up here
+            </Button>
+          </div>
         </div>
-      </div>
     </div>
   );
 };
