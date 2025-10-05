@@ -22,6 +22,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
+  const [availableLocations, setAvailableLocations] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState<number>(0);
   const [maxPrice, setMaxPrice] = useState<number>(10000);
   const [minAge, setMinAge] = useState<number>(18);
@@ -88,6 +89,20 @@ const Index = () => {
       })) || [];
       
       setCelebrities(celebrities);
+      
+      // Extract unique locations
+      const locations = celebrities
+        .map(c => c.location)
+        .filter((loc): loc is string => !!loc && loc.trim() !== '')
+        .reduce((acc: string[], loc) => {
+          if (!acc.includes(loc)) {
+            acc.push(loc);
+          }
+          return acc;
+        }, [])
+        .sort();
+      
+      setAvailableLocations(locations);
     } catch (error) {
       console.error('Error fetching celebrities:', error);
       toast({
@@ -240,12 +255,38 @@ const Index = () => {
                 </CollapsibleTrigger>
                 
                 <CollapsibleContent className="sm:block">
+                  {/* Location Buttons */}
+                  {availableLocations.length > 0 && (
+                    <div className="mb-4 space-y-2">
+                      <label className="text-sm font-medium">Popular Locations</label>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge
+                          variant={locationFilter === '' ? 'default' : 'outline'}
+                          className="cursor-pointer hover:bg-primary/20 transition-colors"
+                          onClick={() => setLocationFilter('')}
+                        >
+                          All Locations
+                        </Badge>
+                        {availableLocations.map((location) => (
+                          <Badge
+                            key={location}
+                            variant={locationFilter === location ? 'default' : 'outline'}
+                            className="cursor-pointer hover:bg-primary/20 transition-colors"
+                            onClick={() => setLocationFilter(location)}
+                          >
+                            {location}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-4 sm:mt-0">
                     {/* Location Filter */}
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Location</label>
+                      <label className="text-sm font-medium">Location Search</label>
                       <Input
-                        placeholder="City or area..."
+                        placeholder="Search city or area..."
                         value={locationFilter}
                         onChange={(e) => setLocationFilter(e.target.value)}
                         className="h-9 sm:h-10"
