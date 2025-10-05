@@ -241,6 +241,32 @@ const Index = () => {
                 />
               </div>
 
+              {/* Location Buttons - Always visible */}
+              {availableLocations.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Filter by Location</label>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge
+                      variant={locationFilter === '' ? 'default' : 'outline'}
+                      className="cursor-pointer hover:bg-primary/20 transition-colors"
+                      onClick={() => setLocationFilter('')}
+                    >
+                      All Locations
+                    </Badge>
+                    {availableLocations.map((location) => (
+                      <Badge
+                        key={location}
+                        variant={locationFilter === location ? 'default' : 'outline'}
+                        className="cursor-pointer hover:bg-primary/20 transition-colors"
+                        onClick={() => setLocationFilter(location)}
+                      >
+                        {location}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Advanced Filters - Collapsible on mobile */}
               <Collapsible open={showFilters} onOpenChange={setShowFilters}>
                 <CollapsibleTrigger asChild>
@@ -255,32 +281,6 @@ const Index = () => {
                 </CollapsibleTrigger>
                 
                 <CollapsibleContent className="sm:block">
-                  {/* Location Buttons */}
-                  {availableLocations.length > 0 && (
-                    <div className="mb-4 space-y-2">
-                      <label className="text-sm font-medium">Popular Locations</label>
-                      <div className="flex flex-wrap gap-2">
-                        <Badge
-                          variant={locationFilter === '' ? 'default' : 'outline'}
-                          className="cursor-pointer hover:bg-primary/20 transition-colors"
-                          onClick={() => setLocationFilter('')}
-                        >
-                          All Locations
-                        </Badge>
-                        {availableLocations.map((location) => (
-                          <Badge
-                            key={location}
-                            variant={locationFilter === location ? 'default' : 'outline'}
-                            className="cursor-pointer hover:bg-primary/20 transition-colors"
-                            onClick={() => setLocationFilter(location)}
-                          >
-                            {location}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-4 sm:mt-0">
                     {/* Location Filter */}
                     <div className="space-y-2">
