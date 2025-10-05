@@ -324,48 +324,52 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
             <span>Choose Your Plan</span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Basic Plan */}
-            <div className="bg-muted p-4 rounded-lg border">
-              <h4 className="font-semibold mb-2 text-blue-600">Basic Plan</h4>
-              <div className="text-2xl font-bold mb-2">KSh 2,000</div>
-              <p className="text-sm text-muted-foreground mb-3">per month</p>
-              <ul className="text-sm space-y-1">
-                <li>• Profile visibility</li>
-                <li>• Basic messaging</li>
-                <li>• Media uploads</li>
-                <li>• Verification badge</li>
-              </ul>
+        <CardContent className="space-y-6">
+          <div className="text-center space-y-4 py-4">
+            <div className="inline-block">
+              <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 text-base">
+                🎉 Better Prices Than Competitors!
+              </Badge>
+            </div>
+            
+            <div>
+              <h3 className="text-2xl font-bold mb-2">Choose Your Perfect Plan</h3>
+              <p className="text-muted-foreground">
+                4 tiers available • 3 duration options • Competitive pricing
+              </p>
             </div>
 
-            {/* Premium Plan */}
-            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-4 rounded-lg border-2 border-yellow-200">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold text-orange-600">Premium Plan</h4>
-                <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
-                  Popular
-                </Badge>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto">
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-3 rounded-lg border border-green-200">
+                <div className="text-lg font-bold text-green-700">Starter</div>
+                <div className="text-sm text-green-600">From Ksh 400/week</div>
               </div>
-              <div className="text-2xl font-bold mb-2">KSh 2,500</div>
-              <p className="text-sm text-muted-foreground mb-3">per month</p>
-              <ul className="text-sm space-y-1">
-                <li>• Priority placement (FIFO)</li>
-                <li>• Enhanced messaging</li>
-                <li>• Unlimited uploads</li>
-                <li>• Premium badge</li>
-                <li>• Advanced analytics</li>
-              </ul>
+              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-lg border border-blue-200">
+                <div className="text-lg font-bold text-blue-700">Basic Pro</div>
+                <div className="text-sm text-blue-600">From Ksh 600/week</div>
+              </div>
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-3 rounded-lg border border-purple-200">
+                <div className="text-lg font-bold text-purple-700">Prime Plus</div>
+                <div className="text-sm text-purple-600">From Ksh 800/week</div>
+              </div>
+              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 p-3 rounded-lg border-2 border-yellow-300">
+                <div className="text-lg font-bold text-yellow-700">VIP Elite</div>
+                <div className="text-sm text-yellow-600">From Ksh 1,000/week</div>
+              </div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <h4 className="font-medium">Benefits of Subscription:</h4>
-            <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-              <li>• Your profile appears in public celebrity listings</li>
-              <li>• Users can find and message you directly</li>
-              <li>• Access to booking and meeting requests</li>
-              <li>• Increased visibility and earning potential</li>
+          <div className="space-y-2 bg-muted/50 p-4 rounded-lg">
+            <h4 className="font-semibold flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-primary" />
+              All Plans Include:
+            </h4>
+            <ul className="text-sm text-muted-foreground space-y-1 ml-7">
+              <li>• Profile visibility in public listings</li>
+              <li>• Direct client messaging capabilities</li>
+              <li>• Media upload & management</li>
+              <li>• Access to booking requests</li>
+              <li>• Verification badge</li>
             </ul>
           </div>
 
@@ -376,7 +380,7 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
               size="lg"
             >
               <CreditCard className="h-4 w-4 mr-2" />
-              Choose Subscription Plan
+              View All Plans & Subscribe Now
             </Button>
             
             <Button 

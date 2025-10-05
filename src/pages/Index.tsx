@@ -146,6 +146,15 @@ const Index = () => {
               <Button 
                 variant="outline" 
                 size="sm"
+                onClick={() => navigate('/faq')}
+                className="border-primary/20 hover:bg-primary/10 flex items-center"
+              >
+                <span className="hidden sm:inline">FAQ</span>
+                <span className="sm:hidden">?</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
                 onClick={() => navigate('/videos')}
                 className="border-primary/20 hover:bg-primary/10 flex items-center"
               >
