@@ -14,6 +14,7 @@ import {
   EyeOff
 } from 'lucide-react';
 import SubscriptionTierModal from './SubscriptionTierModal';
+import { NewSubscriptionModal } from './NewSubscriptionModal';
 import JoiningOfferBanner from './JoiningOfferBanner';
 
 interface CelebrityProfile {
@@ -35,6 +36,7 @@ interface SubscriptionTabProps {
 
 const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: SubscriptionTabProps) => {
   const [showTierModal, setShowTierModal] = useState(false);
+  const [showNewModal, setShowNewModal] = useState(false);
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [selectedOfferTier, setSelectedOfferTier] = useState<'basic' | 'premium'>('basic');
   const [isNewCelebrity, setIsNewCelebrity] = useState(false);
@@ -89,6 +91,44 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
       }
     } catch (error) {
       console.error('Error checking special offer status:', error);
+    }
+  };
+
+  const handleNewTierSubmission = async (
+    tier: string,
+    duration: string,
+    mpesaCode: string,
+    phoneNumber: string
+  ) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('payment-verification', {
+        body: {
+          celebrityId: profile?.id,
+          phoneNumber,
+          mpesaCode,
+          tier,
+          duration,
+        }
+      });
+
+      if (error) throw error;
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to submit payment verification');
+      }
+
+      toast({
+        title: "Payment Verification Submitted",
+        description: `Your ${tier} plan payment verification has been submitted. An admin will review it shortly.`,
+      });
+    } catch (error: any) {
+      console.error('Payment submission error:', error);
+      toast({
+        title: "Submission Failed",
+        description: error.message || "Failed to submit payment verification",
+        variant: "destructive",
+      });
+      throw error;
     }
   };
 
@@ -329,16 +369,34 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
             </ul>
           </div>
 
-          <Button 
-            onClick={() => setShowTierModal(true)}
-            className="w-full bg-gradient-to-r from-primary to-accent"
-            size="lg"
-          >
-            <CreditCard className="h-4 w-4 mr-2" />
-            Choose Subscription Plan
-          </Button>
+          <div className="space-y-3">
+            <Button 
+              onClick={() => setShowNewModal(true)}
+              className="w-full bg-gradient-to-r from-primary to-accent"
+              size="lg"
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              Choose Subscription Plan
+            </Button>
+            
+            <Button 
+              onClick={() => window.location.href = '/faq'}
+              variant="outline"
+              className="w-full"
+              size="lg"
+            >
+              Need Help? View FAQ
+            </Button>
+          </div>
         </CardContent>
       </Card>
+
+      <NewSubscriptionModal
+        open={showNewModal}
+        onOpenChange={setShowNewModal}
+        celebrityId={profile?.id || ''}
+        onSubmit={handleNewTierSubmission}
+      />
 
       <SubscriptionTierModal
         open={showTierModal}

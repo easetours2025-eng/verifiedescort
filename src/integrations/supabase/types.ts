@@ -317,6 +317,7 @@ export type Database = {
           amount_paid: number | null
           celebrity_id: string
           created_at: string
+          duration_type: string | null
           id: string
           is_active: boolean
           last_payment_id: string | null
@@ -329,6 +330,7 @@ export type Database = {
           amount_paid?: number | null
           celebrity_id: string
           created_at?: string
+          duration_type?: string | null
           id?: string
           is_active?: boolean
           last_payment_id?: string | null
@@ -341,6 +343,7 @@ export type Database = {
           amount_paid?: number | null
           celebrity_id?: string
           created_at?: string
+          duration_type?: string | null
           id?: string
           is_active?: boolean
           last_payment_id?: string | null
@@ -397,6 +400,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      faq_items: {
+        Row: {
+          answer: string
+          category: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          question: string
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          category?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          question: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          category?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          question?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       media_likes: {
         Row: {
@@ -559,6 +595,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      subscription_packages: {
+        Row: {
+          created_at: string
+          display_order: number
+          duration_type: string
+          features: Json
+          id: string
+          is_active: boolean
+          price: number
+          tier_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          duration_type: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          price: number
+          tier_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          duration_type?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          price?: number
+          tier_name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       system_config: {
         Row: {

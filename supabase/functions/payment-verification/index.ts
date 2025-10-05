@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { celebrityId, phoneNumber, mpesaCode, amount, tier } = await req.json();
+    const { celebrityId, phoneNumber, mpesaCode, amount, tier, duration } = await req.json();
 
     if (!celebrityId || !phoneNumber || !mpesaCode) {
       return new Response(
@@ -82,15 +82,27 @@ Deno.serve(async (req) => {
 
     // If tier is provided, also create/update subscription record
     if (tier) {
-      const subscriptionAmount = tier === 'premium' ? 2500 : 2000;
+      let durationDays = 30; // default 1 month
+      
+      if (duration === '1_week') {
+        durationDays = 7;
+      } else if (duration === '2_weeks') {
+        durationDays = 14;
+      }
+      
+      const subscriptionEnd = new Date();
+      subscriptionEnd.setDate(subscriptionEnd.getDate() + durationDays);
       
       const { error: subscriptionError } = await supabaseServiceRole
         .from('celebrity_subscriptions')
         .upsert({
           celebrity_id: celebrityId,
           subscription_tier: tier,
-          amount_paid: subscriptionAmount,
+          duration_type: duration || '1_month',
+          amount_paid: amount || 0,
           is_active: false, // Will be activated when admin verifies
+          subscription_start: new Date().toISOString(),
+          subscription_end: subscriptionEnd.toISOString(),
           last_payment_id: paymentData.id
         }, {
           onConflict: 'celebrity_id'
