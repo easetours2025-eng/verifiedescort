@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, HelpCircle, Shield, Star, ArrowLeft } from "lucide-react";
 
+// FAQ Page Component
 interface FAQItem {
   id: string;
   question: string;
