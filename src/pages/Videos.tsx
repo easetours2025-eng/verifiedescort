@@ -327,13 +327,10 @@ const Videos = () => {
   };
 
   const handleAdminVideoClick = async (video: AdminVideo) => {
-    // Record view first, then open modal
-    try {
-      await handleAdminVideoView(video.id);
-    } catch (error) {
-      console.warn('Error tracking admin video view:', error);
-    }
-
+    // Record view first
+    await handleAdminVideoView(video.id);
+    
+    // Open modal with video
     setSelectedAdminVideo(video.file_path);
     setIsModalOpen(true);
   };

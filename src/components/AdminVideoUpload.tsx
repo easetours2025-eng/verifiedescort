@@ -97,11 +97,16 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
           // Update progress
           setUploadProgress(prev => ({ ...prev, [fileId]: 70 }));
 
-          // Save video metadata to database (store path, not full URL)
+          // Get the public URL for the uploaded video
+          const { data: urlData } = supabase.storage
+            .from('admin-videos')
+            .getPublicUrl(filePath);
+
+          // Save video metadata to database with public URL
           const { error: dbError } = await supabase
             .from('admin_videos')
             .insert({
-              file_path: filePath,
+              file_path: urlData.publicUrl,
               is_active: formData.isActive
             });
 
