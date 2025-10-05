@@ -580,6 +580,8 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
   onUpdate: (data: Partial<CelebrityProfile>) => void;
   saving: boolean;
 }) => {
+  const { toast } = useToast();
+  
   const [formData, setFormData] = useState({
     stage_name: profile.stage_name,
     real_name: profile.real_name || '',
@@ -594,7 +596,24 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdate(formData);
+    
+    // Validate that gender is selected if it's not empty
+    if (formData.gender === '') {
+      toast({
+        title: "Validation Error",
+        description: "Please select a gender or leave it unset",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Only include gender in update if it has a valid value
+    const updateData = {
+      ...formData,
+      gender: formData.gender || null, // Send null instead of empty string
+    };
+    
+    onUpdate(updateData);
   };
 
   return (
@@ -659,9 +678,10 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
                 className="w-full p-2 sm:p-3 border border-input rounded-md bg-background text-sm sm:text-base"
               >
                 <option value="">Select gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+                <option value="Prefer not to say">Prefer not to say</option>
               </select>
             </div>
           </div>
