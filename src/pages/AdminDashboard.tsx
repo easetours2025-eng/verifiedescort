@@ -161,9 +161,9 @@ const AdminDashboard = () => {
         const celebrity = celebrityProfilesData?.find(c => c.id === payment.celebrity_id);
         return {
           ...payment,
-          celebrity_profiles: celebrity
+          celebrity: celebrity
         };
-      }).filter(payment => payment.celebrity_profiles);
+      }).filter(payment => payment.celebrity);
       
       const processedCelebrities = (celebritiesData || []).map(celebrity => {
         const activeSubscription = celebrity.celebrity_subscriptions?.find(
