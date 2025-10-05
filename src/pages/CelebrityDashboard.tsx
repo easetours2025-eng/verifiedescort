@@ -678,10 +678,9 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
                 className="w-full p-2 sm:p-3 border border-input rounded-md bg-background text-sm sm:text-base"
               >
                 <option value="">Select gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-                <option value="Prefer not to say">Prefer not to say</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
               </select>
             </div>
           </div>
