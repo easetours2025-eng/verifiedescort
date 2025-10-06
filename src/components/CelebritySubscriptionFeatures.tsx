@@ -50,9 +50,9 @@ export default function CelebritySubscriptionFeatures({
         .select("*")
         .eq("celebrity_id", celebrityId)
         .eq("is_active", true)
-        .single();
+        .maybeSingle();
 
-      if (subError && subError.code !== 'PGRST116') {
+      if (subError) {
         throw subError;
       }
 
@@ -80,10 +80,11 @@ export default function CelebritySubscriptionFeatures({
   }
 
   const tier = subscription?.subscription_tier || null;
-  const features = getTierFeatures(tier);
+  const duration = subscription?.duration_type || null;
+  const features = getTierFeatures(tier, duration);
   const badgeInfo = getBadgeInfo(tier);
   const supportType = getSupportType(tier);
-  const remainingUploads = getRemainingUploads(mediaCount, tier);
+  const remainingUploads = getRemainingUploads(mediaCount, tier, duration);
 
   const tierIcons = {
     vip_elite: <Crown className="w-8 h-8 text-yellow-500" />,

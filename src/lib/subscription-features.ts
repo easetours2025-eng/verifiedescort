@@ -2,6 +2,7 @@
 
 export interface TierFeatures {
   tier: string;
+  duration?: string;
   media_upload_limit: number;
   has_advanced_analytics: boolean;
   has_analytics_dashboard: boolean;
@@ -20,10 +21,44 @@ export interface TierFeatures {
   profile_boost_per_week: number;
 }
 
-export const TIER_FEATURES: Record<string, TierFeatures> = {
+// Upload limits by tier and duration
+const UPLOAD_LIMITS: Record<string, Record<string, number>> = {
+  vip_elite: {
+    '1_week': -1, // unlimited
+    '2_weeks': -1, // unlimited
+    '1_month': -1, // unlimited
+  },
+  prime_plus: {
+    '1_week': 5,
+    '2_weeks': 8,
+    '1_month': 10,
+  },
+  basic_pro: {
+    '1_week': 3,
+    '2_weeks': 4,
+    '1_month': 5,
+  },
+  starter: {
+    '1_week': 1,
+    '2_weeks': 2,
+    '1_month': 3,
+  },
+};
+
+/**
+ * Get upload limit based on tier and duration
+ */
+function getUploadLimit(tier: string, duration?: string): number {
+  const tierLimits = UPLOAD_LIMITS[tier];
+  if (!tierLimits) return 1; // default
+  
+  // Try to get duration-specific limit, fallback to 1_month
+  return tierLimits[duration || '1_month'] ?? tierLimits['1_month'] ?? 1;
+}
+
+export const TIER_FEATURES: Record<string, Omit<TierFeatures, 'media_upload_limit'>> = {
   vip_elite: {
     tier: 'vip_elite',
-    media_upload_limit: -1, // unlimited
     has_advanced_analytics: true,
     has_analytics_dashboard: true,
     has_basic_analytics: true,
@@ -42,7 +77,6 @@ export const TIER_FEATURES: Record<string, TierFeatures> = {
   },
   prime_plus: {
     tier: 'prime_plus',
-    media_upload_limit: 10,
     has_advanced_analytics: false,
     has_analytics_dashboard: true,
     has_basic_analytics: true,
@@ -61,7 +95,6 @@ export const TIER_FEATURES: Record<string, TierFeatures> = {
   },
   basic_pro: {
     tier: 'basic_pro',
-    media_upload_limit: 5,
     has_advanced_analytics: false,
     has_analytics_dashboard: false,
     has_basic_analytics: true,
@@ -80,7 +113,6 @@ export const TIER_FEATURES: Record<string, TierFeatures> = {
   },
   starter: {
     tier: 'starter',
-    media_upload_limit: 3,
     has_advanced_analytics: false,
     has_analytics_dashboard: false,
     has_basic_analytics: false,
@@ -120,18 +152,26 @@ export const DEFAULT_FEATURES: TierFeatures = {
 };
 
 /**
- * Get features for a subscription tier
+ * Get features for a subscription tier with optional duration
  */
-export function getTierFeatures(tier: string | null | undefined): TierFeatures {
+export function getTierFeatures(tier: string | null | undefined, duration?: string | null): TierFeatures {
   if (!tier) return DEFAULT_FEATURES;
-  return TIER_FEATURES[tier] || DEFAULT_FEATURES;
+  
+  const baseFeatures = TIER_FEATURES[tier];
+  if (!baseFeatures) return DEFAULT_FEATURES;
+  
+  return {
+    ...baseFeatures,
+    duration: duration || undefined,
+    media_upload_limit: getUploadLimit(tier, duration || undefined),
+  };
 }
 
 /**
  * Check if user can upload more media
  */
-export function canUploadMedia(currentCount: number, tier: string | null | undefined): boolean {
-  const features = getTierFeatures(tier);
+export function canUploadMedia(currentCount: number, tier: string | null | undefined, duration?: string | null): boolean {
+  const features = getTierFeatures(tier, duration);
   if (features.media_upload_limit === -1) return true; // unlimited
   return currentCount < features.media_upload_limit;
 }
@@ -139,8 +179,8 @@ export function canUploadMedia(currentCount: number, tier: string | null | undef
 /**
  * Get remaining media uploads
  */
-export function getRemainingUploads(currentCount: number, tier: string | null | undefined): number {
-  const features = getTierFeatures(tier);
+export function getRemainingUploads(currentCount: number, tier: string | null | undefined, duration?: string | null): number {
+  const features = getTierFeatures(tier, duration);
   if (features.media_upload_limit === -1) return -1; // unlimited
   return Math.max(0, features.media_upload_limit - currentCount);
 }

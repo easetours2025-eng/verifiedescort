@@ -19,6 +19,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
   const [uploading, setUploading] = useState(false);
   const [mediaCount, setMediaCount] = useState(0);
   const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
+  const [subscriptionDuration, setSubscriptionDuration] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     description: '',
     price: 0,
@@ -43,16 +44,17 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
       if (countError) throw countError;
       setMediaCount(count || 0);
 
-      // Get subscription tier
+      // Get subscription tier and duration
       const { data: subData, error: subError } = await supabase
         .from('celebrity_subscriptions')
-        .select('subscription_tier')
+        .select('subscription_tier, duration_type')
         .eq('celebrity_id', celebrityId)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
-      if (subError && subError.code !== 'PGRST116') throw subError;
+      if (subError) throw subError;
       setSubscriptionTier(subData?.subscription_tier || null);
+      setSubscriptionDuration(subData?.duration_type || null);
     } catch (error) {
       console.error('Error fetching media data:', error);
     }
@@ -99,8 +101,8 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
     }
 
     // Check upload limit based on subscription
-    if (!canUploadMedia(mediaCount, subscriptionTier)) {
-      const features = getTierFeatures(subscriptionTier);
+    if (!canUploadMedia(mediaCount, subscriptionTier, subscriptionDuration)) {
+      const features = getTierFeatures(subscriptionTier, subscriptionDuration);
       toast({
         title: "Upload limit reached",
         description: `Your current plan allows ${features.media_upload_limit} uploads. Please upgrade your subscription to upload more media.`,
@@ -190,9 +192,9 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
       <CardContent>
         {/* Upload Limit Warning */}
         {(() => {
-          const remaining = getRemainingUploads(mediaCount, subscriptionTier);
-          const features = getTierFeatures(subscriptionTier);
-          const canUpload = canUploadMedia(mediaCount, subscriptionTier);
+          const remaining = getRemainingUploads(mediaCount, subscriptionTier, subscriptionDuration);
+          const features = getTierFeatures(subscriptionTier, subscriptionDuration);
+          const canUpload = canUploadMedia(mediaCount, subscriptionTier, subscriptionDuration);
 
           return (
             <Alert className={!canUpload ? "border-destructive" : "border-primary"}>
