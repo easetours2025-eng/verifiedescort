@@ -551,12 +551,14 @@ export type Database = {
           amount: number
           celebrity_id: string
           created_at: string
+          duration_type: string | null
           expires_at: string
           id: string
           is_verified: boolean
           mpesa_code: string
           payment_date: string
           phone_number: string
+          subscription_tier: string | null
           verified_at: string | null
           verified_by: string | null
         }
@@ -564,12 +566,14 @@ export type Database = {
           amount?: number
           celebrity_id: string
           created_at?: string
+          duration_type?: string | null
           expires_at?: string
           id?: string
           is_verified?: boolean
           mpesa_code: string
           payment_date?: string
           phone_number: string
+          subscription_tier?: string | null
           verified_at?: string | null
           verified_by?: string | null
         }
@@ -577,12 +581,14 @@ export type Database = {
           amount?: number
           celebrity_id?: string
           created_at?: string
+          duration_type?: string | null
           expires_at?: string
           id?: string
           is_verified?: boolean
           mpesa_code?: string
           payment_date?: string
           phone_number?: string
+          subscription_tier?: string | null
           verified_at?: string | null
           verified_by?: string | null
         }
@@ -773,6 +779,18 @@ export type Database = {
           stage_name: string
           updated_at: string
           user_id: string
+        }[]
+      }
+      get_payment_statistics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          month: string
+          pending_amount: number
+          pending_payments: number
+          total_amount: number
+          total_payments: number
+          verified_amount: number
+          verified_payments: number
         }[]
       }
       get_public_celebrity_data: {

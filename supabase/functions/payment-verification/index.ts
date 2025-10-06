@@ -68,7 +68,9 @@ Deno.serve(async (req) => {
         mpesa_code: mpesaCode.trim().toUpperCase(),
         amount: amount || 10,
         payment_date: new Date().toISOString(),
-        is_verified: false
+        is_verified: false,
+        subscription_tier: tier || null,
+        duration_type: duration || null
       })
       .select()
       .single();
