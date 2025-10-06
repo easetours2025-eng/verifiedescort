@@ -8,7 +8,8 @@ import {
   Settings,
   ChevronRight,
   BarChart3,
-  Package
+  Package,
+  HeadphonesIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -27,6 +28,7 @@ const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: 'celebrities', label: 'Celebrities', icon: Users },
     { id: 'payments', label: 'Payments', icon: CreditCard },
     { id: 'subscriptions', label: 'Subscriptions', icon: Package },
+    { id: 'premium-support', label: 'Premium Support', icon: HeadphonesIcon },
     { id: 'videos', label: 'Videos', icon: Video },
   ];
 

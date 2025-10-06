@@ -41,6 +41,7 @@ import AdminManagement from '@/components/AdminManagement';
 import AllUsersManagement from '@/components/AllUsersManagement';
 import AdminPaymentVerification from '@/components/AdminPaymentVerification';
 import { AdminNotifications } from '@/components/AdminNotifications';
+import PremiumSupportUsers from '@/components/PremiumSupportUsers';
 
 // Data Interfaces
 interface PaymentRecord {
@@ -943,6 +944,10 @@ const AdminDashboard = () => {
                 <AdminActiveSubscriptions />
               </div>
             </div>
+          )}
+
+          {activeTab === 'premium-support' && (
+            <PremiumSupportUsers />
           )}
 
           {activeTab === 'videos' && (
