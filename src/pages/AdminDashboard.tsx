@@ -8,7 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, Clock, Users, CreditCard, TrendingUp, RefreshCw, Search, Eye, EyeOff, Trash2, Shield, ShieldCheck, LayoutGrid, Table2, LogOut, Video } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Users, CreditCard, TrendingUp, RefreshCw, Search, Eye, EyeOff, Trash2, Shield, ShieldCheck, LayoutGrid, Table2, LogOut, Video, Wallet, DollarSign, Building2, Bell, Flag, Timer, Star, Plus } from 'lucide-react';
+import AdminSidebar from '@/components/AdminSidebar';
+import StatsCard from '@/components/StatsCard';
+import ChartCard from '@/components/ChartCard';
+import TimelineCard from '@/components/TimelineCard';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -81,6 +86,7 @@ const AdminDashboard = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [activeTab, setActiveTab] = useState('analytics');
   const navigate = useNavigate();
 
   // Check admin authentication 
@@ -481,47 +487,153 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading admin dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading admin dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 md:py-8">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 md:mb-8 space-y-4 md:space-y-0">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
-            <UserManagement onUserCreated={fetchData} />
-            <AdminManagement onAdminCreated={() => {}} />
-            <Button
-              onClick={refreshData}
-              disabled={refreshing}
-              className="flex items-center space-x-2 w-full md:w-auto"
-            >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-              <span>Refresh</span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                localStorage.removeItem('admin_session');
-                navigate('/admin-auth');
-              }}
-              className="flex items-center space-x-2 w-full md:w-auto"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
-            </Button>
-          </div>
-        </div>
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar */}
+      <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
+      {/* Main Content */}
+      <div className="flex-1 ml-64">
+        {/* Top Header */}
+        <header className="bg-background border-b border-border sticky top-0 z-10">
+          <div className="flex items-center justify-between px-8 py-4">
+            <div className="flex items-center gap-4 flex-1">
+              <Input
+                type="search"
+                placeholder="Search..."
+                className="max-w-md"
+              />
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+              </Button>
+              <Button variant="ghost" size="icon">
+                <Flag className="h-5 w-5" />
+              </Button>
+              <Button variant="ghost" size="icon">
+                <Timer className="h-5 w-5" />
+              </Button>
+              <div className="flex items-center gap-3 pl-4 border-l border-border">
+                <Avatar>
+                  <AvatarFallback>AD</AvatarFallback>
+                </Avatar>
+                <div className="hidden md:block">
+                  <p className="text-sm font-medium">Admin User</p>
+                  <p className="text-xs text-muted-foreground">Administrator</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  localStorage.removeItem('admin_session');
+                  navigate('/admin-auth');
+                }}
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <main className="p-8">
+          {activeTab === 'analytics' && (
+            <div className="space-y-6">
+              {/* Page Header */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-foreground mb-2">Analytics Dashboard</h1>
+                  <p className="text-sm text-muted-foreground">
+                    This is an example dashboard created using build-in elements and components.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="icon">
+                    <Star className="h-5 w-5" />
+                  </Button>
+                  <Button className="bg-green-600 hover:bg-green-700">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create New
+                  </Button>
+                </div>
+              </div>
+
+              {/* Portfolio Performance */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-xl">Portfolio Performance</CardTitle>
+                  <Button variant="outline" size="sm">View All</Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <StatsCard
+                      title="Cash Deposits"
+                      value="1.7M"
+                      icon={Wallet}
+                      iconColor="bg-yellow-500"
+                      trend={{ value: "54.1% less earnings", isPositive: false }}
+                    />
+                    <StatsCard
+                      title="Invested Dividends"
+                      value="9M"
+                      icon={Building2}
+                      iconColor="bg-pink-500"
+                      subtitle="Grow Rate: ▲ 14.1%"
+                    />
+                    <StatsCard
+                      title="Capital Gains"
+                      value="$563"
+                      icon={DollarSign}
+                      iconColor="bg-green-500"
+                      trend={{ value: "7.35%", isPositive: true }}
+                      subtitle="Increased by"
+                    />
+                  </div>
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                    View Complete Report
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Charts and Timeline */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <ChartCard />
+                <TimelineCard />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'payments' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h1 className="text-3xl font-bold text-foreground">Payment Verification</h1>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={refreshData}
+                    disabled={refreshing}
+                    className="flex items-center gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                    <span>Refresh</span>
+                  </Button>
+                </div>
+              </div>
+              
         {/* Summary Statistics */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6 mb-6 md:mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xs md:text-sm font-medium">Total Celebrities</CardTitle>
@@ -578,35 +690,6 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="payments" className="space-y-4 md:space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="payments" className="flex items-center space-x-2 text-xs md:text-sm">
-              <CreditCard className="h-4 w-4" />
-              <span className="hidden sm:inline">Payments</span>
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center space-x-2 text-xs md:text-sm">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Users</span>
-            </TabsTrigger>
-            <TabsTrigger value="celebrities" className="flex items-center space-x-2 text-xs md:text-sm">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Celebrities</span>
-            </TabsTrigger>
-            <TabsTrigger value="videos" className="flex items-center space-x-2 text-xs md:text-sm">
-              <Video className="h-4 w-4" />
-              <span className="hidden sm:inline">Videos</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="users" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <UserManagement onUserCreated={fetchData} />
-              <AdminManagement onAdminCreated={() => {}} />
-            </div>
-            <AllUsersManagement />
-          </TabsContent>
-
-          <TabsContent value="payments" className="space-y-4 md:space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg md:text-xl">Payment Verification</CardTitle>
@@ -706,9 +789,23 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+            </div>
+          )}
 
-          <TabsContent value="celebrities" className="space-y-4 md:space-y-6">
+          {activeTab === 'users' && (
+            <div className="space-y-6">
+              <h1 className="text-3xl font-bold text-foreground mb-6">User Management</h1>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <UserManagement onUserCreated={fetchData} />
+                <AdminManagement onAdminCreated={() => {}} />
+              </div>
+              <AllUsersManagement />
+            </div>
+          )}
+
+          {activeTab === 'celebrities' && (
+            <div className="space-y-6">
+              <h1 className="text-3xl font-bold text-foreground mb-6">Celebrity Management</h1>
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg md:text-xl">Celebrity Management</CardTitle>
@@ -997,12 +1094,16 @@ const AdminDashboard = () => {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+            </div>
+          )}
 
-          <TabsContent value="videos" className="space-y-4 md:space-y-6">
-            <AdminVideoSection />
-          </TabsContent>
-        </Tabs>
+          {activeTab === 'videos' && (
+            <div className="space-y-6">
+              <h1 className="text-3xl font-bold text-foreground mb-6">Video Management</h1>
+              <AdminVideoSection />
+            </div>
+          )}
+        </main>
       </div>
     </div>
   );
