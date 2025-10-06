@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import CelebrityCard from '@/components/CelebrityCard';
-import { Crown, Sparkles, Search, Filter, Star, Users, Trophy, Heart, Video, ChevronDown, Menu, X } from 'lucide-react';
+import { Crown, Sparkles, Search, Filter, Star, Users, Trophy, Heart, Video, ChevronDown, Menu, X, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { 
   filterCelebrityDataArray, 
@@ -30,6 +31,7 @@ const Index = () => {
   const [genderFilter, setGenderFilter] = useState<string>('all');
   const [userPaymentStatus, setUserPaymentStatus] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -366,132 +368,133 @@ const Index = () => {
                 />
               </div>
 
-              {/* Location Buttons - Always visible */}
+              {/* Location Filter - Compact Design */}
               {availableLocations.length > 0 && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Filter by Location</label>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <label className="text-sm font-medium">Filter by Location</label>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    {/* All Locations Button */}
+                    <Button
                       variant={locationFilter === '' ? 'default' : 'outline'}
-                      className="cursor-pointer hover:bg-primary/20 transition-colors"
+                      size="sm"
                       onClick={() => setLocationFilter('')}
+                      className="flex-shrink-0"
                     >
                       All Locations
-                    </Badge>
-                    {availableLocations.map((location) => (
-                      <Badge
-                        key={location}
-                        variant={locationFilter === location ? 'default' : 'outline'}
-                        className="cursor-pointer hover:bg-primary/20 transition-colors"
-                        onClick={() => setLocationFilter(location)}
-                      >
-                        {location}
-                      </Badge>
-                    ))}
+                    </Button>
+
+                    {/* Quick Access - Show first 3-4 popular locations */}
+                    <div className="flex flex-wrap gap-2">
+                      {availableLocations.slice(0, 3).map((location) => (
+                        <Button
+                          key={location}
+                          variant={locationFilter === location ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setLocationFilter(location)}
+                          className="text-xs sm:text-sm"
+                        >
+                          {location}
+                        </Button>
+                      ))}
+                    </div>
+
+                    {/* Dropdown for all locations */}
+                    {availableLocations.length > 3 && (
+                      <Select value={locationFilter} onValueChange={setLocationFilter}>
+                        <SelectTrigger className="w-full sm:w-[200px]">
+                          <SelectValue placeholder="More locations..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background z-[100]">
+                          <SelectItem value="">All Locations</SelectItem>
+                          {availableLocations.map((location) => (
+                            <SelectItem key={location} value={location}>
+                              {location}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
+
+                  {/* Advanced Filters Toggle */}
+                  <Collapsible open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full sm:w-auto flex items-center justify-center space-x-2 text-muted-foreground hover:text-foreground"
+                      >
+                        <Filter className="h-4 w-4" />
+                        <span>Advanced Filters</span>
+                        <ChevronDown className={`h-4 w-4 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-4 pt-4">
+                      {/* Gender Filter */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Gender</label>
+                        <Select value={genderFilter} onValueChange={setGenderFilter}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select gender" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background z-[100]">
+                            <SelectItem value="all">All Genders</SelectItem>
+                            <SelectItem value="Male">Male</SelectItem>
+                            <SelectItem value="Female">Female</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Age Range */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Age Range</label>
+                        <div className="flex items-center space-x-2">
+                          <Input
+                            type="number"
+                            placeholder="Min"
+                            value={minAge}
+                            onChange={(e) => setMinAge(Number(e.target.value))}
+                            min="18"
+                            max="65"
+                            className="w-20"
+                          />
+                          <span className="text-muted-foreground">to</span>
+                          <Input
+                            type="number"
+                            placeholder="Max"
+                            value={maxAge}
+                            onChange={(e) => setMaxAge(Number(e.target.value))}
+                            min="18"
+                            max="65"
+                            className="w-20"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Reset Filters */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setGenderFilter('all');
+                          setMinAge(18);
+                          setMaxAge(65);
+                          setLocationFilter('');
+                        }}
+                        className="w-full"
+                      >
+                        Reset All Filters
+                      </Button>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
               )}
 
-              {/* Advanced Filters - Collapsible on mobile */}
-              <Collapsible open={showFilters} onOpenChange={setShowFilters}>
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full sm:hidden flex items-center justify-center space-x-2"
-                  >
-                    <Filter className="h-4 w-4" />
-                    <span>Advanced Filters</span>
-                    <ChevronDown className={`h-4 w-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-                  </Button>
-                </CollapsibleTrigger>
-                
-                <CollapsibleContent className="sm:block">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-4 sm:mt-0">
-                    {/* Location Filter */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Location Search</label>
-                      <Input
-                        placeholder="Search city or area..."
-                        value={locationFilter}
-                        onChange={(e) => setLocationFilter(e.target.value)}
-                        className="h-9 sm:h-10"
-                      />
-                    </div>
-
-                    {/* Age Range */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Age Range</label>
-                      <div className="flex space-x-2">
-                        <Input
-                          type="number"
-                          placeholder="Min"
-                          value={minAge}
-                          onChange={(e) => setMinAge(parseInt(e.target.value) || 18)}
-                          className="h-9 sm:h-10"
-                          min="18"
-                        />
-                        <Input
-                          type="number"
-                          placeholder="Max"
-                          value={maxAge}
-                          onChange={(e) => setMaxAge(parseInt(e.target.value) || 65)}
-                          className="h-9 sm:h-10"
-                          max="100"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Gender Filter */}
-                    <div className="space-y-2 sm:col-span-2 lg:col-span-1">
-                      <label className="text-sm font-medium">Gender</label>
-                      <div className="grid grid-cols-3 gap-1">
-                        <Button
-                          variant={genderFilter === 'all' ? 'default' : 'outline'}
-                          onClick={() => setGenderFilter('all')}
-                          size="sm"
-                          className="text-xs sm:text-sm"
-                        >
-                          All
-                        </Button>
-                        <Button
-                          variant={genderFilter === 'male' ? 'default' : 'outline'}
-                          onClick={() => setGenderFilter('male')}
-                          size="sm"
-                          className="text-xs sm:text-sm"
-                        >
-                          Male
-                        </Button>
-                        <Button
-                          variant={genderFilter === 'female' ? 'default' : 'outline'}
-                          onClick={() => setGenderFilter('female')}
-                          size="sm"
-                          className="text-xs sm:text-sm"
-                        >
-                          Female
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Clear Filters */}
-                  <div className="flex justify-end mt-3 sm:mt-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setSearchTerm('');
-                        setLocationFilter('');
-                        setMinAge(18);
-                        setMaxAge(65);
-                        setGenderFilter('all');
-                      }}
-                      className="text-xs sm:text-sm"
-                    >
-                      Clear All Filters
-                    </Button>
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
             </CardContent>
           </Card>
         </div>
