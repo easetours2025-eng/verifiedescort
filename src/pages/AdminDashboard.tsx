@@ -281,10 +281,13 @@ const AdminDashboard = () => {
         throw paymentError;
       }
 
-      // Mark celebrity as verified
+      // Mark celebrity as verified and available
       const { error: celebrityError } = await supabase
         .from('celebrity_profiles')
-        .update({ is_verified: true })
+        .update({ 
+          is_verified: true,
+          is_available: true 
+        })
         .eq('id', celebrityId);
 
       if (celebrityError) {
