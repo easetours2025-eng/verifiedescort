@@ -213,9 +213,9 @@ const AdminPaymentVerification = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Payments</CardTitle>
@@ -253,15 +253,15 @@ const AdminPaymentVerification = () => {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Payment Verification</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Payment Verification</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by celebrity, M-Pesa code, or phone..."
+                  placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-8"
@@ -269,7 +269,7 @@ const AdminPaymentVerification = () => {
               </div>
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -281,18 +281,18 @@ const AdminPaymentVerification = () => {
           </div>
 
           {/* Payments Table */}
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Celebrity</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>M-Pesa Code</TableHead>
-                  <TableHead>Amount/Expected</TableHead>
-                  <TableHead>Tier/Duration</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="min-w-[150px]">Celebrity</TableHead>
+                  <TableHead className="hidden sm:table-cell min-w-[120px]">Phone</TableHead>
+                  <TableHead className="min-w-[100px]">M-Pesa Code</TableHead>
+                  <TableHead className="min-w-[120px]">Amount</TableHead>
+                  <TableHead className="hidden md:table-cell min-w-[100px]">Tier/Duration</TableHead>
+                  <TableHead className="hidden lg:table-cell min-w-[100px]">Date</TableHead>
+                  <TableHead className="min-w-[100px]">Status</TableHead>
+                  <TableHead className="min-w-[100px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -307,28 +307,28 @@ const AdminPaymentVerification = () => {
                     <TableRow key={payment.id}>
                       <TableCell className="font-medium">
                         <div>
-                          <div>{payment.celebrity?.stage_name}</div>
-                          <div className="text-xs text-muted-foreground">{payment.celebrity?.email}</div>
+                          <div className="text-sm">{payment.celebrity?.stage_name}</div>
+                          <div className="text-xs text-muted-foreground truncate max-w-[150px]">{payment.celebrity?.email}</div>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
+                      <TableCell className="hidden sm:table-cell">
+                        <div className="flex items-center gap-1 text-sm">
                           <Phone className="h-3 w-3" />
-                          {payment.phone_number}
+                          <span className="text-xs">{payment.phone_number}</span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <CreditCard className="h-3 w-3" />
-                          <span className="font-mono">{payment.mpesa_code}</span>
+                          <span className="font-mono text-xs">{payment.mpesa_code}</span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <div className="font-bold">KSH {Number(payment.amount).toLocaleString()}</div>
+                          <div className="font-bold text-sm">KSH {Number(payment.amount).toLocaleString()}</div>
                           {payment.expected_amount && (
                             <div className="text-xs">
-                              Expected: <span className="font-semibold">KSH {Number(payment.expected_amount).toLocaleString()}</span>
+                              Exp: <span className="font-semibold">KSH {Number(payment.expected_amount).toLocaleString()}</span>
                             </div>
                           )}
                           {payment.payment_status === 'underpaid' && (
@@ -341,10 +341,10 @@ const AdminPaymentVerification = () => {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell">
                         {payment.subscription_tier && (
                           <div>
-                            <Badge variant="outline" className="mb-1">
+                            <Badge variant="outline" className="mb-1 text-xs">
                               {payment.subscription_tier}
                             </Badge>
                             <div className="text-xs text-muted-foreground">
@@ -353,8 +353,8 @@ const AdminPaymentVerification = () => {
                           </div>
                         )}
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-sm">
+                      <TableCell className="hidden lg:table-cell">
+                        <div className="flex items-center gap-1 text-xs">
                           <Calendar className="h-3 w-3" />
                           {new Date(payment.payment_date).toLocaleDateString()}
                         </div>
@@ -376,9 +376,9 @@ const AdminPaymentVerification = () => {
                         {!payment.is_verified && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button size="sm" variant="default">
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                Verify
+                              <Button size="sm" variant="default" className="text-xs h-8">
+                                <CheckCircle className="h-3 w-3 sm:mr-1" />
+                                <span className="hidden sm:inline">Verify</span>
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>

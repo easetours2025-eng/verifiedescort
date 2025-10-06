@@ -260,22 +260,22 @@ const AllUsersManagement = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+        <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center space-x-2">
             <Users className="h-5 w-5" />
-            <span>User Management ({users.length})</span>
+            <span className="text-lg sm:text-xl">User Management ({users.length})</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="relative">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-initial">
               <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search users..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-64"
+                className="pl-10 w-full sm:w-64"
               />
             </div>
-            <Button onClick={fetchUsers} variant="outline" size="sm">
+            <Button onClick={fetchUsers} variant="outline" size="sm" className="w-full sm:w-auto">
               Refresh
             </Button>
           </div>
@@ -283,33 +283,33 @@ const AllUsersManagement = () => {
       </CardHeader>
       <CardContent>
         {/* Filter Tabs */}
-        <div className="flex space-x-2 mb-6 border-b pb-2">
+        <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2 mb-6 border-b pb-2">
           <Button
             variant={filterStatus === 'all' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setFilterStatus('all')}
-            className="flex items-center space-x-2"
+            className="flex items-center justify-center space-x-2 w-full sm:w-auto"
           >
             <Users className="h-4 w-4" />
-            <span>All Users ({users.length})</span>
+            <span className="text-xs sm:text-sm">All Users ({users.length})</span>
           </Button>
           <Button
             variant={filterStatus === 'verified' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setFilterStatus('verified')}
-            className="flex items-center space-x-2"
+            className="flex items-center justify-center space-x-2 w-full sm:w-auto"
           >
             <UserCheck className="h-4 w-4" />
-            <span>Verified ({verifiedCount})</span>
+            <span className="text-xs sm:text-sm">Verified ({verifiedCount})</span>
           </Button>
           <Button
             variant={filterStatus === 'pending' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setFilterStatus('pending')}
-            className="flex items-center space-x-2"
+            className="flex items-center justify-center space-x-2 w-full sm:w-auto"
           >
             <UserX className="h-4 w-4" />
-            <span>Pending ({pendingCount})</span>
+            <span className="text-xs sm:text-sm">Pending ({pendingCount})</span>
           </Button>
         </div>
         {filteredUsers.length === 0 ? (
@@ -321,94 +321,90 @@ const AllUsersManagement = () => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="w-full border-collapse min-w-[600px]">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-3 font-medium">User</th>
-                  <th className="text-left p-3 font-medium">Contact</th>
-                  <th className="text-left p-3 font-medium">Status</th>
-                  <th className="text-left p-3 font-medium">Dates</th>
-                  <th className="text-right p-3 font-medium">Actions</th>
+                  <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm">User</th>
+                  <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm hidden md:table-cell">Contact</th>
+                  <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm">Status</th>
+                  <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm hidden lg:table-cell">Dates</th>
+                  <th className="text-right p-2 sm:p-3 font-medium text-xs sm:text-sm">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.map((user) => (
                   <tr key={user.id} className="border-b hover:bg-muted/50">
-                    <td className="p-3">
-                      <div className="flex items-center space-x-3">
+                    <td className="p-2 sm:p-3">
+                      <div className="flex items-center space-x-2 sm:space-x-3">
                         <Avatar 
-                          className="h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity"
+                          className="h-8 w-8 sm:h-10 sm:w-10 cursor-pointer hover:opacity-80 transition-opacity shrink-0"
                           onClick={() => handleProfilePictureClick(user)}
                         >
                           <AvatarImage 
                             src={getProfileImageUrl(user.profile_picture_path)} 
                             alt={user.stage_name || 'User'}
                           />
-                          <AvatarFallback>
+                          <AvatarFallback className="text-xs">
                             {(user.stage_name || user.real_name || 'U').charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="space-y-1">
-                          <p className="font-medium">{user.stage_name || 'No stage name'}</p>
+                        <div className="space-y-0.5 min-w-0">
+                          <p className="font-medium text-xs sm:text-sm truncate">{user.stage_name || 'No stage name'}</p>
                           {user.real_name && (
-                            <p className="text-sm text-muted-foreground">{user.real_name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{user.real_name}</p>
                           )}
-                          <p className="text-xs text-muted-foreground font-mono">{user.id}</p>
+                          <p className="text-xs text-muted-foreground font-mono truncate md:hidden">{user.email}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="p-3">
+                    <td className="p-2 sm:p-3 hidden md:table-cell">
                       <div className="space-y-1">
                         {user.email && (
                           <div className="flex items-center space-x-2">
-                            <Mail className="h-3 w-3" />
-                            <span className="text-sm">{user.email}</span>
+                            <Mail className="h-3 w-3 shrink-0" />
+                            <span className="text-xs sm:text-sm truncate max-w-[200px]">{user.email}</span>
                           </div>
                         )}
                         {user.phone && (
                           <div className="flex items-center space-x-2">
-                            <Phone className="h-3 w-3" />
-                            <span className="text-sm">{user.phone}</span>
+                            <Phone className="h-3 w-3 shrink-0" />
+                            <span className="text-xs sm:text-sm">{user.phone}</span>
                           </div>
                         )}
                       </div>
                     </td>
-                     <td className="p-3">
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <Badge variant={user.is_verified ? "default" : "secondary"}>
-                            {user.is_verified ? <UserCheck className="h-3 w-3 mr-1" /> : <UserX className="h-3 w-3 mr-1" />}
-                            {user.is_verified ? "Verified" : "Pending"}
+                     <td className="p-2 sm:p-3">
+                      <div className="space-y-1 sm:space-y-2">
+                        <div className="flex items-center space-x-1 sm:space-x-2">
+                          <Badge variant={user.is_verified ? "default" : "secondary"} className="text-xs">
+                            {user.is_verified ? <UserCheck className="h-3 w-3 sm:mr-1" /> : <UserX className="h-3 w-3 sm:mr-1" />}
+                            <span className="hidden sm:inline">{user.is_verified ? "Verified" : "Pending"}</span>
                           </Badge>
                           <Switch
                             checked={user.is_verified || false}
                             onCheckedChange={(checked) => toggleUserVerification(user.user_id || user.id, checked)}
                             title={user.is_verified ? "Unverify user" : "Verify user"}
+                            className="scale-75 sm:scale-100"
                           />
                         </div>
-                        <Badge variant={user.is_available ? "outline" : "destructive"}>
+                        <Badge variant={user.is_available ? "outline" : "destructive"} className="text-xs hidden sm:inline-flex">
                           {user.is_available ? "Available" : "Unavailable"}
                         </Badge>
-                        {user.email_confirmed_at && (
-                          <Badge variant="outline" className="text-xs">
-                            Email Confirmed
-                          </Badge>
-                        )}
                       </div>
                     </td>
-                    <td className="p-3">
-                      <div className="space-y-1 text-sm text-muted-foreground">
+                    <td className="p-2 sm:p-3 hidden lg:table-cell">
+                      <div className="space-y-1 text-xs text-muted-foreground">
                         <div className="flex items-center space-x-1">
                           <Calendar className="h-3 w-3" />
                           <span>Created: {formatDate(user.created_at)}</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <Eye className="h-3 w-3" />
-                          <span>Last login: {formatDate(user.last_sign_in_at)}</span>
+                          <span>Last: {formatDate(user.last_sign_in_at)}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="p-3">
+                    <td className="p-2 sm:p-3">
                       <div className="flex items-center justify-end space-x-2">
                         <AlertDialog>
                           <AlertDialogTrigger asChild>

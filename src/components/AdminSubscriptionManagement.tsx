@@ -283,18 +283,18 @@ export default function AdminSubscriptionManagement() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
-          <h2 className="text-3xl font-bold">Subscription Management</h2>
-          <p className="text-muted-foreground">Manage subscription packages and pricing</p>
+          <h2 className="text-2xl sm:text-3xl font-bold">Subscription Management</h2>
+          <p className="text-sm text-muted-foreground">Manage subscription packages and pricing</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) resetForm();
         }}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Add Package
             </Button>
@@ -433,15 +433,24 @@ export default function AdminSubscriptionManagement() {
         <div className="text-center py-8">Loading packages...</div>
       ) : (
         <Tabs defaultValue="1_month" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="1_month">1 Month Packages</TabsTrigger>
-            <TabsTrigger value="2_weeks">2 Weeks Packages</TabsTrigger>
-            <TabsTrigger value="1_week">1 Week Packages</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 h-auto">
+            <TabsTrigger value="1_month" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">1 Month Packages</span>
+              <span className="sm:hidden">1 Month</span>
+            </TabsTrigger>
+            <TabsTrigger value="2_weeks" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">2 Weeks Packages</span>
+              <span className="sm:hidden">2 Weeks</span>
+            </TabsTrigger>
+            <TabsTrigger value="1_week" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">1 Week Packages</span>
+              <span className="sm:hidden">1 Week</span>
+            </TabsTrigger>
           </TabsList>
 
           {["1_month", "2_weeks", "1_week"].map((duration) => (
             <TabsContent key={duration} value={duration}>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                 {getPackagesByDuration(duration).map((pkg) => (
                   <Card key={pkg.id} className="relative">
                     <CardHeader>
@@ -463,13 +472,13 @@ export default function AdminSubscriptionManagement() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold mb-4">
+                      <div className="text-2xl sm:text-3xl font-bold mb-4">
                         KSH {pkg.price.toLocaleString()}
                       </div>
-                      <ul className="space-y-2 mb-4">
+                      <ul className="space-y-2 mb-4 max-h-[200px] overflow-y-auto">
                         {pkg.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm">
-                            <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                          <li key={idx} className="flex items-start gap-2 text-xs sm:text-sm">
+                            <Check className="w-3 h-3 sm:w-4 sm:h-4 text-primary shrink-0 mt-0.5" />
                             <span>{feature}</span>
                           </li>
                         ))}

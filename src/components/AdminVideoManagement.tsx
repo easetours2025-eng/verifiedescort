@@ -260,19 +260,19 @@ const AdminVideoManagement = ({ refreshTrigger }: AdminVideoManagementProps) => 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+        <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center space-x-2">
             <Video className="h-5 w-5" />
-            <span>Admin Videos ({videos.length})</span>
+            <span className="text-lg sm:text-xl">Admin Videos ({videos.length})</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="relative">
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-initial">
               <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search videos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-64"
+                className="pl-10 w-full sm:w-64"
               />
             </div>
           </div>
@@ -287,7 +287,7 @@ const AdminVideoManagement = ({ refreshTrigger }: AdminVideoManagementProps) => 
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {filteredVideos.map((video) => (
               <Card key={video.id} className="overflow-hidden">
                 <div className="aspect-video bg-muted relative">
@@ -305,22 +305,22 @@ const AdminVideoManagement = ({ refreshTrigger }: AdminVideoManagementProps) => 
                     </Badge>
                   </div>
                 </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2 line-clamp-2">{video.title}</h3>
+                <CardContent className="p-3 sm:p-4">
+                  <h3 className="font-semibold mb-2 line-clamp-2 text-sm sm:text-base">{video.title}</h3>
                   {video.description && (
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-3 line-clamp-2">
                       {video.description}
                     </p>
                   )}
                   
-                  <div className="flex items-center space-x-4 text-xs text-muted-foreground mb-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0 text-xs text-muted-foreground mb-3">
                     <div className="flex items-center space-x-1">
                       <Eye className="h-3 w-3" />
                       <span>{video.view_count} views</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Calendar className="h-3 w-3" />
-                      <span>{formatDate(video.created_at)}</span>
+                      <span className="text-xs">{formatDate(video.created_at)}</span>
                     </div>
                   </div>
 
