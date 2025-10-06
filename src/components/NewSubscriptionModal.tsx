@@ -26,7 +26,7 @@ interface NewSubscriptionModalProps {
   onSubmit: (tier: string, duration: string, mpesaCode: string, phoneNumber: string, expectedAmount: number) => Promise<void>;
 }
 
-const TILL_NUMBER = "5196042";
+const TILL_NUMBER = "8980316";
 
 const tierIcons = {
   vip_elite: <Crown className="w-6 h-6" />,

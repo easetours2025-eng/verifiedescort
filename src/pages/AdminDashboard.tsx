@@ -40,6 +40,7 @@ import UserManagement from '@/components/UserManagement';
 import AdminManagement from '@/components/AdminManagement';
 import AllUsersManagement from '@/components/AllUsersManagement';
 import AdminPaymentVerification from '@/components/AdminPaymentVerification';
+import { AdminNotifications } from '@/components/AdminNotifications';
 
 // Data Interfaces
 interface PaymentRecord {
@@ -528,10 +529,7 @@ const AdminDashboard = () => {
             </div>
             
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-              </Button>
+              <AdminNotifications />
               <Button variant="ghost" size="icon">
                 <Flag className="h-5 w-5" />
               </Button>
