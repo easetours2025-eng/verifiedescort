@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, Clock, Search, DollarSign, Calendar, Phone, CreditCard } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Search, DollarSign, Calendar, Phone, CreditCard, Zap } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
@@ -43,6 +43,7 @@ interface PaymentStats {
 const AdminPaymentVerification = () => {
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [stats, setStats] = useState<PaymentStats>({
@@ -58,6 +59,35 @@ const AdminPaymentVerification = () => {
     fetchPayments();
     setupRealtimeSubscription();
   }, []);
+
+  const seedTestPayments = async () => {
+    try {
+      setSeeding(true);
+      
+      const { data, error } = await supabase.functions.invoke('seed-test-payments');
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: 'Success',
+        description: data.message || 'Test payments created successfully',
+      });
+
+      // Refresh payments list
+      await fetchPayments();
+    } catch (error: any) {
+      console.error('Error seeding test payments:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to seed test payments',
+        variant: 'destructive',
+      });
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   const fetchPayments = async () => {
     try {
@@ -252,7 +282,19 @@ const AdminPaymentVerification = () => {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Payment Verification</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Payment Verification</CardTitle>
+            <Button
+              onClick={seedTestPayments}
+              disabled={seeding}
+              size="sm"
+              variant="outline"
+              className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700"
+            >
+              <Zap className="h-4 w-4 mr-2" />
+              {seeding ? 'Seeding...' : 'Seed Test Payments'}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 mb-4">
