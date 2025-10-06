@@ -175,14 +175,21 @@ const AdminDashboard = () => {
       }).filter(payment => payment.celebrity);
       
       const processedCelebrities = (celebritiesData || []).map(celebrity => {
-        const activeSubscription = celebrity.celebrity_subscriptions?.find(
+        // Cast celebrity_subscriptions to array since it's a relation query
+        const subscriptions = Array.isArray(celebrity.celebrity_subscriptions) 
+          ? celebrity.celebrity_subscriptions 
+          : celebrity.celebrity_subscriptions 
+            ? [celebrity.celebrity_subscriptions] 
+            : [];
+            
+        const activeSubscription = subscriptions.find(
           (sub: any) => sub.is_active && new Date(sub.subscription_end) > new Date()
         );
         
         let subscription_status: 'active' | 'inactive' | 'expired' = 'inactive';
         if (activeSubscription) {
           subscription_status = 'active';
-        } else if (celebrity.celebrity_subscriptions?.some((sub: any) => !sub.is_active)) {
+        } else if (subscriptions.some((sub: any) => !sub.is_active)) {
           subscription_status = 'expired';
         }
         
