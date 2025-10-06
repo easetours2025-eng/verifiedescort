@@ -8,7 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import CelebrityCard from '@/components/CelebrityCard';
-import { Crown, Sparkles, Search, Filter, Star, Users, Trophy, Heart, Video, ChevronDown, Menu } from 'lucide-react';
+import { Crown, Sparkles, Search, Filter, Star, Users, Trophy, Heart, Video, ChevronDown, Menu, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { 
   filterCelebrityDataArray, 
@@ -30,6 +30,7 @@ const Index = () => {
   const [genderFilter, setGenderFilter] = useState<string>('all');
   const [userPaymentStatus, setUserPaymentStatus] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -138,11 +139,33 @@ const Index = () => {
 
   const handleSignOut = async () => {
     await signOut();
+    setMobileMenuOpen(false);
     toast({
       title: "Signed out",
       description: "You have been successfully signed out.",
     });
   };
+
+  // Close mobile menu on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileMenuOpen(false);
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, []);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [mobileMenuOpen]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
@@ -150,25 +173,25 @@ const Index = () => {
       <header className="border-b border-primary/20 backdrop-blur-sm bg-background/80 sticky top-0 z-50">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                <div className="relative">
-                  <Crown className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-accent absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1" />
-                </div>
-                <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  RoyalEscorts
-                </h1>
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="relative">
+                <Crown className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-accent absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1" />
               </div>
+              <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                RoyalEscorts
+              </h1>
+            </div>
             
-            <div className="flex items-center space-x-1 sm:space-x-4">
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center space-x-4">
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={() => navigate('/faq')}
-                className="border-primary/20 hover:bg-primary/10 flex items-center"
+                className="border-primary/20 hover:bg-primary/10"
               >
-                <span className="hidden sm:inline">FAQ</span>
-                <span className="sm:hidden">?</span>
+                FAQ
               </Button>
               <Button 
                 variant="outline" 
@@ -176,13 +199,13 @@ const Index = () => {
                 onClick={() => navigate('/videos')}
                 className="border-primary/20 hover:bg-primary/10 flex items-center"
               >
-                <Video className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Videos</span>
+                <Video className="h-4 w-4 mr-2" />
+                Videos
               </Button>
               {user ? (
-                <div className="flex items-center space-x-1 sm:space-x-3">
+                <>
                   {userPaymentStatus && (
-                    <Badge variant="default" className="bg-green-500 text-white text-xs hidden sm:inline-flex">
+                    <Badge variant="default" className="bg-green-500 text-white">
                       Verified: {userPaymentStatus.phone_number}
                     </Badge>
                   )}
@@ -190,27 +213,126 @@ const Index = () => {
                     variant="outline" 
                     size="sm"
                     onClick={() => navigate('/dashboard')}
-                    className="border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
+                    className="border-primary/20 hover:bg-primary/10"
                   >
                     Dashboard
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-xs sm:text-sm">
+                  <Button variant="ghost" size="sm" onClick={handleSignOut}>
                     Sign Out
                   </Button>
-                </div>
+                </>
               ) : (
                 <Button 
                   onClick={() => navigate('/auth')}
                   size="sm"
-                  className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-celebrity text-xs sm:text-sm"
+                  className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-celebrity"
                 >
                   Join as Celebrity
                 </Button>
               )}
             </div>
+
+            {/* Mobile Hamburger */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
           </div>
         </div>
       </header>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 z-50 animate-in fade-in duration-200"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          
+          {/* Menu Panel */}
+          <div className="fixed right-0 top-0 h-fit bg-background border-l border-primary/20 shadow-xl z-50 animate-in slide-in-from-right duration-300 w-64">
+            <div className="flex flex-col p-4">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-semibold">Menu</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+
+              <div className="flex flex-col space-y-3">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start border-primary/20"
+                  onClick={() => {
+                    navigate('/faq');
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  FAQ
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start border-primary/20"
+                  onClick={() => {
+                    navigate('/videos');
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Video className="h-4 w-4 mr-2" />
+                  Videos
+                </Button>
+                
+                {user ? (
+                  <>
+                    {userPaymentStatus && (
+                      <Badge variant="default" className="bg-green-500 text-white w-full justify-center py-2">
+                        Verified: {userPaymentStatus.phone_number}
+                      </Badge>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start border-primary/20"
+                      onClick={() => {
+                        navigate('/dashboard');
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      Dashboard
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start"
+                      onClick={handleSignOut}
+                    >
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <Button 
+                    className="w-full bg-gradient-to-r from-primary to-primary-glow"
+                    onClick={() => {
+                      navigate('/auth');
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    Join as Celebrity
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
 
       {/* Search and Filter */}
       <section className="py-4 sm:pb-8">
