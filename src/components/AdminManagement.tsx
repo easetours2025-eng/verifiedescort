@@ -95,7 +95,7 @@ const AdminManagement = ({ onAdminCreated }: AdminManagementProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="flex items-center space-x-2">
+        <Button variant="outline" className="flex items-center justify-center space-x-2 w-full">
           <ShieldPlus className="h-4 w-4" />
           <span>Add Admin</span>
         </Button>

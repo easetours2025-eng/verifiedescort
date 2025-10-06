@@ -283,20 +283,20 @@ export default function AdminSubscriptionManagement() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-0">
+      <div className="flex flex-col gap-3">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold">Subscription Management</h2>
-          <p className="text-sm text-muted-foreground">Manage subscription packages and pricing</p>
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold">Subscription Management</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">Manage subscription packages and pricing</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) resetForm();
         }}>
           <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto">
+            <Button className="w-full">
               <Plus className="w-4 h-4 mr-2" />
-              Add Package
+              <span>Add Package</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

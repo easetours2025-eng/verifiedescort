@@ -117,7 +117,7 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="flex items-center space-x-2">
+        <Button className="flex items-center justify-center space-x-2 w-full">
           <UserPlus className="h-4 w-4" />
           <span>Create New User</span>
         </Button>

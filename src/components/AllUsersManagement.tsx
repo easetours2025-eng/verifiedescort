@@ -16,7 +16,8 @@ import {
   UserX,
   Calendar,
   Mail,
-  Phone
+  Phone,
+  RefreshCw
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -259,54 +260,55 @@ const AllUsersManagement = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <CardHeader className="p-3 sm:p-6">
+        <CardTitle className="flex flex-col gap-3">
           <div className="flex items-center space-x-2">
-            <Users className="h-5 w-5" />
-            <span className="text-lg sm:text-xl">User Management ({users.length})</span>
+            <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="text-base sm:text-lg lg:text-xl">User Management ({users.length})</span>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-            <div className="relative flex-1 sm:flex-initial">
+          <div className="flex flex-col gap-2 w-full">
+            <div className="relative w-full">
               <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search users..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-full sm:w-64"
+                className="pl-10 w-full"
               />
             </div>
-            <Button onClick={fetchUsers} variant="outline" size="sm" className="w-full sm:w-auto">
+            <Button onClick={fetchUsers} variant="outline" size="default" className="w-full">
+              <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-2 sm:p-6">
         {/* Filter Tabs */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2 mb-6 border-b pb-2">
+        <div className="flex flex-col gap-2 mb-4 sm:mb-6 border-b pb-2">
           <Button
             variant={filterStatus === 'all' ? 'default' : 'ghost'}
-            size="sm"
+            size="default"
             onClick={() => setFilterStatus('all')}
-            className="flex items-center justify-center space-x-2 w-full sm:w-auto"
+            className="flex items-center justify-center space-x-2 w-full"
           >
             <Users className="h-4 w-4" />
             <span className="text-xs sm:text-sm">All Users ({users.length})</span>
           </Button>
           <Button
             variant={filterStatus === 'verified' ? 'default' : 'ghost'}
-            size="sm"
+            size="default"
             onClick={() => setFilterStatus('verified')}
-            className="flex items-center justify-center space-x-2 w-full sm:w-auto"
+            className="flex items-center justify-center space-x-2 w-full"
           >
             <UserCheck className="h-4 w-4" />
             <span className="text-xs sm:text-sm">Verified ({verifiedCount})</span>
           </Button>
           <Button
             variant={filterStatus === 'pending' ? 'default' : 'ghost'}
-            size="sm"
+            size="default"
             onClick={() => setFilterStatus('pending')}
-            className="flex items-center justify-center space-x-2 w-full sm:w-auto"
+            className="flex items-center justify-center space-x-2 w-full"
           >
             <UserX className="h-4 w-4" />
             <span className="text-xs sm:text-sm">Pending ({pendingCount})</span>
@@ -320,8 +322,8 @@ const AllUsersManagement = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse min-w-[600px]">
+          <div className="overflow-x-auto -mx-2 sm:mx-0">
+            <table className="w-full border-collapse min-w-[550px]">
               <thead>
                 <tr className="border-b">
                   <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm">User</th>

@@ -174,90 +174,90 @@ const PremiumSupportUsers = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1 sm:mb-2">Premium Support Users</h1>
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-0">
+      <div className="flex flex-col gap-3">
+        <div className="space-y-1">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">Premium Support Users</h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Users with at least 2 premium support features (Email Support, Social Media Promotion, or Priority Support)
+            Users with at least 2 premium support features
           </p>
         </div>
-        <Button onClick={fetchPremiumSupportUsers} variant="outline" size="sm" className="w-full sm:w-auto">
-          <RefreshCw className="h-4 w-4 mr-2" />
+        <Button onClick={fetchPremiumSupportUsers} variant="outline" size="default" className="w-full">
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="p-3 sm:p-6">
           <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
             <HeadphonesIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-            Premium Support Subscribers ({users.length})
+            <span className="text-sm sm:text-base">Premium Support ({users.length})</span>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-6">
           {users.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <HeadphonesIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No users found with premium support features</p>
+              <p className="text-sm">No users found with premium support features</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-2 sm:mx-0">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead className="hidden sm:table-cell">Email</TableHead>
-                    <TableHead>Tier</TableHead>
-                    <TableHead className="hidden md:table-cell">Duration</TableHead>
-                    <TableHead className="hidden md:table-cell">Expires</TableHead>
-                    <TableHead className="hidden lg:table-cell">Features</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Profile Link</TableHead>
+                    <TableHead className="text-xs sm:text-sm min-w-[100px]">Name</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden sm:table-cell min-w-[150px]">Email</TableHead>
+                    <TableHead className="text-xs sm:text-sm min-w-[80px]">Tier</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden md:table-cell min-w-[80px]">Duration</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden md:table-cell min-w-[90px]">Expires</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden lg:table-cell min-w-[120px]">Features</TableHead>
+                    <TableHead className="text-xs sm:text-sm min-w-[70px]">Status</TableHead>
+                    <TableHead className="text-xs sm:text-sm min-w-[80px]">Link</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {users.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell className="font-medium text-sm">{user.stage_name}</TableCell>
-                      <TableCell className="hidden sm:table-cell text-sm">{user.email}</TableCell>
-                      <TableCell>
-                        <Badge variant="default" className="bg-purple-100 text-purple-800 text-xs">
+                      <TableCell className="font-medium text-xs sm:text-sm p-2 sm:p-4">{user.stage_name}</TableCell>
+                      <TableCell className="hidden sm:table-cell text-xs sm:text-sm p-2 sm:p-4 max-w-[200px] truncate">{user.email}</TableCell>
+                      <TableCell className="p-2 sm:p-4">
+                        <Badge variant="default" className="bg-purple-100 text-purple-800 text-[10px] sm:text-xs">
                           {getTierLabel(user.subscription_tier)}
                         </Badge>
                       </TableCell>
-                      <TableCell className="hidden md:table-cell text-sm">{getDurationLabel(user.duration_type)}</TableCell>
-                      <TableCell className="hidden md:table-cell text-sm">
+                      <TableCell className="hidden md:table-cell text-xs sm:text-sm p-2 sm:p-4">{getDurationLabel(user.duration_type)}</TableCell>
+                      <TableCell className="hidden md:table-cell text-xs sm:text-sm p-2 sm:p-4">
                         {new Date(user.subscription_end).toLocaleDateString()}
                       </TableCell>
-                      <TableCell className="hidden lg:table-cell">
+                      <TableCell className="hidden lg:table-cell p-2 sm:p-4">
                         <div className="flex gap-1 flex-wrap">
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-[10px] sm:text-xs">
                             <Mail className="h-3 w-3 mr-1" />
                             Email
                           </Badge>
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-[10px] sm:text-xs">
                             <Share2 className="h-3 w-3 mr-1" />
                             Social
                           </Badge>
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-[10px] sm:text-xs">
                             <HeadphonesIcon className="h-3 w-3 mr-1" />
                             Priority
                           </Badge>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Badge variant="default" className="bg-green-100 text-green-800 text-xs">
+                      <TableCell className="p-2 sm:p-4">
+                        <Badge variant="default" className="bg-green-100 text-green-800 text-[10px] sm:text-xs">
                           Active
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 sm:gap-2">
+                      <TableCell className="p-2 sm:p-4">
+                        <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
                             size="sm"
                             asChild
-                            className="h-8 w-8 p-0"
+                            className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                           >
                             <Link to={`/celebrity/${user.id}`} target="_blank">
                               <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -267,7 +267,7 @@ const PremiumSupportUsers = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleCopyLink(user.id)}
-                            className="h-8 w-8 p-0"
+                            className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                           >
                             <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
