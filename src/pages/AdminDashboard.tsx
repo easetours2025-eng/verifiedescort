@@ -14,6 +14,7 @@ import StatsCard from '@/components/StatsCard';
 import ChartCard from '@/components/ChartCard';
 import TimelineCard from '@/components/TimelineCard';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import AdminSubscriptionManagement from '@/components/AdminSubscriptionManagement';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1097,6 +1098,12 @@ const AdminDashboard = () => {
                 )}
               </CardContent>
             </Card>
+            </div>
+          )}
+
+          {activeTab === 'subscriptions' && (
+            <div className="space-y-6">
+              <AdminSubscriptionManagement />
             </div>
           )}
 
