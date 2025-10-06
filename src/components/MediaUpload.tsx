@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -6,7 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, Image as ImageIcon, Video, DollarSign, Lock, Globe } from 'lucide-react';
+import { Upload, Image as ImageIcon, Video, DollarSign, Lock, Globe, AlertCircle } from 'lucide-react';
+import { canUploadMedia, getRemainingUploads, getTierFeatures } from '@/lib/subscription-features';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface MediaUploadProps {
   celebrityId: string;
@@ -15,6 +17,8 @@ interface MediaUploadProps {
 
 const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
   const [uploading, setUploading] = useState(false);
+  const [mediaCount, setMediaCount] = useState(0);
+  const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     description: '',
     price: 0,
@@ -23,6 +27,36 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchMediaCountAndSubscription();
+  }, [celebrityId]);
+
+  const fetchMediaCountAndSubscription = async () => {
+    try {
+      // Get media count
+      const { count, error: countError } = await supabase
+        .from('celebrity_media')
+        .select('*', { count: 'exact', head: true })
+        .eq('celebrity_id', celebrityId);
+
+      if (countError) throw countError;
+      setMediaCount(count || 0);
+
+      // Get subscription tier
+      const { data: subData, error: subError } = await supabase
+        .from('celebrity_subscriptions')
+        .select('subscription_tier')
+        .eq('celebrity_id', celebrityId)
+        .eq('is_active', true)
+        .single();
+
+      if (subError && subError.code !== 'PGRST116') throw subError;
+      setSubscriptionTier(subData?.subscription_tier || null);
+    } catch (error) {
+      console.error('Error fetching media data:', error);
+    }
+  };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -59,6 +93,17 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
       toast({
         title: "No file selected",
         description: "Please select a file to upload.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check upload limit based on subscription
+    if (!canUploadMedia(mediaCount, subscriptionTier)) {
+      const features = getTierFeatures(subscriptionTier);
+      toast({
+        title: "Upload limit reached",
+        description: `Your current plan allows ${features.media_upload_limit} uploads. Please upgrade your subscription to upload more media.`,
         variant: "destructive",
       });
       return;
@@ -121,6 +166,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
         description: "Media uploaded successfully!",
       });
 
+      fetchMediaCountAndSubscription(); // Refresh media count
       onUpload(); // Refresh media list
     } catch (error) {
       toast({
@@ -142,7 +188,34 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleUpload} className="space-y-6">
+        {/* Upload Limit Warning */}
+        {(() => {
+          const remaining = getRemainingUploads(mediaCount, subscriptionTier);
+          const features = getTierFeatures(subscriptionTier);
+          const canUpload = canUploadMedia(mediaCount, subscriptionTier);
+
+          return (
+            <Alert className={!canUpload ? "border-destructive" : "border-primary"}>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>
+                {features.media_upload_limit === -1 
+                  ? 'Unlimited Uploads' 
+                  : `Upload Limit: ${mediaCount} / ${features.media_upload_limit}`}
+              </AlertTitle>
+              <AlertDescription>
+                {!canUpload ? (
+                  'You have reached your upload limit. Please upgrade your subscription to upload more media.'
+                ) : remaining === -1 ? (
+                  `You have unlimited uploads with your current plan. ${mediaCount} media files uploaded.`
+                ) : (
+                  `You have ${remaining} upload${remaining !== 1 ? 's' : ''} remaining in your current plan.`
+                )}
+              </AlertDescription>
+            </Alert>
+          );
+        })()}
+
+        <form onSubmit={handleUpload} className="space-y-6 mt-4">
           {/* File Upload */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Select File</label>

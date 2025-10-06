@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { NewSubscriptionModal } from './NewSubscriptionModal';
 import { useNavigate } from 'react-router-dom';
+import CelebritySubscriptionFeatures from './CelebritySubscriptionFeatures';
 
 interface CelebrityProfile {
   id: string;
@@ -386,6 +387,16 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
         celebrityId={profile?.id || ''}
         onSubmit={handleNewTierSubmission}
       />
+
+      {/* Subscription Features */}
+      {profile && (
+        <div className="mt-6">
+          <CelebritySubscriptionFeatures
+            celebrityId={profile.id}
+            onUpgrade={() => setShowNewModal(true)}
+          />
+        </div>
+      )}
     </div>
   );
 };
