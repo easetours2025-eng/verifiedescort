@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, ShieldCheck } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminAuth = () => {
   const [email, setEmail] = useState('');
@@ -27,31 +28,36 @@ const AdminAuth = () => {
 
     setLoading(true);
     try {
-      // Use the admin-auth edge function for signin
-      const response = await fetch(`https://kpjqcrhoablsllkgonbl.supabase.co/functions/v1/admin-auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'signin',
-          email,
-          password
-        })
+      // Sign in with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password
       });
 
-      const result = await response.json();
+      if (authError) {
+        throw new Error(authError.message);
+      }
 
-      if (!result.success) {
-        throw new Error(result.message);
+      // Verify the user is an admin
+      const { data: adminCheck, error: adminError } = await supabase
+        .from('admin_users')
+        .select('id, email, is_super_admin')
+        .eq('email', email)
+        .single();
+
+      if (adminError || !adminCheck) {
+        // Sign out if not an admin
+        await supabase.auth.signOut();
+        throw new Error("You don't have admin access");
       }
 
       // Store admin session in localStorage
       localStorage.setItem('admin_session', JSON.stringify({
-        email: result.admin.email,
-        id: result.admin.id,
-        is_super_admin: result.admin.is_super_admin,
-        loginTime: new Date().toISOString()
+        email: adminCheck.email,
+        id: adminCheck.id,
+        is_super_admin: adminCheck.is_super_admin,
+        loginTime: new Date().toISOString(),
+        supabase_user_id: authData.user.id
       }));
 
       toast({
