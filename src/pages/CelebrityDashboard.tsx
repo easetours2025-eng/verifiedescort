@@ -291,7 +291,7 @@ const CelebrityDashboard = () => {
               >
                 ← <span className="hidden min-[400px]:inline ml-1">Home</span>
               </Button>
-              <h1 className="text-sm sm:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate min-w-0 flex-1">
+              <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate min-w-0 flex-1">
                 Dashboard
               </h1>
             </div>
@@ -302,16 +302,16 @@ const CelebrityDashboard = () => {
                 variant="outline" 
                 onClick={() => navigate(`/celebrity/${profile.id}`)}
                 size="sm"
-                className="text-[10px] sm:text-sm px-1.5 sm:px-3 h-8 sm:h-9 flex-1 sm:flex-initial whitespace-nowrap"
+                className="text-xs sm:text-sm px-2 sm:px-3 h-9 sm:h-9 flex-1 sm:flex-initial whitespace-nowrap"
               >
-                <Eye className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+                <Eye className="h-4 w-4 sm:h-4 sm:w-4 sm:mr-1" />
                 <span className="hidden min-[400px]:inline">View</span>
               </Button>
               <Button 
                 variant="ghost" 
                 onClick={signOut} 
                 size="sm" 
-                className="text-[10px] sm:text-sm px-1.5 sm:px-3 h-8 sm:h-9 shrink-0 whitespace-nowrap"
+                className="text-xs sm:text-sm px-2 sm:px-3 h-9 sm:h-9 shrink-0 whitespace-nowrap"
               >
                 Sign Out
               </Button>
@@ -330,33 +330,33 @@ const CelebrityDashboard = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-3 sm:space-y-6 max-w-full overflow-x-hidden">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-0.5 sm:gap-1 p-0.5 sm:p-1 h-auto bg-muted rounded-lg overflow-hidden">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-0.5 sm:gap-1 p-1 sm:p-1 h-auto bg-muted rounded-lg overflow-hidden">
             <TabsTrigger 
               value="profile" 
-              className="flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 text-[9px] min-[400px]:text-[10px] sm:text-sm py-1.5 sm:py-2.5 px-0.5 sm:px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5 px-1 sm:px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm"
             >
-              <User className="h-3 w-3 sm:h-4 sm:w-4" />
+              <User className="h-4 w-4 sm:h-4 sm:w-4" />
               <span className="leading-tight">Profile</span>
             </TabsTrigger>
             <TabsTrigger 
               value="subscription" 
-              className="flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 text-[9px] min-[400px]:text-[10px] sm:text-sm py-1.5 sm:py-2.5 px-0.5 sm:px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5 px-1 sm:px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm"
             >
-              <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
+              <CreditCard className="h-4 w-4 sm:h-4 sm:w-4" />
               <span className="leading-tight">Sub</span>
             </TabsTrigger>
             <TabsTrigger 
               value="media" 
-              className="flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 text-[9px] min-[400px]:text-[10px] sm:text-sm py-1.5 sm:py-2.5 px-0.5 sm:px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5 px-1 sm:px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm"
             >
-              <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
+              <Upload className="h-4 w-4 sm:h-4 sm:w-4" />
               <span className="leading-tight">Media</span>
             </TabsTrigger>
             <TabsTrigger 
               value="services" 
-              className="flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 text-[9px] min-[400px]:text-[10px] sm:text-sm py-1.5 sm:py-2.5 px-0.5 sm:px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5 px-1 sm:px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm"
             >
-              <Briefcase className="h-3 w-3 sm:h-4 sm:w-4" />
+              <Briefcase className="h-4 w-4 sm:h-4 sm:w-4" />
               <span className="leading-tight">Services</span>
             </TabsTrigger>
           </TabsList>
@@ -522,25 +522,25 @@ const VisibilityStatusBanner = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
                   <h3 className="font-bold text-orange-800 text-sm sm:text-base">🔥 Special Joining Offer!</h3>
-                  <Badge className="bg-orange-500 hover:bg-orange-600 text-white text-xs">
+                  <Badge className="bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm">
                     Limited Time
                   </Badge>
                 </div>
                 {specialOfferStatus?.isActive ? (
                   <div>
-                    <p className="text-xs sm:text-sm text-orange-700 font-medium">
+                    <p className="text-sm sm:text-sm text-orange-700 font-medium">
                       ✅ Your profile is publicly visible for FREE! 
                     </p>
-                    <p className="text-xs text-orange-600">
+                    <p className="text-xs sm:text-sm text-orange-600">
                       {specialOfferStatus.daysLeft} day{specialOfferStatus.daysLeft !== 1 ? 's' : ''} left in your 5-day free visibility period
                     </p>
                   </div>
                 ) : (
                   <div>
-                    <p className="text-xs sm:text-sm text-orange-700 font-medium">
+                    <p className="text-sm sm:text-sm text-orange-700 font-medium">
                       🚀 Get 5 days of FREE public visibility! No payment required.
                     </p>
-                    <p className="text-xs text-orange-600">
+                    <p className="text-xs sm:text-sm text-orange-600">
                       Complete your profile setup to activate this limited-time offer
                     </p>
                   </div>
@@ -561,11 +561,11 @@ const VisibilityStatusBanner = ({
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-green-800 text-sm sm:text-base">Your Profile is Publicly Visible</h3>
                   {isSpecialOfferActive ? (
-                    <p className="text-xs sm:text-sm text-green-700">
+                    <p className="text-sm sm:text-sm text-green-700">
                       🎉 Active via Special 5-Day Offer! {specialOfferStatus?.daysLeft} day{specialOfferStatus?.daysLeft !== 1 ? 's' : ''} remaining
                     </p>
                   ) : (
-                    <p className="text-xs sm:text-sm text-green-700">
+                    <p className="text-sm sm:text-sm text-green-700">
                       Users can discover and book you. Subscription expires on{' '}
                       {subscriptionStatus?.subscription_end && new Date(subscriptionStatus.subscription_end).toLocaleDateString()}
                     </p>
@@ -577,14 +577,14 @@ const VisibilityStatusBanner = ({
                 <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600 flex-shrink-0 mt-0.5 sm:mt-0" />
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-yellow-800 text-sm sm:text-base">Profile Not Publicly Visible</h3>
-                  <p className="text-xs sm:text-sm text-yellow-700">
+                  <p className="text-sm sm:text-sm text-yellow-700">
                     {isCurrentlyInOfferPeriod 
                       ? "Complete your profile setup to activate the 5-day free visibility offer!"
                       : "Your profile is hidden from public view. Submit payment verification to become visible to users."
                     }
                   </p>
                 </div>
-                <Badge variant="secondary" className="text-yellow-800 bg-yellow-100 ml-2 sm:ml-0 flex-shrink-0">
+                <Badge variant="secondary" className="text-yellow-800 bg-yellow-100 ml-2 sm:ml-0 flex-shrink-0 text-xs">
                   <Clock className="h-3 w-3 mr-1" />
                   <span className="hidden sm:inline">
                     {isCurrentlyInOfferPeriod ? "Setup Required" : "Pending Payment"}
@@ -647,8 +647,8 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
   return (
     <Card className="max-w-full overflow-hidden">
       <CardHeader className="pb-3 sm:pb-6 px-2 sm:px-6 pt-3 sm:pt-6">
-        <CardTitle className="flex items-center gap-2 text-sm sm:text-xl">
-          <User className="h-3.5 w-3.5 sm:h-5 sm:w-5 shrink-0" />
+        <CardTitle className="flex items-center gap-2 text-base sm:text-xl">
+          <User className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
           <span className="truncate">Profile Information</span>
         </CardTitle>
       </CardHeader>
@@ -656,54 +656,54 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-6 max-w-full">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
             <div className="space-y-1.5 sm:space-y-2 min-w-0">
-              <label className="text-xs sm:text-sm font-medium">Stage Name *</label>
+              <label className="text-sm sm:text-sm font-medium">Stage Name *</label>
               <Input
                 value={formData.stage_name}
                 onChange={(e) => setFormData({ ...formData, stage_name: e.target.value })}
                 required
-                className="text-xs sm:text-base h-9 sm:h-10 w-full"
+                className="text-sm sm:text-base h-10 sm:h-10 w-full"
               />
             </div>
             <div className="space-y-1.5 sm:space-y-2 min-w-0">
-              <label className="text-xs sm:text-sm font-medium">Real Name</label>
+              <label className="text-sm sm:text-sm font-medium">Real Name</label>
               <Input
                 value={formData.real_name}
                 onChange={(e) => setFormData({ ...formData, real_name: e.target.value })}
-                className="text-xs sm:text-base h-9 sm:h-10 w-full"
+                className="text-sm sm:text-base h-10 sm:h-10 w-full"
               />
             </div>
           </div>
 
           <div className="space-y-1.5 sm:space-y-2 max-w-full">
-            <label className="text-xs sm:text-sm font-medium">Bio</label>
+            <label className="text-sm sm:text-sm font-medium">Bio</label>
             <Textarea
               value={formData.bio}
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
               rows={3}
               placeholder="Tell people about yourself..."
-              className="text-xs sm:text-base resize-none min-h-[80px] w-full"
+              className="text-sm sm:text-base resize-none min-h-[80px] w-full"
             />
-            <p className="text-[10px] sm:text-xs text-muted-foreground break-words">
+            <p className="text-xs sm:text-xs text-muted-foreground break-words">
               Write an engaging bio.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
             <div className="space-y-1.5 sm:space-y-2 min-w-0">
-              <label className="text-xs sm:text-sm font-medium">Location</label>
+              <label className="text-sm sm:text-sm font-medium">Location</label>
               <Input
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="City"
-                className="text-xs sm:text-base h-9 sm:h-10 w-full"
+                className="text-sm sm:text-base h-10 sm:h-10 w-full"
               />
             </div>
             <div className="space-y-1.5 sm:space-y-2 min-w-0">
-              <label className="text-xs sm:text-sm font-medium">Gender</label>
+              <label className="text-sm sm:text-sm font-medium">Gender</label>
               <select
                 value={formData.gender}
                 onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                className="w-full h-9 sm:h-10 px-2 sm:px-3 border border-input rounded-md bg-background text-xs sm:text-base"
+                className="w-full h-10 sm:h-10 px-2 sm:px-3 border border-input rounded-md bg-background text-sm sm:text-base"
               >
                 <option value="">Select</option>
                 <option value="male">Male</option>
@@ -715,7 +715,7 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
             <div className="space-y-1.5 sm:space-y-2 min-w-0">
-              <label className="text-xs sm:text-sm font-medium">Age *</label>
+              <label className="text-sm sm:text-sm font-medium">Age *</label>
               <Input
                 type="number"
                 min="18"
@@ -724,12 +724,12 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
                 onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || 18 })}
                 placeholder="25"
                 required
-                className="text-xs sm:text-base h-9 sm:h-10 w-full"
+                className="text-sm sm:text-base h-10 sm:h-10 w-full"
               />
-              <p className="text-[10px] sm:text-xs text-muted-foreground">18+ only</p>
+              <p className="text-xs sm:text-xs text-muted-foreground">18+ only</p>
             </div>
             <div className="space-y-1.5 sm:space-y-2 min-w-0">
-              <label className="text-xs sm:text-sm font-medium">Profile Picture</label>
+              <label className="text-sm sm:text-sm font-medium">Profile Picture</label>
               <ProfilePictureUpload
                 profileId={profile.id}
                 currentImagePath={profile.profile_picture_path}
@@ -740,8 +740,8 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
           </div>
 
           <div className="space-y-1.5 sm:space-y-2 max-w-full">
-            <label className="text-xs sm:text-sm font-medium flex items-center gap-1.5">
-              <Phone className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+            <label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+              <Phone className="h-4 w-4 sm:h-4 sm:w-4 shrink-0" />
               <span>Phone Number</span>
             </label>
             <Input
@@ -749,39 +749,39 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
               value={formData.phone_number}
               onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
               placeholder="+254..."
-              className="text-xs sm:text-base h-9 sm:h-10 w-full"
+              className="text-sm sm:text-base h-10 sm:h-10 w-full"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
             <div className="space-y-1.5 sm:space-y-2 min-w-0">
-              <label className="text-xs sm:text-sm font-medium flex items-center gap-1.5">
-                <Instagram className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+              <label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                <Instagram className="h-4 w-4 sm:h-4 sm:w-4 shrink-0" />
                 <span>Instagram</span>
               </label>
               <Input
                 value={formData.social_instagram}
                 onChange={(e) => setFormData({ ...formData, social_instagram: e.target.value })}
                 placeholder="@username"
-                className="text-xs sm:text-base h-9 sm:h-10 w-full"
+                className="text-sm sm:text-base h-10 sm:h-10 w-full"
               />
             </div>
             <div className="space-y-1.5 sm:space-y-2 min-w-0">
-              <label className="text-xs sm:text-sm font-medium flex items-center gap-1.5">
-                <Twitter className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+              <label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                <Twitter className="h-4 w-4 sm:h-4 sm:w-4 shrink-0" />
                 <span>Twitter</span>
               </label>
               <Input
                 value={formData.social_twitter}
                 onChange={(e) => setFormData({ ...formData, social_twitter: e.target.value })}
                 placeholder="@username"
-                className="text-xs sm:text-base h-9 sm:h-10 w-full"
+                className="text-sm sm:text-base h-10 sm:h-10 w-full"
               />
             </div>
           </div>
 
-          <Button type="submit" disabled={saving} className="w-full h-9 sm:h-11 text-xs sm:text-base mt-4 sm:mt-6">
-            <Save className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+          <Button type="submit" disabled={saving} className="w-full h-10 sm:h-11 text-sm sm:text-base mt-4 sm:mt-6">
+            <Save className="h-4 w-4 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
             {saving ? 'Saving...' : 'Save Profile'}
           </Button>
         </form>
