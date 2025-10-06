@@ -157,7 +157,7 @@ export function NewSubscriptionModal({
 
     const savings = competitorPrice - pkg.price;
     if (savings > 0) {
-      return `Save Ksh ${savings}!`;
+      return `Save KSH ${savings}!`;
     }
     return null;
   };
@@ -208,7 +208,7 @@ export function NewSubscriptionModal({
                     <CardContent>
                       <div className="mb-4">
                         <div className="text-3xl font-bold">
-                          Ksh {pkg.price.toLocaleString()}
+                          KSH {pkg.price.toLocaleString()}
                         </div>
                         {getSavingsText(pkg.tier_name, pkg.duration_type) && (
                           <Badge variant="secondary" className="mt-2">
@@ -259,7 +259,7 @@ export function NewSubscriptionModal({
                     <Copy className="w-3 h-3 ml-1" />
                   </Button>
                 </li>
-                <li>Enter amount: Ksh {selectedPackage.price}</li>
+                <li>Enter amount: KSH {selectedPackage.price}</li>
                 <li>Complete the transaction and note your M-Pesa code</li>
               </ol>
             </div>

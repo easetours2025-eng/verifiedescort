@@ -188,7 +188,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center space-x-2">
               <DollarSign className="h-4 w-4" />
-              <span>Price (KSh)</span>
+              <span>Price (KSH)</span>
             </label>
             <Input
               type="number"

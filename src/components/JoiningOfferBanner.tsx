@@ -146,10 +146,10 @@ const JoiningOfferBanner = ({ onSelectOffer, isNewCelebrity = true }: JoiningOff
               </div>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
-                  <span className="text-lg line-through text-muted-foreground">KSh 2,000</span>
+                  <span className="text-lg line-through text-muted-foreground">KSH 2,000</span>
                   <Badge className="bg-green-500 text-white">-25% OFF</Badge>
                 </div>
-                <div className="text-2xl font-bold text-blue-600">KSh 1,500</div>
+                <div className="text-2xl font-bold text-blue-600">KSH 1,500</div>
                 <p className="text-sm text-muted-foreground">First month only</p>
               </div>
             </CardContent>
@@ -169,10 +169,10 @@ const JoiningOfferBanner = ({ onSelectOffer, isNewCelebrity = true }: JoiningOff
               </div>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
-                  <span className="text-lg line-through text-muted-foreground">KSh 2,500</span>
+                  <span className="text-lg line-through text-muted-foreground">KSH 2,500</span>
                   <Badge className="bg-green-500 text-white">-30% OFF</Badge>
                 </div>
-                <div className="text-2xl font-bold text-orange-600">KSh 1,750</div>
+                <div className="text-2xl font-bold text-orange-600">KSH 1,750</div>
                 <p className="text-sm text-muted-foreground">First month only</p>
               </div>
             </CardContent>

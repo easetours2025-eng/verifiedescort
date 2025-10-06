@@ -135,7 +135,7 @@ const MediaSlideshow: React.FC<MediaSlideshowProps> = ({
                   </Badge>
                 )}
                 <Badge variant="secondary" className="bg-green-500/20 text-green-200">
-                  KSh {currentMedia.price}
+                  KSH {currentMedia.price}
                 </Badge>
               </div>
             </div>

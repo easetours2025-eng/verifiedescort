@@ -151,20 +151,20 @@ const SubscriptionUpgrade = ({ celebrityId, currentSubscription, onUpgradeSubmit
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span>Current Plan (Basic)</span>
-              <span>KSh {plans.basic.price.toLocaleString()}</span>
+              <span>KSH {plans.basic.price.toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
               <span>Premium Plan</span>
-              <span>KSh {plans.premium.price.toLocaleString()}</span>
+              <span>KSH {plans.premium.price.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-green-600">
               <span>Remaining Days Credit ({upgradeInfo.remainingDays} days)</span>
-              <span>-KSh {upgradeInfo.refundAmount.toFixed(0)}</span>
+              <span>-KSH {upgradeInfo.refundAmount.toFixed(0)}</span>
             </div>
             <hr className="border-muted" />
             <div className="flex justify-between font-semibold text-lg">
               <span>Upgrade Cost</span>
-              <span className="text-primary">KSh {upgradeInfo.upgradeCost.toFixed(0)}</span>
+              <span className="text-primary">KSH {upgradeInfo.upgradeCost.toFixed(0)}</span>
             </div>
           </div>
         </div>
@@ -190,10 +190,10 @@ const SubscriptionUpgrade = ({ celebrityId, currentSubscription, onUpgradeSubmit
               <span className="font-semibold text-green-800">M-Pesa Payment</span>
             </div>
             <p className="text-sm text-green-700 mb-2">
-              Pay only <span className="font-bold">KSh {upgradeInfo.upgradeCost.toFixed(0)}</span> to upgrade to Premium
+              Pay only <span className="font-bold">KSH {upgradeInfo.upgradeCost.toFixed(0)}</span> to upgrade to Premium
             </p>
             <ol className="list-decimal list-inside space-y-1 text-xs text-green-600">
-              <li>Send KSh {upgradeInfo.upgradeCost.toFixed(0)} to Till: <span className="font-bold">123456</span></li>
+              <li>Send KSH {upgradeInfo.upgradeCost.toFixed(0)} to Till: <span className="font-bold">123456</span></li>
               <li>Copy the M-Pesa confirmation code</li>
               <li>Enter the code and phone number below</li>
             </ol>
