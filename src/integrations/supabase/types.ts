@@ -741,6 +741,10 @@ export type Database = {
         Args: { profile_user_id: string }
         Returns: boolean
       }
+      check_admin_auth_status: {
+        Args: { admin_email_param: string }
+        Returns: Json
+      }
       get_admin_video_like_count: {
         Args: { video_uuid: string }
         Returns: number
