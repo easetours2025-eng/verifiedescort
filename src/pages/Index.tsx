@@ -229,7 +229,7 @@ const Index = () => {
                   size="sm"
                   className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-celebrity"
                 >
-                  Join as Celebrity
+                     Join as a Model
                 </Button>
               )}
             </div>
@@ -326,7 +326,7 @@ const Index = () => {
                       setMobileMenuOpen(false);
                     }}
                   >
-                    Join as Celebrity
+                    Join as a Model
                   </Button>
                 )}
               </div>

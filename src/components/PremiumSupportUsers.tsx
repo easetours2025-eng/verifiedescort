@@ -4,8 +4,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { HeadphonesIcon, Mail, Share2, RefreshCw } from "lucide-react";
+import { HeadphonesIcon, Mail, Share2, RefreshCw, ExternalLink, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 interface PremiumUser {
   id: string;
@@ -158,6 +159,12 @@ const PremiumSupportUsers = () => {
     return labels[duration] || duration;
   };
 
+  const handleCopyLink = (userId: string) => {
+    const link = `${window.location.origin}/celebrity/${userId}`;
+    navigator.clipboard.writeText(link);
+    toast.success("Link copied to clipboard!");
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -206,6 +213,7 @@ const PremiumSupportUsers = () => {
                     <TableHead>Expires</TableHead>
                     <TableHead>Features</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Profile Link</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -242,6 +250,26 @@ const PremiumSupportUsers = () => {
                         <Badge variant="default" className="bg-green-100 text-green-800">
                           Active
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            asChild
+                          >
+                            <Link to={`/celebrity/${user.id}`} target="_blank">
+                              <ExternalLink className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCopyLink(user.id)}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
