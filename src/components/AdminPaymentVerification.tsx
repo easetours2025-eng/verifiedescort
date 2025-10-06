@@ -149,91 +149,38 @@ const AdminPaymentVerification = () => {
 
   const verifyPayment = async (payment: PaymentRecord) => {
     try {
-      // Check if payment meets expected amount
-      if (payment.expected_amount && payment.amount < payment.expected_amount) {
-        toast({
-          title: 'Payment Underpaid',
-          description: `Payment amount (KSH ${payment.amount}) is less than expected (KSH ${payment.expected_amount}). Subscription will be disabled.`,
-          variant: 'destructive',
-        });
-        
-        // Still mark as verified but subscription won't be activated
-        const { error: verifyError } = await supabase
-          .from('payment_verification')
-          .update({
-            is_verified: true,
-            verified_at: new Date().toISOString(),
-          })
-          .eq('id', payment.id);
+      // Call the edge function to verify payment with admin privileges
+      const { data, error } = await supabase.functions.invoke('verify-payment', {
+        body: { paymentId: payment.id }
+      });
 
-        if (verifyError) throw verifyError;
-        
+      if (error) throw error;
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to verify payment');
+      }
+
+      if (data.alreadyVerified) {
         toast({
-          title: 'Payment Verified',
-          description: 'Payment verified but subscription not activated due to insufficient amount.',
+          title: 'Already Verified',
+          description: 'This payment was already verified.',
         });
-        
         fetchPayments();
         return;
       }
 
-      // Update payment verification status
-      const { error: verifyError } = await supabase
-        .from('payment_verification')
-        .update({
-          is_verified: true,
-          verified_at: new Date().toISOString(),
-        })
-        .eq('id', payment.id);
-
-      if (verifyError) throw verifyError;
-
-      // Calculate subscription end date based on duration
-      let durationDays = 30; // default 1 month
-      if (payment.duration_type === '1_week') durationDays = 7;
-      else if (payment.duration_type === '2_weeks') durationDays = 14;
-
-      const subscriptionEnd = new Date();
-      subscriptionEnd.setDate(subscriptionEnd.getDate() + durationDays);
-
-      // Activate or create subscription
-      const { error: subscriptionError } = await supabase
-        .from('celebrity_subscriptions')
-        .upsert({
-          celebrity_id: payment.celebrity_id,
-          subscription_tier: payment.subscription_tier || 'basic',
-          duration_type: payment.duration_type || '1_month',
-          amount_paid: payment.amount,
-          is_active: true,
-          subscription_start: new Date().toISOString(),
-          subscription_end: subscriptionEnd.toISOString(),
-          last_payment_id: payment.id,
-        }, {
-          onConflict: 'celebrity_id'
+      if (data.isUnderpaid) {
+        toast({
+          title: 'Payment Verified',
+          description: 'Payment verified but subscription not activated due to insufficient amount.',
+          variant: 'destructive',
         });
-
-      if (subscriptionError) throw subscriptionError;
-
-      // Mark celebrity as verified and available
-      const { error: profileError } = await supabase
-        .from('celebrity_profiles')
-        .update({
-          is_verified: true,
-          is_available: true,
-        })
-        .eq('id', payment.celebrity_id);
-
-      if (profileError) throw profileError;
-
-      let message = 'Payment verified and subscription activated';
-      if (payment.credit_balance && payment.credit_balance > 0) {
-        message += `. KSH ${payment.credit_balance} credited to celebrity account.`;
+      } else {
+        toast({
+          title: 'Success',
+          description: data.message,
+        });
       }
-
-      toast({
-        title: 'Success',
-        description: message,
-      });
 
       fetchPayments();
     } catch (error: any) {
