@@ -45,6 +45,7 @@ const AnalyticsDashboard = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
 
   useEffect(() => {
+    console.log('AnalyticsDashboard mounted - fetching data...');
     fetchAnalytics();
   }, []);
 

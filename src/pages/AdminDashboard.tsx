@@ -95,6 +95,8 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('analytics');
   const navigate = useNavigate();
 
+  console.log('AdminDashboard rendering with activeTab:', activeTab);
+
   // Check admin authentication 
   useEffect(() => {
     const checkAdminAuth = async () => {
