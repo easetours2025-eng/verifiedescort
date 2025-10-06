@@ -404,12 +404,15 @@ const Index = () => {
 
                     {/* Dropdown for all locations */}
                     {availableLocations.length > 3 && (
-                      <Select value={locationFilter} onValueChange={setLocationFilter}>
+                      <Select 
+                        value={locationFilter || "all"} 
+                        onValueChange={(value) => setLocationFilter(value === "all" ? "" : value)}
+                      >
                         <SelectTrigger className="w-full sm:w-[200px]">
                           <SelectValue placeholder="More locations..." />
                         </SelectTrigger>
                         <SelectContent className="bg-background z-[100]">
-                          <SelectItem value="">All Locations</SelectItem>
+                          <SelectItem value="all">All Locations</SelectItem>
                           {availableLocations.map((location) => (
                             <SelectItem key={location} value={location}>
                               {location}
@@ -437,17 +440,40 @@ const Index = () => {
                       {/* Gender Filter */}
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Gender</label>
-                        <Select value={genderFilter} onValueChange={setGenderFilter}>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select gender" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background z-[100]">
-                            <SelectItem value="all">All Genders</SelectItem>
-                            <SelectItem value="Male">Male</SelectItem>
-                            <SelectItem value="Female">Female</SelectItem>
-                            <SelectItem value="Other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className="grid grid-cols-4 gap-2">
+                          <Button
+                            variant={genderFilter === 'all' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setGenderFilter('all')}
+                            className="text-xs"
+                          >
+                            All
+                          </Button>
+                          <Button
+                            variant={genderFilter === 'Male' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setGenderFilter('Male')}
+                            className="text-xs"
+                          >
+                            Male
+                          </Button>
+                          <Button
+                            variant={genderFilter === 'Female' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setGenderFilter('Female')}
+                            className="text-xs"
+                          >
+                            Female
+                          </Button>
+                          <Button
+                            variant={genderFilter === 'Other' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setGenderFilter('Other')}
+                            className="text-xs"
+                          >
+                            Other
+                          </Button>
+                        </div>
                       </div>
 
                       {/* Age Range */}
