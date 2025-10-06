@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { action, videoId, isActive, adminEmail } = await req.json();
+    const { action, videoId, isActive, adminEmail, filePath } = await req.json();
 
     // Create Supabase client with service role key
     const supabaseServiceRole = createClient(
@@ -42,7 +42,33 @@ serve(async (req) => {
       );
     }
 
-    if (action === "toggle_status") {
+    if (action === "upload") {
+      // Upload video metadata
+      const { error: insertError } = await supabaseServiceRole
+        .from('admin_videos')
+        .insert({
+          file_path: filePath,
+          is_active: isActive,
+          created_by: admin.id
+        });
+
+      if (insertError) {
+        console.error("Insert error:", insertError);
+        throw new Error("Failed to save video metadata");
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Video uploaded successfully'
+        }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200 
+        }
+      );
+
+    } else if (action === "toggle_status") {
       // Update video status
       const { error: updateError } = await supabaseServiceRole
         .from('admin_videos')

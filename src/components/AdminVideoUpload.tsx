@@ -102,15 +102,33 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
             .from('admin-videos')
             .getPublicUrl(filePath);
 
-          // Save video metadata to database with public URL
-          const { error: dbError } = await supabase
-            .from('admin_videos')
-            .insert({
-              file_path: urlData.publicUrl,
-              is_active: formData.isActive
-            });
+          // Get admin email from localStorage
+          const adminEmail = localStorage.getItem('adminEmail');
+          if (!adminEmail) {
+            throw new Error('Admin email not found. Please log in again.');
+          }
 
-          if (dbError) throw dbError;
+          // Save video metadata via edge function
+          const response = await fetch(
+            `https://kpjqcrhoablsllkgonbl.supabase.co/functions/v1/admin-video-operations`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                action: 'upload',
+                filePath: urlData.publicUrl,
+                isActive: formData.isActive,
+                adminEmail: adminEmail
+              }),
+            }
+          );
+
+          const result = await response.json();
+          if (!result.success) {
+            throw new Error(result.message || 'Failed to save video metadata');
+          }
 
           // Update progress to complete
           setUploadProgress(prev => ({ ...prev, [fileId]: 100 }));
