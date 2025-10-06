@@ -280,28 +280,39 @@ const CelebrityDashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
       {/* Header */}
       <header className="border-b border-primary/20 backdrop-blur-sm bg-background/80 sticky top-0 z-50">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <Button variant="ghost" onClick={() => navigate('/')} className="text-xs sm:text-sm px-2 sm:px-4">
-                ← <span className="hidden xs:inline ml-1">Back to Home</span>
+        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-0 sm:justify-between">
+            {/* Title and Back Button */}
+            <div className="flex items-center justify-between w-full sm:w-auto gap-2">
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/')} 
+                className="text-xs sm:text-sm px-2 sm:px-3 h-8 sm:h-9 shrink-0"
+              >
+                ← <span className="hidden min-[400px]:inline ml-1">Home</span>
               </Button>
-              <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <h1 className="text-base sm:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate">
                 Celebrity Dashboard
               </h1>
             </div>
-            <div className="flex items-center space-x-1 sm:space-x-3">
+            
+            {/* Action Buttons */}
+            <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto">
               <Button 
                 variant="outline" 
                 onClick={() => navigate(`/celebrity/${profile.id}`)}
                 size="sm"
-                className="text-xs sm:text-sm px-2 sm:px-3"
+                className="text-xs sm:text-sm px-2 sm:px-3 h-8 sm:h-9 flex-1 sm:flex-initial"
               >
-                <Eye className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
-                <span className="hidden sm:inline">View Public Profile</span>
-                <span className="sm:hidden">View</span>
+                <Eye className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+                <span className="hidden min-[400px]:inline">View Profile</span>
               </Button>
-              <Button variant="ghost" onClick={signOut} size="sm" className="text-xs sm:text-sm">
+              <Button 
+                variant="ghost" 
+                onClick={signOut} 
+                size="sm" 
+                className="text-xs sm:text-sm px-2 sm:px-3 h-8 sm:h-9 shrink-0"
+              >
                 Sign Out
               </Button>
             </div>
@@ -309,31 +320,44 @@ const CelebrityDashboard = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-8">
         {/* Visibility Status Banner */}
-        <div className="mb-4 sm:mb-6">
+        <div className="mb-3 sm:mb-6">
           <VisibilityStatusBanner 
             subscriptionStatus={subscriptionStatus} 
             profile={profile} 
           />
         </div>
 
-        <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-0 h-auto sm:h-10">
-            <TabsTrigger value="profile" className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2 text-xs sm:text-sm py-2 sm:py-1.5">
-              <User className="h-3 w-3 sm:h-4 sm:w-4" />
+        <Tabs defaultValue="profile" className="space-y-3 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 p-1 h-auto bg-muted rounded-lg">
+            <TabsTrigger 
+              value="profile" 
+              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[10px] min-[400px]:text-xs sm:text-sm py-2 sm:py-2.5 px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+            >
+              <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span>Profile</span>
             </TabsTrigger>
-            <TabsTrigger value="subscription" className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2 text-xs sm:text-sm py-2 sm:py-1.5">
-              <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span>Subscription</span>
+            <TabsTrigger 
+              value="subscription" 
+              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[10px] min-[400px]:text-xs sm:text-sm py-2 sm:py-2.5 px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+            >
+              <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden min-[400px]:inline">Subscription</span>
+              <span className="min-[400px]:hidden">Sub</span>
             </TabsTrigger>
-            <TabsTrigger value="media" className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2 text-xs sm:text-sm py-2 sm:py-1.5">
-              <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
+            <TabsTrigger 
+              value="media" 
+              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[10px] min-[400px]:text-xs sm:text-sm py-2 sm:py-2.5 px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+            >
+              <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span>Media</span>
             </TabsTrigger>
-            <TabsTrigger value="services" className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2 text-xs sm:text-sm py-2 sm:py-1.5">
-              <Briefcase className="h-3 w-3 sm:h-4 sm:w-4" />
+            <TabsTrigger 
+              value="services" 
+              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[10px] min-[400px]:text-xs sm:text-sm py-2 sm:py-2.5 px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+            >
+              <Briefcase className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span>Services</span>
             </TabsTrigger>
           </TabsList>
@@ -623,64 +647,64 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
 
   return (
     <Card>
-      <CardHeader className="pb-4 sm:pb-6">
-        <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
+      <CardHeader className="pb-3 sm:pb-6 px-3 sm:px-6 pt-3 sm:pt-6">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-xl">
           <User className="h-4 w-4 sm:h-5 sm:w-5" />
           <span>Profile Information</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-3 sm:px-6">
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+      <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Stage Name *</label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <label className="text-xs sm:text-sm font-medium">Stage Name *</label>
               <Input
                 value={formData.stage_name}
                 onChange={(e) => setFormData({ ...formData, stage_name: e.target.value })}
                 required
-                className="text-sm sm:text-base"
+                className="text-sm sm:text-base h-9 sm:h-10"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Real Name</label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <label className="text-xs sm:text-sm font-medium">Real Name</label>
               <Input
                 value={formData.real_name}
                 onChange={(e) => setFormData({ ...formData, real_name: e.target.value })}
-                className="text-sm sm:text-base"
+                className="text-sm sm:text-base h-9 sm:h-10"
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Bio</label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <label className="text-xs sm:text-sm font-medium">Bio</label>
             <Textarea
               value={formData.bio}
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              rows={4}
+              rows={3}
               placeholder="Tell people about yourself..."
-              className="text-sm sm:text-base resize-none"
+              className="text-xs sm:text-base resize-none min-h-[80px]"
             />
-            <p className="text-xs text-muted-foreground">
-              Write an engaging bio that describes who you are and what makes you unique. This will be displayed with a "read more" option if it gets long.
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              Write an engaging bio that describes who you are and what makes you unique.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Location</label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <label className="text-xs sm:text-sm font-medium">Location</label>
               <Input
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="City, Country"
-                className="text-sm sm:text-base"
+                className="text-sm sm:text-base h-9 sm:h-10"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Gender</label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <label className="text-xs sm:text-sm font-medium">Gender</label>
               <select
                 value={formData.gender}
                 onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                className="w-full p-2 sm:p-3 border border-input rounded-md bg-background text-sm sm:text-base"
+                className="w-full h-9 sm:h-10 px-3 border border-input rounded-md bg-background text-sm sm:text-base"
               >
                 <option value="">Select gender</option>
                 <option value="male">Male</option>
@@ -691,8 +715,8 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Age *</label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <label className="text-xs sm:text-sm font-medium">Age *</label>
               <Input
                 type="number"
                 min="18"
@@ -701,12 +725,12 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
                 onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || 18 })}
                 placeholder="25"
                 required
-                className="text-sm sm:text-base"
+                className="text-sm sm:text-base h-9 sm:h-10"
               />
-              <p className="text-xs text-muted-foreground">Must be 18 or older</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Must be 18 or older</p>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Profile Picture</label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <label className="text-xs sm:text-sm font-medium">Profile Picture</label>
               <ProfilePictureUpload
                 profileId={profile.id}
                 currentImagePath={profile.profile_picture_path}
@@ -716,9 +740,9 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center space-x-2">
-              <Phone className="h-4 w-4" />
+          <div className="space-y-1.5 sm:space-y-2">
+            <label className="text-xs sm:text-sm font-medium flex items-center gap-2">
+              <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span>Phone Number</span>
             </label>
             <Input
@@ -726,39 +750,39 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
               value={formData.phone_number}
               onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
               placeholder="+1 (555) 123-4567"
-              className="text-sm sm:text-base"
+              className="text-sm sm:text-base h-9 sm:h-10"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center space-x-2">
-                <Instagram className="h-4 w-4" />
+            <div className="space-y-1.5 sm:space-y-2">
+              <label className="text-xs sm:text-sm font-medium flex items-center gap-2">
+                <Instagram className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span>Instagram</span>
               </label>
               <Input
                 value={formData.social_instagram}
                 onChange={(e) => setFormData({ ...formData, social_instagram: e.target.value })}
                 placeholder="@username"
-                className="text-sm sm:text-base"
+                className="text-sm sm:text-base h-9 sm:h-10"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center space-x-2">
-                <Twitter className="h-4 w-4" />
+            <div className="space-y-1.5 sm:space-y-2">
+              <label className="text-xs sm:text-sm font-medium flex items-center gap-2">
+                <Twitter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span>Twitter</span>
               </label>
               <Input
                 value={formData.social_twitter}
                 onChange={(e) => setFormData({ ...formData, social_twitter: e.target.value })}
                 placeholder="@username"
-                className="text-sm sm:text-base"
+                className="text-sm sm:text-base h-9 sm:h-10"
               />
             </div>
           </div>
 
-          <Button type="submit" disabled={saving} className="w-full h-10 sm:h-11 text-sm sm:text-base">
-            <Save className="h-4 w-4 mr-2" />
+          <Button type="submit" disabled={saving} className="w-full h-9 sm:h-11 text-sm sm:text-base mt-4 sm:mt-6">
+            <Save className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
             {saving ? 'Saving...' : 'Save Profile'}
           </Button>
         </form>
@@ -775,7 +799,7 @@ const MediaTab = ({ profile, media, onUpload, onDelete }: {
   onDelete: (id: string) => void;
 }) => {
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-3 sm:space-y-6">
       {/* Media Management */}
       <MediaManagement 
         profile={profile}
