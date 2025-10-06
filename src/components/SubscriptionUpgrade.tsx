@@ -108,27 +108,50 @@ const SubscriptionUpgrade = ({
   const upgradeInfo = calculateUpgrade();
 
   const handleSubmit = async () => {
-    if (!mpesaCode || !phoneNumber || !upgradeInfo || !selectedPackage) return;
+    if (!upgradeInfo || !selectedPackage) return;
+    
+    // If payment is required, validate payment fields
+    if (upgradeInfo.upgradeCost > 0 && (!mpesaCode || !phoneNumber)) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter M-Pesa code and phone number",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setSubmitting(true);
     try {
+      // For credit-covered upgrades, create a payment record with zero amount
+      const paymentData = upgradeInfo.upgradeCost === 0 ? {
+        celebrityId,
+        phoneNumber: phoneNumber || 'CREDIT_UPGRADE',
+        mpesaCode: mpesaCode || 'CREDIT_COVERED',
+        amount: 0,
+        expectedAmount: 0,
+        tier: selectedPackage.tier_name,
+        duration: selectedPackage.duration_type,
+      } : {
+        celebrityId,
+        phoneNumber,
+        mpesaCode,
+        amount: upgradeInfo.upgradeCost,
+        expectedAmount: upgradeInfo.upgradeCost,
+        tier: selectedPackage.tier_name,
+        duration: selectedPackage.duration_type,
+      };
+
       const { data, error } = await supabase.functions.invoke('payment-verification', {
-        body: {
-          celebrityId,
-          phoneNumber,
-          mpesaCode,
-          amount: upgradeInfo.upgradeCost,
-          expectedAmount: upgradeInfo.upgradeCost,
-          tier: selectedPackage.tier_name,
-          duration: selectedPackage.duration_type,
-        }
+        body: paymentData
       });
 
       if (error) throw error;
 
       toast({
-        title: "Upgrade Request Submitted",
-        description: data.warning || "Your upgrade request has been submitted for verification.",
+        title: upgradeInfo.upgradeCost === 0 ? "Upgrade Applied!" : "Upgrade Request Submitted",
+        description: upgradeInfo.upgradeCost === 0 
+          ? "Your subscription has been upgraded successfully." 
+          : (data.warning || "Your upgrade request has been submitted for verification."),
       });
 
       setMpesaCode('');
