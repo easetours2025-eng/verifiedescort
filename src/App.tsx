@@ -11,7 +11,6 @@ import CelebrityDashboard from "./pages/CelebrityDashboard";
 import CelebrityProfile from "./pages/CelebrityProfile";
 import AdminAuth from "./pages/AdminAuth";
 import AdminDashboard from "./pages/AdminDashboard";
-import AdminSignup from "./pages/AdminSignup";
 import Videos from "./pages/Videos";
 import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound";
@@ -34,7 +33,6 @@ const App = () => (
             <Route path="/faq" element={<FAQ />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin-auth" element={<AdminAuth />} />
-            <Route path="/admin-signup" element={<AdminSignup />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
