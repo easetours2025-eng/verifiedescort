@@ -324,124 +324,214 @@ const AllUsersManagement = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto -mx-2 sm:mx-0">
-            <table className="w-full border-collapse min-w-[550px]">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm">User</th>
-                  <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm hidden md:table-cell">Contact</th>
-                  <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm">Status</th>
-                  <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm hidden lg:table-cell">Dates</th>
-                  <th className="text-right p-2 sm:p-3 font-medium text-xs sm:text-sm">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map((user) => (
-                  <tr key={user.id} className="border-b hover:bg-muted/50">
-                    <td className="p-2 sm:p-3">
-                      <div className="flex items-center space-x-2 sm:space-x-3">
-                        <Avatar 
-                          className="h-8 w-8 sm:h-10 sm:w-10 cursor-pointer hover:opacity-80 transition-opacity shrink-0"
-                          onClick={() => handleProfilePictureClick(user)}
-                        >
-                          <AvatarImage 
-                            src={getProfileImageUrl(user.profile_picture_path)} 
-                            alt={user.stage_name || 'User'}
-                          />
-                          <AvatarFallback className="text-xs">
-                            {(user.stage_name || user.real_name || 'U').charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="space-y-0.5 min-w-0">
-                          <p className="font-medium text-xs sm:text-sm truncate">{user.stage_name || 'No stage name'}</p>
-                          {user.real_name && (
-                            <p className="text-xs text-muted-foreground truncate">{user.real_name}</p>
-                          )}
-                          <p className="text-xs text-muted-foreground font-mono truncate md:hidden">{user.email}</p>
-                        </div>
+          <>
+            {/* Mobile Card View */}
+            <div className="sm:hidden space-y-3">
+              {filteredUsers.map((user) => (
+                <Card key={user.id} className="p-3">
+                  <div className="flex items-start gap-3 mb-3">
+                    <Avatar 
+                      className="h-12 w-12 cursor-pointer hover:opacity-80 transition-opacity shrink-0"
+                      onClick={() => handleProfilePictureClick(user)}
+                    >
+                      <AvatarImage 
+                        src={getProfileImageUrl(user.profile_picture_path)} 
+                        alt={user.stage_name || 'User'}
+                      />
+                      <AvatarFallback className="text-sm">
+                        {(user.stage_name || user.real_name || 'U').charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{user.stage_name || 'No stage name'}</p>
+                      {user.real_name && (
+                        <p className="text-xs text-muted-foreground truncate">{user.real_name}</p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 text-xs">
+                    {user.email && (
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-3 w-3 shrink-0 text-muted-foreground" />
+                        <span className="truncate">{user.email}</span>
                       </div>
-                    </td>
-                    <td className="p-2 sm:p-3 hidden md:table-cell">
-                      <div className="space-y-1">
-                        {user.email && (
-                          <div className="flex items-center space-x-2">
-                            <Mail className="h-3 w-3 shrink-0" />
-                            <span className="text-xs sm:text-sm truncate max-w-[200px]">{user.email}</span>
-                          </div>
-                        )}
-                        {user.phone && (
-                          <div className="flex items-center space-x-2">
-                            <Phone className="h-3 w-3 shrink-0" />
-                            <span className="text-xs sm:text-sm">{user.phone}</span>
-                          </div>
-                        )}
+                    )}
+                    {user.phone && (
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-3 w-3 shrink-0 text-muted-foreground" />
+                        <span>{user.phone}</span>
                       </div>
-                    </td>
-                     <td className="p-2 sm:p-3">
-                      <div className="space-y-1 sm:space-y-2">
-                        <div className="flex items-center space-x-1 sm:space-x-2">
-                          <Badge variant={user.is_verified ? "default" : "secondary"} className="text-xs">
-                            {user.is_verified ? <UserCheck className="h-3 w-3 sm:mr-1" /> : <UserX className="h-3 w-3 sm:mr-1" />}
-                            <span className="hidden sm:inline">{user.is_verified ? "Verified" : "Pending"}</span>
-                          </Badge>
-                          <Switch
-                            checked={user.is_verified || false}
-                            onCheckedChange={(checked) => toggleUserVerification(user.user_id || user.id, checked)}
-                            title={user.is_verified ? "Unverify user" : "Verify user"}
-                            className="scale-75 sm:scale-100"
-                          />
-                        </div>
-                        <Badge variant={user.is_available ? "outline" : "destructive"} className="text-xs hidden sm:inline-flex">
-                          {user.is_available ? "Available" : "Unavailable"}
-                        </Badge>
-                      </div>
-                    </td>
-                    <td className="p-2 sm:p-3 hidden lg:table-cell">
-                      <div className="space-y-1 text-xs text-muted-foreground">
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="h-3 w-3" />
-                          <span>Created: {formatDate(user.created_at)}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Eye className="h-3 w-3" />
-                          <span>Last: {formatDate(user.last_sign_in_at)}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-2 sm:p-3">
-                      <div className="flex items-center justify-end space-x-2">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete User</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete user "{user.stage_name || user.email}"? 
-                                This will permanently delete their account and all associated data. This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => deleteUser(user.user_id || user.id, user.email || '')}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete User
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </td>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-3 w-3 shrink-0 text-muted-foreground" />
+                      <span>Created: {formatDate(user.created_at)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                    <div className="flex items-center gap-2">
+                      <Badge variant={user.is_verified ? "default" : "secondary"} className="text-xs">
+                        {user.is_verified ? <UserCheck className="h-3 w-3 mr-1" /> : <UserX className="h-3 w-3 mr-1" />}
+                        {user.is_verified ? "Verified" : "Pending"}
+                      </Badge>
+                      <Switch
+                        checked={user.is_verified || false}
+                        onCheckedChange={(checked) => toggleUserVerification(user.user_id || user.id, checked)}
+                        title={user.is_verified ? "Unverify user" : "Verify user"}
+                        className="scale-75"
+                      />
+                    </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete User</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete user "{user.stage_name || user.email}"? 
+                            This will permanently delete their account and all associated data. This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteUser(user.user_id || user.id, user.email || '')}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete User
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full border-collapse min-w-[550px]">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm">User</th>
+                    <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm hidden md:table-cell">Contact</th>
+                    <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm">Status</th>
+                    <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm hidden lg:table-cell">Dates</th>
+                    <th className="text-right p-2 sm:p-3 font-medium text-xs sm:text-sm">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredUsers.map((user) => (
+                    <tr key={user.id} className="border-b hover:bg-muted/50">
+                      <td className="p-2 sm:p-3">
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                          <Avatar 
+                            className="h-8 w-8 sm:h-10 sm:w-10 cursor-pointer hover:opacity-80 transition-opacity shrink-0"
+                            onClick={() => handleProfilePictureClick(user)}
+                          >
+                            <AvatarImage 
+                              src={getProfileImageUrl(user.profile_picture_path)} 
+                              alt={user.stage_name || 'User'}
+                            />
+                            <AvatarFallback className="text-xs">
+                              {(user.stage_name || user.real_name || 'U').charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="space-y-0.5 min-w-0">
+                            <p className="font-medium text-xs sm:text-sm truncate">{user.stage_name || 'No stage name'}</p>
+                            {user.real_name && (
+                              <p className="text-xs text-muted-foreground truncate">{user.real_name}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground font-mono truncate md:hidden">{user.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-2 sm:p-3 hidden md:table-cell">
+                        <div className="space-y-1">
+                          {user.email && (
+                            <div className="flex items-center space-x-2">
+                              <Mail className="h-3 w-3 shrink-0" />
+                              <span className="text-xs sm:text-sm truncate max-w-[200px]">{user.email}</span>
+                            </div>
+                          )}
+                          {user.phone && (
+                            <div className="flex items-center space-x-2">
+                              <Phone className="h-3 w-3 shrink-0" />
+                              <span className="text-xs sm:text-sm">{user.phone}</span>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                       <td className="p-2 sm:p-3">
+                        <div className="space-y-1 sm:space-y-2">
+                          <div className="flex items-center space-x-1 sm:space-x-2">
+                            <Badge variant={user.is_verified ? "default" : "secondary"} className="text-xs">
+                              {user.is_verified ? <UserCheck className="h-3 w-3 sm:mr-1" /> : <UserX className="h-3 w-3 sm:mr-1" />}
+                              <span className="hidden sm:inline">{user.is_verified ? "Verified" : "Pending"}</span>
+                            </Badge>
+                            <Switch
+                              checked={user.is_verified || false}
+                              onCheckedChange={(checked) => toggleUserVerification(user.user_id || user.id, checked)}
+                              title={user.is_verified ? "Unverify user" : "Verify user"}
+                              className="scale-75 sm:scale-100"
+                            />
+                          </div>
+                          <Badge variant={user.is_available ? "outline" : "destructive"} className="text-xs hidden sm:inline-flex">
+                            {user.is_available ? "Available" : "Unavailable"}
+                          </Badge>
+                        </div>
+                      </td>
+                      <td className="p-2 sm:p-3 hidden lg:table-cell">
+                        <div className="space-y-1 text-xs text-muted-foreground">
+                          <div className="flex items-center space-x-1">
+                            <Calendar className="h-3 w-3" />
+                            <span>Created: {formatDate(user.created_at)}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Eye className="h-3 w-3" />
+                            <span>Last: {formatDate(user.last_sign_in_at)}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-2 sm:p-3">
+                        <div className="flex items-center justify-end space-x-2">
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete User</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete user "{user.stage_name || user.email}"? 
+                                  This will permanently delete their account and all associated data. This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteUser(user.user_id || user.id, user.email || '')}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete User
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
 
         {/* Image Modal */}

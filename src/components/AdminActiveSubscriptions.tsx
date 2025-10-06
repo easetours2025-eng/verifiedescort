@@ -210,46 +210,46 @@ export default function AdminActiveSubscriptions() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-0">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-bold">Active Subscriptions</h2>
-          <p className="text-muted-foreground">Manage celebrity subscription status and features</p>
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold">Active Subscriptions</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">Manage celebrity subscription status and features</p>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Subscriptions</CardTitle>
+          <CardHeader className="p-3 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Total</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+          <CardContent className="p-3 pt-0">
+            <div className="text-lg sm:text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active</CardTitle>
+          <CardHeader className="p-3 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Active</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.active}</div>
+          <CardContent className="p-3 pt-0">
+            <div className="text-lg sm:text-2xl font-bold text-green-600">{stats.active}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Expired</CardTitle>
+          <CardHeader className="p-3 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Expired</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.expired}</div>
+          <CardContent className="p-3 pt-0">
+            <div className="text-lg sm:text-2xl font-bold text-red-600">{stats.expired}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle>
+          <CardHeader className="p-3 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Revenue</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">KSH {stats.revenue.toLocaleString()}</div>
+          <CardContent className="p-3 pt-0">
+            <div className="text-sm sm:text-2xl font-bold">KSH {stats.revenue.toLocaleString()}</div>
           </CardContent>
         </Card>
       </div>
@@ -265,132 +265,239 @@ export default function AdminActiveSubscriptions() {
         />
       </div>
 
-      {/* Subscriptions Table */}
+      {/* Subscriptions Table/Cards */}
       <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Celebrity</TableHead>
-                <TableHead>Tier</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredSubscriptions.map((subscription) => {
-                const daysRemaining = subscription.subscription_end ? getDaysRemaining(subscription.subscription_end) : 0;
-                const expired = subscription.subscription_end ? isExpired(subscription.subscription_end) : false;
+        <CardContent className="p-2 sm:p-6">
+          {/* Mobile Card View */}
+          <div className="sm:hidden space-y-3">
+            {filteredSubscriptions.map((subscription) => {
+              const daysRemaining = subscription.subscription_end ? getDaysRemaining(subscription.subscription_end) : 0;
+              const expired = subscription.subscription_end ? isExpired(subscription.subscription_end) : false;
 
-                return (
-                  <TableRow key={subscription.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{subscription.celebrity?.stage_name || 'N/A'}</div>
-                        <div className="text-sm text-muted-foreground">{subscription.celebrity?.email}</div>
+              return (
+                <Card key={subscription.id} className="p-3">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{subscription.celebrity?.stage_name || 'N/A'}</p>
+                        <p className="text-xs text-muted-foreground truncate">{subscription.celebrity?.email}</p>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {tierIcons[subscription.subscription_tier as keyof typeof tierIcons]}
-                        <span>{tierLabels[subscription.subscription_tier as keyof typeof tierLabels]}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
+                      <Badge variant={subscription.is_active ? "default" : "secondary"} className="ml-2 text-xs">
+                        {subscription.is_active ? <CheckCircle className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />}
+                        {subscription.is_active ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm">
+                      {tierIcons[subscription.subscription_tier as keyof typeof tierIcons]}
+                      <span className="font-medium">{tierLabels[subscription.subscription_tier as keyof typeof tierLabels]}</span>
+                      <Badge variant="outline" className="text-xs">
                         {subscription.duration_type === '1_week' && '1 Week'}
                         {subscription.duration_type === '2_weeks' && '2 Weeks'}
                         {subscription.duration_type === '1_month' && '1 Month'}
                       </Badge>
-                    </TableCell>
-                    <TableCell>KSH {subscription.amount_paid?.toLocaleString()}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Calendar className="w-4 h-4" />
-                        {subscription.subscription_start ? formatDate(subscription.subscription_start) : 'N/A'}
+                    </div>
+
+                    <div className="text-xs space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Amount:</span>
+                        <span className="font-medium">KSH {subscription.amount_paid?.toLocaleString()}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Start:</span>
+                        <span>{subscription.subscription_start ? formatDate(subscription.subscription_start) : 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">End:</span>
+                        <span>{subscription.subscription_end ? formatDate(subscription.subscription_end) : 'N/A'}</span>
+                      </div>
+                      {!expired && daysRemaining > 0 && (
+                        <Badge variant="secondary" className="text-xs">
+                          {daysRemaining} days left
+                        </Badge>
+                      )}
+                      {expired && (
+                        <Badge variant="destructive" className="text-xs">
+                          Expired
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2 pt-2 border-t">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(subscription)}
+                        className="flex-1"
+                      >
+                        <Edit2 className="w-3 h-3 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant={subscription.is_active ? "secondary" : "default"}
+                        size="sm"
+                        onClick={() => handleToggleStatus(subscription)}
+                      >
+                        {subscription.is_active ? <XCircle className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm">
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Subscription?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the subscription.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteSubscription(subscription.id)}>
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+            {filteredSubscriptions.length === 0 && (
+              <div className="text-center py-12 text-muted-foreground">
+                <p>No subscriptions found</p>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden sm:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Celebrity</TableHead>
+                  <TableHead>Tier</TableHead>
+                  <TableHead>Duration</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Start Date</TableHead>
+                  <TableHead>End Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredSubscriptions.map((subscription) => {
+                  const daysRemaining = subscription.subscription_end ? getDaysRemaining(subscription.subscription_end) : 0;
+                  const expired = subscription.subscription_end ? isExpired(subscription.subscription_end) : false;
+
+                  return (
+                    <TableRow key={subscription.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{subscription.celebrity?.stage_name || 'N/A'}</div>
+                          <div className="text-sm text-muted-foreground">{subscription.celebrity?.email}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {tierIcons[subscription.subscription_tier as keyof typeof tierIcons]}
+                          <span>{tierLabels[subscription.subscription_tier as keyof typeof tierLabels]}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {subscription.duration_type === '1_week' && '1 Week'}
+                          {subscription.duration_type === '2_weeks' && '2 Weeks'}
+                          {subscription.duration_type === '1_month' && '1 Month'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>KSH {subscription.amount_paid?.toLocaleString()}</TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-1 text-sm">
                           <Calendar className="w-4 h-4" />
-                          {subscription.subscription_end ? formatDate(subscription.subscription_end) : 'N/A'}
+                          {subscription.subscription_start ? formatDate(subscription.subscription_start) : 'N/A'}
                         </div>
-                        {!expired && daysRemaining > 0 && (
-                          <Badge variant="secondary" className="text-xs">
-                            {daysRemaining} days left
-                          </Badge>
-                        )}
-                        {expired && (
-                          <Badge variant="destructive" className="text-xs">
-                            Expired
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={subscription.is_active ? "default" : "secondary"}>
-                        {subscription.is_active ? (
-                          <><CheckCircle className="w-3 h-3 mr-1" /> Active</>
-                        ) : (
-                          <><XCircle className="w-3 h-3 mr-1" /> Inactive</>
-                        )}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(subscription)}
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          variant={subscription.is_active ? "secondary" : "default"}
-                          size="sm"
-                          onClick={() => handleToggleStatus(subscription)}
-                        >
-                          {subscription.is_active ? <XCircle className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="sm">
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Subscription?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the subscription.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeleteSubscription(subscription.id)}>
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-
-          {filteredSubscriptions.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>No subscriptions found</p>
-            </div>
-          )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1 text-sm">
+                            <Calendar className="w-4 h-4" />
+                            {subscription.subscription_end ? formatDate(subscription.subscription_end) : 'N/A'}
+                          </div>
+                          {!expired && daysRemaining > 0 && (
+                            <Badge variant="secondary" className="text-xs">
+                              {daysRemaining} days left
+                            </Badge>
+                          )}
+                          {expired && (
+                            <Badge variant="destructive" className="text-xs">
+                              Expired
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={subscription.is_active ? "default" : "secondary"}>
+                          {subscription.is_active ? (
+                            <><CheckCircle className="w-3 h-3 mr-1" /> Active</>
+                          ) : (
+                            <><XCircle className="w-3 h-3 mr-1" /> Inactive</>
+                          )}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(subscription)}
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant={subscription.is_active ? "secondary" : "default"}
+                            size="sm"
+                            onClick={() => handleToggleStatus(subscription)}
+                          >
+                            {subscription.is_active ? <XCircle className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm">
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Subscription?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete the subscription.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteSubscription(subscription.id)}>
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+            {filteredSubscriptions.length === 0 && (
+              <div className="text-center py-12 text-muted-foreground">
+                <p>No subscriptions found</p>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 

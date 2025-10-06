@@ -165,10 +165,13 @@ Deno.serve(async (req) => {
 
       console.log('Toggling user verification:', { userId, isVerified });
 
-      // Update celebrity profile verification status
+      // Update celebrity profile verification status and availability
       const { data: updateData, error: updateError } = await supabaseServiceRole
         .from('celebrity_profiles')
-        .update({ is_verified: isVerified })
+        .update({ 
+          is_verified: isVerified,
+          is_available: isVerified ? true : undefined // Set available to true when verifying, keep current state when unverifying
+        })
         .eq('user_id', userId)
         .select();
 
