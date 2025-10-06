@@ -96,7 +96,8 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
     tier: string,
     duration: string,
     mpesaCode: string,
-    phoneNumber: string
+    phoneNumber: string,
+    expectedAmount: number
   ) => {
     try {
       const { data, error } = await supabase.functions.invoke('payment-verification', {
@@ -104,6 +105,8 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
           celebrityId: profile?.id,
           phoneNumber,
           mpesaCode,
+          amount: expectedAmount, // Use the expected amount as the amount
+          expectedAmount,
           tier,
           duration,
         }
@@ -115,10 +118,19 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
         throw new Error(data.message || 'Failed to submit payment verification');
       }
 
-      toast({
-        title: "Payment Verification Submitted",
-        description: `Your ${tier} plan payment verification has been submitted. An admin will review it shortly.`,
-      });
+      // Show warning if payment status indicates issues
+      if (data.warning) {
+        toast({
+          title: data.payment_status === 'underpaid' ? "Payment Insufficient" : "Payment Received",
+          description: data.warning,
+          variant: data.payment_status === 'underpaid' ? 'destructive' : 'default',
+        });
+      } else {
+        toast({
+          title: "Payment Verification Submitted",
+          description: `Your ${tier} plan payment verification has been submitted. An admin will review it shortly.`,
+        });
+      }
     } catch (error: any) {
       console.error('Payment submission error:', error);
       toast({

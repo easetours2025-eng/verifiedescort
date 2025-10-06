@@ -23,7 +23,7 @@ interface NewSubscriptionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   celebrityId: string;
-  onSubmit: (tier: string, duration: string, mpesaCode: string, phoneNumber: string) => Promise<void>;
+  onSubmit: (tier: string, duration: string, mpesaCode: string, phoneNumber: string, expectedAmount: number) => Promise<void>;
 }
 
 const TILL_NUMBER = "5196042";
@@ -109,17 +109,24 @@ export function NewSubscriptionModal({
 
     setSubmitting(true);
     try {
+      // Pass the package price as expected amount
       await onSubmit(
         selectedPackage.tier_name,
         selectedPackage.duration_type,
         mpesaCode.trim(),
-        phoneNumber.trim()
+        phoneNumber.trim(),
+        selectedPackage.price
       );
       setMpesaCode("");
       setPhoneNumber("");
       setSelectedPackage(null);
       onOpenChange(false);
-      toast.success("Subscription request submitted successfully!");
+      toast.success(
+        `Subscription request submitted! Expected amount: KSH ${selectedPackage.price.toLocaleString()}`,
+        {
+          description: "Your payment will be verified by admin. You'll be notified about the status."
+        }
+      );
     } catch (error) {
       console.error("Error submitting subscription:", error);
       toast.error("Failed to submit subscription");
@@ -259,7 +266,12 @@ export function NewSubscriptionModal({
                     <Copy className="w-3 h-3 ml-1" />
                   </Button>
                 </li>
-                <li>Enter amount: KSH {selectedPackage.price}</li>
+                <li>
+                  Enter amount:{" "}
+                  <span className="font-bold text-primary">
+                    KSH {selectedPackage.price.toLocaleString()}
+                  </span>
+                </li>
                 <li>Complete the transaction and note your M-Pesa code</li>
               </ol>
             </div>
@@ -288,14 +300,29 @@ export function NewSubscriptionModal({
               </div>
             </div>
 
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 mb-4">
+              <p className="text-sm font-semibold text-center">
+                Total Amount to Pay: <span className="text-xl text-primary">KSH {selectedPackage.price.toLocaleString()}</span>
+              </p>
+              <p className="text-xs text-muted-foreground text-center mt-1">
+                {selectedPackage.duration_type === "1_week" && "Valid for 1 Week"}
+                {selectedPackage.duration_type === "2_weeks" && "Valid for 2 Weeks"}
+                {selectedPackage.duration_type === "1_month" && "Valid for 1 Month"}
+              </p>
+            </div>
+
             <Button
               onClick={handleSubmit}
               disabled={submitting || !mpesaCode.trim() || !phoneNumber.trim()}
               className="w-full"
               size="lg"
             >
-              {submitting ? "Submitting..." : "Submit Payment for Verification"}
+              {submitting ? "Submitting..." : `Submit Payment of KSH ${selectedPackage.price.toLocaleString()}`}
             </Button>
+            
+            <p className="text-xs text-muted-foreground text-center">
+              ⚠️ If you pay less than the required amount, your subscription will be disabled. If you pay more, the extra will be credited to your account.
+            </p>
           </div>
         )}
       </DialogContent>

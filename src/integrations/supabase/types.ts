@@ -204,6 +204,7 @@ export type Database = {
           base_price: number
           bio: string | null
           created_at: string
+          credit_balance: number | null
           date_of_birth: string | null
           email: string | null
           gender: string | null
@@ -229,6 +230,7 @@ export type Database = {
           base_price?: number
           bio?: string | null
           created_at?: string
+          credit_balance?: number | null
           date_of_birth?: string | null
           email?: string | null
           gender?: string | null
@@ -254,6 +256,7 @@ export type Database = {
           base_price?: number
           bio?: string | null
           created_at?: string
+          credit_balance?: number | null
           date_of_birth?: string | null
           email?: string | null
           gender?: string | null
@@ -551,12 +554,15 @@ export type Database = {
           amount: number
           celebrity_id: string
           created_at: string
+          credit_balance: number | null
           duration_type: string | null
+          expected_amount: number | null
           expires_at: string
           id: string
           is_verified: boolean
           mpesa_code: string
           payment_date: string
+          payment_status: string | null
           phone_number: string
           subscription_tier: string | null
           verified_at: string | null
@@ -566,12 +572,15 @@ export type Database = {
           amount?: number
           celebrity_id: string
           created_at?: string
+          credit_balance?: number | null
           duration_type?: string | null
+          expected_amount?: number | null
           expires_at?: string
           id?: string
           is_verified?: boolean
           mpesa_code: string
           payment_date?: string
+          payment_status?: string | null
           phone_number: string
           subscription_tier?: string | null
           verified_at?: string | null
@@ -581,12 +590,15 @@ export type Database = {
           amount?: number
           celebrity_id?: string
           created_at?: string
+          credit_balance?: number | null
           duration_type?: string | null
+          expected_amount?: number | null
           expires_at?: string
           id?: string
           is_verified?: boolean
           mpesa_code?: string
           payment_date?: string
+          payment_status?: string | null
           phone_number?: string
           subscription_tier?: string | null
           verified_at?: string | null

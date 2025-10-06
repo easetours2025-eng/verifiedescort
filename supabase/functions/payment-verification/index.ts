@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { celebrityId, phoneNumber, mpesaCode, amount, tier, duration } = await req.json();
+    const { celebrityId, phoneNumber, mpesaCode, amount, tier, duration, expectedAmount } = await req.json();
 
     if (!celebrityId || !phoneNumber || !mpesaCode) {
       return new Response(
@@ -59,7 +59,21 @@ Deno.serve(async (req) => {
 
     console.log('Creating payment verification for celebrity:', celebrityId);
 
-    // Insert payment verification record
+    // Fetch expected price from subscription_packages if tier and duration provided
+    let packagePrice = expectedAmount || 0;
+    if (tier && duration && !expectedAmount) {
+      const { data: packageData } = await supabaseServiceRole
+        .from('subscription_packages')
+        .select('price')
+        .eq('tier_name', tier)
+        .eq('duration_type', duration)
+        .eq('is_active', true)
+        .single();
+      
+      packagePrice = packageData?.price || 0;
+    }
+
+    // Insert payment verification record (trigger will auto-calculate status)
     const { data: paymentData, error: paymentError } = await supabaseServiceRole
       .from('payment_verification')
       .insert({
@@ -67,6 +81,7 @@ Deno.serve(async (req) => {
         phone_number: phoneNumber.trim(),
         mpesa_code: mpesaCode.trim().toUpperCase(),
         amount: amount || 10,
+        expected_amount: packagePrice,
         payment_date: new Date().toISOString(),
         is_verified: false,
         subscription_tier: tier || null,
@@ -116,10 +131,23 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Determine message based on payment status
+    let message = "Payment verification submitted successfully";
+    let warning = "";
+    
+    if (paymentData.payment_status === 'underpaid') {
+      warning = `⚠️ Payment (KSH ${amount}) is less than expected (KSH ${packagePrice}). Subscription will be disabled until full payment is received.`;
+    } else if (paymentData.payment_status === 'overpaid') {
+      warning = `✅ Payment received! Extra KSH ${paymentData.credit_balance} will be credited to your account for future use.`;
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Payment verification submitted successfully",
+        message,
+        warning,
+        payment_status: paymentData.payment_status,
+        credit_balance: paymentData.credit_balance || 0,
         data: paymentData
       }),
       { 

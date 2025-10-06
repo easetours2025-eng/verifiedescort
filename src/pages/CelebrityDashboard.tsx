@@ -51,6 +51,7 @@ interface CelebrityProfile {
   social_twitter?: string;
   is_verified: boolean;
   is_available: boolean;
+  credit_balance?: number;
 }
 
 interface MediaItem {
@@ -70,6 +71,7 @@ interface SubscriptionStatus {
   subscription_end?: string;
   subscription_start?: string;
   subscription_tier?: string;
+  duration_type?: string;
   amount_paid?: number;
 }
 
@@ -131,7 +133,7 @@ const CelebrityDashboard = () => {
     try {
       const { data, error } = await supabase
         .from('celebrity_subscriptions')
-        .select('is_active, subscription_start, subscription_end, subscription_tier, amount_paid')
+        .select('is_active, subscription_start, subscription_end, subscription_tier, duration_type, amount_paid')
         .eq('celebrity_id', profile.id)
         .maybeSingle();
 
@@ -348,18 +350,21 @@ const CelebrityDashboard = () => {
                 onOpenPaymentModal={() => setShowPaymentModal(true)}
               />
               
-              {/* Upgrade Option for Basic subscribers */}
-              {subscriptionStatus?.is_active && subscriptionStatus.subscription_tier && subscriptionStatus.amount_paid && (
+              {/* Upgrade Option for subscribers */}
+              {subscriptionStatus?.is_active && subscriptionStatus.subscription_tier && subscriptionStatus.amount_paid && subscriptionStatus.subscription_start && subscriptionStatus.duration_type && (
                 <SubscriptionUpgrade
                   celebrityId={profile.id}
                   currentSubscription={{
                     subscription_tier: subscriptionStatus.subscription_tier,
+                    duration_type: subscriptionStatus.duration_type,
                     amount_paid: subscriptionStatus.amount_paid,
-                    subscription_end: subscriptionStatus.subscription_end || ''
+                    subscription_end: subscriptionStatus.subscription_end || '',
+                    subscription_start: subscriptionStatus.subscription_start
                   }}
+                  creditBalance={profile.credit_balance || 0}
                   onUpgradeSubmit={() => {
-                    // Refresh subscription status after upgrade
                     fetchSubscriptionStatus();
+                    fetchProfile();
                     toast({
                       title: "Upgrade Submitted",
                       description: "Your upgrade request is being processed",

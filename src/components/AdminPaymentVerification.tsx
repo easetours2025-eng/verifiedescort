@@ -16,6 +16,9 @@ interface PaymentRecord {
   phone_number: string;
   mpesa_code: string;
   amount: number;
+  expected_amount?: number;
+  payment_status?: string;
+  credit_balance?: number;
   is_verified: boolean;
   payment_date: string;
   verified_at?: string;
@@ -146,6 +149,34 @@ const AdminPaymentVerification = () => {
 
   const verifyPayment = async (payment: PaymentRecord) => {
     try {
+      // Check if payment meets expected amount
+      if (payment.expected_amount && payment.amount < payment.expected_amount) {
+        toast({
+          title: 'Payment Underpaid',
+          description: `Payment amount (KSH ${payment.amount}) is less than expected (KSH ${payment.expected_amount}). Subscription will be disabled.`,
+          variant: 'destructive',
+        });
+        
+        // Still mark as verified but subscription won't be activated
+        const { error: verifyError } = await supabase
+          .from('payment_verification')
+          .update({
+            is_verified: true,
+            verified_at: new Date().toISOString(),
+          })
+          .eq('id', payment.id);
+
+        if (verifyError) throw verifyError;
+        
+        toast({
+          title: 'Payment Verified',
+          description: 'Payment verified but subscription not activated due to insufficient amount.',
+        });
+        
+        fetchPayments();
+        return;
+      }
+
       // Update payment verification status
       const { error: verifyError } = await supabase
         .from('payment_verification')
@@ -194,9 +225,14 @@ const AdminPaymentVerification = () => {
 
       if (profileError) throw profileError;
 
+      let message = 'Payment verified and subscription activated';
+      if (payment.credit_balance && payment.credit_balance > 0) {
+        message += `. KSH ${payment.credit_balance} credited to celebrity account.`;
+      }
+
       toast({
         title: 'Success',
-        description: 'Payment verified and subscription activated',
+        description: message,
       });
 
       fetchPayments();
@@ -304,7 +340,7 @@ const AdminPaymentVerification = () => {
                   <TableHead>Celebrity</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>M-Pesa Code</TableHead>
-                  <TableHead>Amount</TableHead>
+                  <TableHead>Amount/Expected</TableHead>
                   <TableHead>Tier/Duration</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Status</TableHead>
@@ -339,7 +375,24 @@ const AdminPaymentVerification = () => {
                           <span className="font-mono">{payment.mpesa_code}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="font-bold">KSH {Number(payment.amount).toLocaleString()}</TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="font-bold">KSH {Number(payment.amount).toLocaleString()}</div>
+                          {payment.expected_amount && (
+                            <div className="text-xs">
+                              Expected: <span className="font-semibold">KSH {Number(payment.expected_amount).toLocaleString()}</span>
+                            </div>
+                          )}
+                          {payment.payment_status === 'underpaid' && (
+                            <Badge variant="destructive" className="text-xs">Underpaid</Badge>
+                          )}
+                          {payment.payment_status === 'overpaid' && (
+                            <Badge variant="secondary" className="text-xs">
+                              +KSH {payment.credit_balance} credit
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         {payment.subscription_tier && (
                           <div>
@@ -383,9 +436,24 @@ const AdminPaymentVerification = () => {
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Verify Payment</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will verify the payment, activate the subscription for <strong>{payment.celebrity?.stage_name}</strong>, and mark them as verified. This action cannot be undone.
-                                </AlertDialogDescription>
+                              <AlertDialogDescription>
+                                This will verify the payment
+                                {payment.expected_amount && payment.amount < payment.expected_amount ? (
+                                  <span className="text-destructive font-semibold">
+                                    {' '}but the subscription will NOT be activated because payment (KSH {payment.amount}) is less than expected (KSH {payment.expected_amount})
+                                  </span>
+                                ) : (
+                                  <span>
+                                    , activate the subscription for <strong>{payment.celebrity?.stage_name}</strong>, and mark them as verified
+                                  </span>
+                                )}
+                                {payment.credit_balance && payment.credit_balance > 0 && (
+                                  <span className="text-green-600 font-semibold">
+                                    . KSH {payment.credit_balance} will be credited to the celebrity account.
+                                  </span>
+                                )}
+                                {' '}This action cannot be undone.
+                              </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
