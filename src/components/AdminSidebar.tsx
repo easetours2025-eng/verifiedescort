@@ -9,17 +9,21 @@ import {
   ChevronRight,
   BarChart3,
   Package,
-  HeadphonesIcon
+  HeadphonesIcon,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Button } from '@/components/ui/button';
 
 interface AdminSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
+const AdminSidebar = ({ activeTab, onTabChange, isOpen = true, onClose }: AdminSidebarProps) => {
   const [isDashboardOpen, setIsDashboardOpen] = React.useState(true);
 
   const navItems = [
@@ -32,12 +36,38 @@ const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: 'videos', label: 'Videos', icon: Video },
   ];
 
+  const handleNavClick = (id: string) => {
+    onTabChange(id);
+    if (onClose) onClose();
+  };
+
   return (
-    <div className="w-64 bg-sidebar border-r border-border h-screen fixed left-0 top-0 flex flex-col">
-      {/* Logo */}
-      <div className="p-6 border-b border-border">
-        <h1 className="text-2xl font-bold text-foreground italic">Architect</h1>
-      </div>
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden animate-in fade-in duration-200"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={cn(
+        "w-64 bg-sidebar border-r border-border h-screen fixed left-0 top-0 flex flex-col z-50 transition-transform duration-300",
+        !isOpen && "-translate-x-full lg:translate-x-0"
+      )}>
+        {/* Logo and Close Button */}
+        <div className="p-4 sm:p-6 border-b border-border flex items-center justify-between">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground italic">Architect</h1>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="lg:hidden"
+            onClick={onClose}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-4">
@@ -64,7 +94,7 @@ const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
                 {navItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => onTabChange(item.id)}
+                    onClick={() => handleNavClick(item.id)}
                     className={cn(
                       "flex items-center gap-2 w-full pl-9 pr-3 py-2 text-sm rounded-md transition-colors",
                       activeTab === item.id
@@ -90,6 +120,7 @@ const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
         </div>
       </nav>
     </div>
+    </>
   );
 };
 

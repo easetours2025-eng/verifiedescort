@@ -142,22 +142,22 @@ const AnalyticsDashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">System Analytics</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1 sm:mb-2">System Analytics</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Comprehensive overview of your platform's performance
           </p>
         </div>
-        <Button onClick={fetchAnalytics} variant="outline" size="sm">
+        <Button onClick={fetchAnalytics} variant="outline" size="sm" className="w-full sm:w-auto">
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
       </div>
 
       {/* Top Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Celebrities</CardTitle>
@@ -212,12 +212,12 @@ const AnalyticsDashboard = () => {
       </div>
 
       {/* Content Stats and Calendar */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Content Statistics</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Content Statistics</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 sm:space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Video className="h-5 w-5 text-primary" />
@@ -246,12 +246,12 @@ const AnalyticsDashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5" />
               Calendar
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex justify-center">
+          <CardContent className="flex justify-center overflow-x-auto">
             <Calendar
               mode="single"
               selected={date}
@@ -265,10 +265,10 @@ const AnalyticsDashboard = () => {
       {/* Quick Insights */}
       <Card>
         <CardHeader>
-          <CardTitle>Quick Insights</CardTitle>
+          <CardTitle className="text-base sm:text-lg">Quick Insights</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
               <div className="h-2 w-2 bg-green-500 rounded-full mt-2"></div>
               <div>

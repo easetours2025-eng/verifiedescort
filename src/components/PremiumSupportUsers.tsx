@@ -174,15 +174,15 @@ const PremiumSupportUsers = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Premium Support Users</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1 sm:mb-2">Premium Support Users</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Users with at least 2 premium support features (Email Support, Social Media Promotion, or Priority Support)
           </p>
         </div>
-        <Button onClick={fetchPremiumSupportUsers} variant="outline" size="sm">
+        <Button onClick={fetchPremiumSupportUsers} variant="outline" size="sm" className="w-full sm:w-auto">
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
@@ -190,8 +190,8 @@ const PremiumSupportUsers = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <HeadphonesIcon className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <HeadphonesIcon className="h-4 w-4 sm:h-5 sm:w-5" />
             Premium Support Subscribers ({users.length})
           </CardTitle>
         </CardHeader>
@@ -207,11 +207,11 @@ const PremiumSupportUsers = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
+                    <TableHead className="hidden sm:table-cell">Email</TableHead>
                     <TableHead>Tier</TableHead>
-                    <TableHead>Duration</TableHead>
-                    <TableHead>Expires</TableHead>
-                    <TableHead>Features</TableHead>
+                    <TableHead className="hidden md:table-cell">Duration</TableHead>
+                    <TableHead className="hidden md:table-cell">Expires</TableHead>
+                    <TableHead className="hidden lg:table-cell">Features</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Profile Link</TableHead>
                   </TableRow>
@@ -219,18 +219,18 @@ const PremiumSupportUsers = () => {
                 <TableBody>
                   {users.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.stage_name}</TableCell>
-                      <TableCell>{user.email}</TableCell>
+                      <TableCell className="font-medium text-sm">{user.stage_name}</TableCell>
+                      <TableCell className="hidden sm:table-cell text-sm">{user.email}</TableCell>
                       <TableCell>
-                        <Badge variant="default" className="bg-purple-100 text-purple-800">
+                        <Badge variant="default" className="bg-purple-100 text-purple-800 text-xs">
                           {getTierLabel(user.subscription_tier)}
                         </Badge>
                       </TableCell>
-                      <TableCell>{getDurationLabel(user.duration_type)}</TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell text-sm">{getDurationLabel(user.duration_type)}</TableCell>
+                      <TableCell className="hidden md:table-cell text-sm">
                         {new Date(user.subscription_end).toLocaleDateString()}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         <div className="flex gap-1 flex-wrap">
                           <Badge variant="outline" className="text-xs">
                             <Mail className="h-3 w-3 mr-1" />
@@ -247,27 +247,29 @@ const PremiumSupportUsers = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="default" className="bg-green-100 text-green-800">
+                        <Badge variant="default" className="bg-green-100 text-green-800 text-xs">
                           Active
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 sm:gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
                             asChild
+                            className="h-8 w-8 p-0"
                           >
                             <Link to={`/celebrity/${user.id}`} target="_blank">
-                              <ExternalLink className="h-4 w-4" />
+                              <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
                             </Link>
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleCopyLink(user.id)}
+                            className="h-8 w-8 p-0"
                           >
-                            <Copy className="h-4 w-4" />
+                            <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </div>
                       </TableCell>

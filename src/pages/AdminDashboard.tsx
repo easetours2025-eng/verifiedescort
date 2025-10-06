@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, Clock, Users, CreditCard, TrendingUp, RefreshCw, Search, Eye, EyeOff, Trash2, Shield, ShieldCheck, LayoutGrid, Table2, LogOut, Video, Wallet, DollarSign, Building2, Bell, Flag, Timer, Star, Plus } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Users, CreditCard, TrendingUp, RefreshCw, Search, Eye, EyeOff, Trash2, Shield, ShieldCheck, LayoutGrid, Table2, LogOut, Video, Wallet, DollarSign, Building2, Bell, Flag, Timer, Star, Plus, Menu } from 'lucide-react';
 import AdminSidebar from '@/components/AdminSidebar';
 import StatsCard from '@/components/StatsCard';
 import ChartCard from '@/components/ChartCard';
@@ -93,6 +93,7 @@ const AdminDashboard = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [activeTab, setActiveTab] = useState('analytics');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   console.log('AdminDashboard rendering with activeTab:', activeTab);
@@ -517,34 +518,49 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
-      <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      <AdminSidebar 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
       {/* Main Content */}
-      <div className="flex-1 ml-64">
+      <div className="flex-1 lg:ml-64">
         {/* Top Header */}
         <header className="bg-background border-b border-border sticky top-0 z-10">
-          <div className="flex items-center justify-between px-8 py-4">
-            <div className="flex items-center gap-4 flex-1">
+          <div className="flex items-center justify-between px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+
+            <div className="flex items-center gap-2 sm:gap-4 flex-1 lg:ml-0">
               <Input
                 type="search"
                 placeholder="Search..."
-                className="max-w-md"
+                className="max-w-md hidden sm:block"
               />
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <AdminNotifications />
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="hidden sm:flex">
                 <Flag className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="hidden sm:flex">
                 <Timer className="h-5 w-5" />
               </Button>
-              <div className="flex items-center gap-3 pl-4 border-l border-border">
+              <div className="hidden md:flex items-center gap-3 pl-4 border-l border-border">
                 <Avatar>
                   <AvatarFallback>AD</AvatarFallback>
                 </Avatar>
-                <div className="hidden md:block">
+                <div>
                   <p className="text-sm font-medium">Admin User</p>
                   <p className="text-xs text-muted-foreground">Administrator</p>
                 </div>
@@ -564,7 +580,7 @@ const AdminDashboard = () => {
         </header>
 
         {/* Content Area */}
-        <main className="p-8">
+        <main className="p-3 sm:p-6 lg:p-8">
           {activeTab === 'analytics' && <AnalyticsDashboard />}
 
           {activeTab === 'payments' && (
@@ -572,9 +588,9 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === 'users' && (
-            <div className="space-y-6">
-              <h1 className="text-3xl font-bold text-foreground mb-6">User Management</h1>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4 sm:space-y-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">User Management</h1>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <UserManagement onUserCreated={fetchData} />
                 <AdminManagement onAdminCreated={() => {}} />
               </div>
@@ -583,8 +599,8 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === 'celebrities' && (
-            <div className="space-y-6">
-              <h1 className="text-3xl font-bold text-foreground mb-6">Celebrity Management</h1>
+            <div className="space-y-4 sm:space-y-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">Celebrity Management</h1>
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg md:text-xl">Celebrity Management</CardTitle>
@@ -877,9 +893,9 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === 'subscriptions' && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <AdminSubscriptionManagement />
-              <div className="mt-8">
+              <div className="mt-6 sm:mt-8">
                 <AdminActiveSubscriptions />
               </div>
             </div>
@@ -890,8 +906,8 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === 'videos' && (
-            <div className="space-y-6">
-              <h1 className="text-3xl font-bold text-foreground mb-6">Video Management</h1>
+            <div className="space-y-4 sm:space-y-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">Video Management</h1>
               <AdminVideoSection />
             </div>
           )}
