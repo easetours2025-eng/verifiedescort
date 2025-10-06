@@ -42,6 +42,7 @@ import AllUsersManagement from '@/components/AllUsersManagement';
 import AdminPaymentVerification from '@/components/AdminPaymentVerification';
 import { AdminNotifications } from '@/components/AdminNotifications';
 import PremiumSupportUsers from '@/components/PremiumSupportUsers';
+import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 
 // Data Interfaces
 interface PaymentRecord {
@@ -562,71 +563,7 @@ const AdminDashboard = () => {
 
         {/* Content Area */}
         <main className="p-8">
-          {activeTab === 'analytics' && (
-            <div className="space-y-6">
-              {/* Page Header */}
-              <div className="flex items-start justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold text-foreground mb-2">Analytics Dashboard</h1>
-                  <p className="text-sm text-muted-foreground">
-                    This is an example dashboard created using build-in elements and components.
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="icon">
-                    <Star className="h-5 w-5" />
-                  </Button>
-                  <Button className="bg-green-600 hover:bg-green-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create New
-                  </Button>
-                </div>
-              </div>
-
-              {/* Portfolio Performance */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-xl">Portfolio Performance</CardTitle>
-                  <Button variant="outline" size="sm">View All</Button>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <StatsCard
-                      title="Cash Deposits"
-                      value="1.7M"
-                      icon={Wallet}
-                      iconColor="bg-yellow-500"
-                      trend={{ value: "54.1% less earnings", isPositive: false }}
-                    />
-                    <StatsCard
-                      title="Invested Dividends"
-                      value="9M"
-                      icon={Building2}
-                      iconColor="bg-pink-500"
-                      subtitle="Grow Rate: ▲ 14.1%"
-                    />
-                    <StatsCard
-                      title="Capital Gains"
-                      value="$563"
-                      icon={DollarSign}
-                      iconColor="bg-green-500"
-                      trend={{ value: "7.35%", isPositive: true }}
-                      subtitle="Increased by"
-                    />
-                  </div>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                    View Complete Report
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Charts and Timeline */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ChartCard />
-                <TimelineCard />
-              </div>
-            </div>
-          )}
+          {activeTab === 'analytics' && <AnalyticsDashboard />}
 
           {activeTab === 'payments' && (
             <AdminPaymentVerification />

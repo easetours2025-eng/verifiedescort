@@ -26,11 +26,16 @@ const PremiumSupportUsers = () => {
     try {
       setLoading(true);
       
-      // Required features
-      const requiredFeatures = [
+      // Required features - check for any premium support features
+      const supportFeatures = [
         "Email Support",
-        "Social Media Promotion", 
-        "Priority Support (Business Hours)"
+        "email support",
+        "Social Media Promotion",
+        "social media promotion",
+        "Profile promotion on social media",
+        "Priority Support",
+        "priority support",
+        "Priority customer support"
       ];
 
       // Fetch active subscriptions with celebrity and package data
@@ -76,12 +81,14 @@ const PremiumSupportUsers = () => {
             ? (matchingPackage.features as string[])
             : [];
           
-          // Check if all required features are present (case-insensitive partial match)
-          const hasAllFeatures = requiredFeatures.every(required => 
+          // Check if has at least 2 premium support features
+          const matchCount = supportFeatures.filter(required => 
             features.some((feature: string) => 
               feature.toLowerCase().includes(required.toLowerCase())
             )
-          );
+          ).length;
+          
+          const hasAllFeatures = matchCount >= 2;
 
           if (hasAllFeatures) {
             premiumUsers.push({
@@ -165,7 +172,7 @@ const PremiumSupportUsers = () => {
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Premium Support Users</h1>
           <p className="text-sm text-muted-foreground">
-            Users with Email Support, Social Media Promotion, and Priority Support
+            Users with at least 2 premium support features (Email Support, Social Media Promotion, or Priority Support)
           </p>
         </div>
         <Button onClick={fetchPremiumSupportUsers} variant="outline" size="sm">
