@@ -331,28 +331,28 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
             </div>
             
             <div>
-              <h3 className="text-2xl font-bold mb-2">Choose Your Perfect Plan</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-xl sm:text-2xl font-bold mb-2">Choose Your Perfect Plan</h3>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 4 tiers available • 3 duration options • Competitive pricing
               </p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto">
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-3 rounded-lg border border-green-200">
-                <div className="text-lg font-bold text-green-700">Starter</div>
-                <div className="text-sm text-green-600">From KSH 400/week</div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 max-w-2xl mx-auto">
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-2 sm:p-3 rounded-lg border border-green-200">
+                <div className="text-sm sm:text-lg font-bold text-green-700">Starter</div>
+                <div className="text-xs sm:text-sm text-green-600">From KSH 400/week</div>
               </div>
-              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-lg border border-blue-200">
-                <div className="text-lg font-bold text-blue-700">Basic Pro</div>
-                <div className="text-sm text-blue-600">From KSH 600/week</div>
+              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-2 sm:p-3 rounded-lg border border-blue-200">
+                <div className="text-sm sm:text-lg font-bold text-blue-700">Basic Pro</div>
+                <div className="text-xs sm:text-sm text-blue-600">From KSH 600/week</div>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-3 rounded-lg border border-purple-200">
-                <div className="text-lg font-bold text-purple-700">Prime Plus</div>
-                <div className="text-sm text-purple-600">From KSH 800/week</div>
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-2 sm:p-3 rounded-lg border border-purple-200">
+                <div className="text-sm sm:text-lg font-bold text-purple-700">Prime Plus</div>
+                <div className="text-xs sm:text-sm text-purple-600">From KSH 800/week</div>
               </div>
-              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 p-3 rounded-lg border-2 border-yellow-300">
-                <div className="text-lg font-bold text-yellow-700">VIP Elite</div>
-                <div className="text-sm text-yellow-600">From KSH 1,000/week</div>
+              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 p-2 sm:p-3 rounded-lg border-2 border-yellow-300">
+                <div className="text-sm sm:text-lg font-bold text-yellow-700">VIP Elite</div>
+                <div className="text-xs sm:text-sm text-yellow-600">From KSH 1,000/week</div>
               </div>
             </div>
           </div>
@@ -374,18 +374,17 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
           <div className="space-y-3">
             <Button 
               onClick={() => setShowNewModal(true)}
-              className="w-full bg-gradient-to-r from-primary to-accent"
-              size="lg"
+              className="w-full bg-gradient-to-r from-primary to-accent h-11 sm:h-12 text-sm sm:text-base"
             >
               <CreditCard className="h-4 w-4 mr-2" />
-              View All Plans & Subscribe Now
+              <span className="hidden sm:inline">View All Plans & Subscribe Now</span>
+              <span className="sm:hidden">View Plans & Subscribe</span>
             </Button>
             
             <Button 
               onClick={() => navigate('/faq')}
               variant="outline"
-              className="w-full"
-              size="lg"
+              className="w-full h-10 sm:h-11 text-sm sm:text-base"
             >
               Need Help? View FAQ
             </Button>

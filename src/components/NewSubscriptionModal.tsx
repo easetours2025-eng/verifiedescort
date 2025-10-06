@@ -171,24 +171,40 @@ export function NewSubscriptionModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-3xl">Choose Your Subscription Plan</DialogTitle>
-          <DialogDescription className="text-lg">
+      <DialogContent className="max-w-[95vw] sm:max-w-6xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="space-y-2">
+          <DialogTitle className="text-xl sm:text-2xl lg:text-3xl">Choose Your Subscription Plan</DialogTitle>
+          <DialogDescription className="text-sm sm:text-base lg:text-lg">
             Select a plan that fits your needs. Better prices, more features than competitors!
           </DialogDescription>
         </DialogHeader>
 
         <Tabs value={selectedDuration} onValueChange={setSelectedDuration} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="1_month">1 Month - Best Value</TabsTrigger>
-            <TabsTrigger value="2_weeks">2 Weeks</TabsTrigger>
-            <TabsTrigger value="1_week">1 Week</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 gap-1 h-auto p-1">
+            <TabsTrigger 
+              value="1_month" 
+              className="text-xs sm:text-sm py-2 sm:py-2.5 px-1 sm:px-3 h-auto whitespace-normal leading-tight data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              <span className="hidden sm:inline">1 Month - Best Value</span>
+              <span className="sm:hidden">1 Month<br/><span className="text-[10px]">Best Value</span></span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="2_weeks" 
+              className="text-xs sm:text-sm py-2 sm:py-2.5 px-1 sm:px-3 h-auto data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              2 Weeks
+            </TabsTrigger>
+            <TabsTrigger 
+              value="1_week" 
+              className="text-xs sm:text-sm py-2 sm:py-2.5 px-1 sm:px-3 h-auto data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              1 Week
+            </TabsTrigger>
           </TabsList>
 
           {["1_month", "2_weeks", "1_week"].map((duration) => (
-            <TabsContent key={duration} value={duration} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <TabsContent key={duration} value={duration} className="space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {getPackagesByDuration(duration).map((pkg) => (
                   <Card
                     key={pkg.id}
@@ -199,42 +215,44 @@ export function NewSubscriptionModal({
                     }`}
                     onClick={() => setSelectedPackage(pkg)}
                   >
-                    <CardHeader>
+                    <CardHeader className="pb-3 sm:pb-6">
                       <div
-                        className={`w-12 h-12 rounded-lg bg-gradient-to-br ${
+                        className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br ${
                           tierColors[pkg.tier_name as keyof typeof tierColors]
                         } flex items-center justify-center text-white mb-2`}
                       >
-                        {tierIcons[pkg.tier_name as keyof typeof tierIcons]}
+                        <div className="w-5 h-5 sm:w-6 sm:h-6">
+                          {tierIcons[pkg.tier_name as keyof typeof tierIcons]}
+                        </div>
                       </div>
-                      <CardTitle className="text-xl">
+                      <CardTitle className="text-lg sm:text-xl">
                         {tierLabels[pkg.tier_name as keyof typeof tierLabels]}
                       </CardTitle>
-                      <CardDescription>{getDurationLabel(pkg.duration_type)}</CardDescription>
+                      <CardDescription className="text-sm">{getDurationLabel(pkg.duration_type)}</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <div className="mb-4">
-                        <div className="text-3xl font-bold">
+                    <CardContent className="pb-3 sm:pb-6">
+                      <div className="mb-3 sm:mb-4">
+                        <div className="text-2xl sm:text-3xl font-bold">
                           KSH {pkg.price.toLocaleString()}
                         </div>
                         {getSavingsText(pkg.tier_name, pkg.duration_type) && (
-                          <Badge variant="secondary" className="mt-2">
+                          <Badge variant="secondary" className="mt-1.5 sm:mt-2 text-xs">
                             {getSavingsText(pkg.tier_name, pkg.duration_type)}
                           </Badge>
                         )}
                       </div>
-                      <ul className="space-y-2">
+                      <ul className="space-y-1.5 sm:space-y-2">
                         {pkg.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm">
-                            <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                          <li key={idx} className="flex items-start gap-2 text-xs sm:text-sm">
+                            <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0 mt-0.5" />
                             <span>{feature}</span>
                           </li>
                         ))}
                       </ul>
                     </CardContent>
-                    <CardFooter>
+                    <CardFooter className="pt-3 sm:pt-6">
                       <Button
-                        className="w-full"
+                        className="w-full h-9 sm:h-10 text-sm sm:text-base"
                         variant={selectedPackage?.id === pkg.id ? "default" : "outline"}
                       >
                         {selectedPackage?.id === pkg.id ? "Selected" : "Select Plan"}
@@ -248,9 +266,9 @@ export function NewSubscriptionModal({
         </Tabs>
 
         {selectedPackage && (
-          <div className="space-y-4 border-t pt-6">
-            <div className="bg-muted p-4 rounded-lg">
-              <h3 className="font-semibold mb-2">Payment Instructions</h3>
+          <div className="space-y-3 sm:space-y-4 border-t pt-4 sm:pt-6">
+            <div className="bg-muted p-3 sm:p-4 rounded-lg">
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">Payment Instructions</h3>
               <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
                 <li>Go to M-Pesa on your phone</li>
                 <li>Select "Lipa na M-Pesa" then "Buy Goods and Services"</li>
@@ -276,35 +294,35 @@ export function NewSubscriptionModal({
               </ol>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <Label htmlFor="mpesa-code">M-Pesa Transaction Code *</Label>
+                <Label htmlFor="mpesa-code" className="text-sm">M-Pesa Transaction Code *</Label>
                 <Input
                   id="mpesa-code"
                   placeholder="e.g., QGH7KLM9NP"
                   value={mpesaCode}
                   onChange={(e) => setMpesaCode(e.target.value.toUpperCase())}
-                  className="mt-1"
+                  className="mt-1 h-10 text-sm"
                 />
               </div>
               <div>
-                <Label htmlFor="phone">Phone Number *</Label>
+                <Label htmlFor="phone" className="text-sm">Phone Number *</Label>
                 <Input
                   id="phone"
                   type="tel"
                   placeholder="e.g., 0712345678"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="mt-1"
+                  className="mt-1 h-10 text-sm"
                 />
               </div>
             </div>
 
-            <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 mb-4">
-              <p className="text-sm font-semibold text-center">
-                Total Amount to Pay: <span className="text-xl text-primary">KSH {selectedPackage.price.toLocaleString()}</span>
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-2.5 sm:p-3">
+              <p className="text-xs sm:text-sm font-semibold text-center">
+                Total Amount to Pay: <span className="text-lg sm:text-xl text-primary">KSH {selectedPackage.price.toLocaleString()}</span>
               </p>
-              <p className="text-xs text-muted-foreground text-center mt-1">
+              <p className="text-[10px] sm:text-xs text-muted-foreground text-center mt-1">
                 {selectedPackage.duration_type === "1_week" && "Valid for 1 Week"}
                 {selectedPackage.duration_type === "2_weeks" && "Valid for 2 Weeks"}
                 {selectedPackage.duration_type === "1_month" && "Valid for 1 Month"}
@@ -314,10 +332,14 @@ export function NewSubscriptionModal({
             <Button
               onClick={handleSubmit}
               disabled={submitting || !mpesaCode.trim() || !phoneNumber.trim()}
-              className="w-full"
-              size="lg"
+              className="w-full h-11 sm:h-12 text-sm sm:text-base"
             >
-              {submitting ? "Submitting..." : `Submit Payment of KSH ${selectedPackage.price.toLocaleString()}`}
+              {submitting ? "Submitting..." : (
+                <>
+                  <span className="hidden sm:inline">Submit Payment of KSH {selectedPackage.price.toLocaleString()}</span>
+                  <span className="sm:hidden">Submit KSH {selectedPackage.price.toLocaleString()}</span>
+                </>
+              )}
             </Button>
             
             <p className="text-xs text-muted-foreground text-center">
