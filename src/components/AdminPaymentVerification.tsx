@@ -283,7 +283,7 @@ const AdminPaymentVerification = () => {
           </div>
 
           {/* Payments Table */}
-          <div className="rounded-md border overflow-x-auto">
+          <div className="hidden sm:block rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -363,12 +363,12 @@ const AdminPaymentVerification = () => {
                       </TableCell>
                       <TableCell>
                         {payment.is_verified ? (
-                          <Badge className="bg-green-500">
+                          <Badge className="bg-green-500 text-xs">
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Verified
                           </Badge>
                         ) : (
-                          <Badge variant="secondary">
+                          <Badge variant="secondary" className="text-xs">
                             <Clock className="h-3 w-3 mr-1" />
                             Pending
                           </Badge>
@@ -425,6 +425,132 @@ const AdminPaymentVerification = () => {
                 )}
               </TableBody>
             </Table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="sm:hidden space-y-3">
+            {filteredPayments.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p className="text-sm">No payments found</p>
+              </div>
+            ) : (
+              filteredPayments.map((payment) => (
+                <Card key={payment.id} className="p-3">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1 flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate">{payment.celebrity?.stage_name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{payment.celebrity?.email}</p>
+                      </div>
+                      <div>
+                        {payment.is_verified ? (
+                          <Badge className="bg-green-500 text-xs">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Verified
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Pending
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <span className="text-muted-foreground">Phone:</span>
+                        <p className="font-medium">{payment.phone_number}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">M-Pesa:</span>
+                        <p className="font-mono font-medium">{payment.mpesa_code}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Amount:</span>
+                        <span className="font-bold text-sm">KSH {Number(payment.amount).toLocaleString()}</span>
+                      </div>
+                      {payment.expected_amount && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Expected:</span>
+                          <span className="text-xs font-semibold">KSH {Number(payment.expected_amount).toLocaleString()}</span>
+                        </div>
+                      )}
+                      {payment.payment_status === 'underpaid' && (
+                        <Badge variant="destructive" className="text-xs w-full justify-center">Underpaid</Badge>
+                      )}
+                      {payment.payment_status === 'overpaid' && (
+                        <Badge variant="secondary" className="text-xs w-full justify-center">
+                          +KSH {payment.credit_balance} credit
+                        </Badge>
+                      )}
+                    </div>
+
+                    {payment.subscription_tier && (
+                      <div className="flex items-center gap-2 text-xs">
+                        <Badge variant="outline" className="text-xs">
+                          {payment.subscription_tier}
+                        </Badge>
+                        <span className="text-muted-foreground">{payment.duration_type?.replace('_', ' ')}</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(payment.payment_date).toLocaleDateString()}
+                    </div>
+
+                    {!payment.is_verified && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="sm" variant="default" className="w-full">
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Verify Payment
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Verify Payment</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will verify the payment
+                              {payment.expected_amount && payment.amount < payment.expected_amount ? (
+                                <span className="text-destructive font-semibold">
+                                  {' '}but the subscription will NOT be activated because payment (KSH {payment.amount}) is less than expected (KSH {payment.expected_amount})
+                                </span>
+                              ) : (
+                                <span>
+                                  , activate the subscription for <strong>{payment.celebrity?.stage_name}</strong>, and mark them as verified
+                                </span>
+                              )}
+                              {payment.credit_balance && payment.credit_balance > 0 && (
+                                <span className="text-green-600 font-semibold">
+                                  . KSH {payment.credit_balance} will be credited to the celebrity account.
+                                </span>
+                              )}
+                              {' '}This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => verifyPayment(payment)}>
+                              Verify Payment
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                    {payment.is_verified && (
+                      <p className="text-xs text-center text-muted-foreground">
+                        Verified on {new Date(payment.verified_at!).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                </Card>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
