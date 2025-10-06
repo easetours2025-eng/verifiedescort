@@ -10,11 +10,16 @@ import {
   PrivateCelebrityProfile, 
   isPrivateProfile 
 } from '@/lib/celebrity-utils';
+import { getBadgeInfo } from '@/lib/subscription-features';
 import ReadMoreText from './ReadMoreText';
 import ServicesList from './ServicesList';
 
 interface CelebrityCardProps {
-  celebrity: PublicCelebrityProfile | PrivateCelebrityProfile;
+  celebrity: (PublicCelebrityProfile | PrivateCelebrityProfile) & {
+    subscription_tier?: string | null;
+    duration_type?: string | null;
+    subscription_end?: string | null;
+  };
   onViewProfile: (id: string) => void;
 }
 
@@ -145,6 +150,9 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  // Get tier badge info
+  const tierBadge = celebrity.subscription_tier ? getBadgeInfo(celebrity.subscription_tier) : null;
+
   return (
     <Card className="group hover:shadow-celebrity transition-all duration-300 hover:-translate-y-1 border-primary/20 overflow-hidden cursor-pointer flex flex-col h-full" onClick={() => onViewProfile(celebrity.id)}>
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
@@ -159,10 +167,11 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         
-        {/* VIP Badge */}
-        {isVIP && (
-          <div className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-2 py-1 rounded-full text-xs font-bold">
-            VIP
+        {/* Subscription Tier Badge */}
+        {tierBadge && (
+          <div className={`absolute top-2 left-2 bg-gradient-to-r ${tierBadge.color} text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center space-x-1`}>
+            <Star className="h-3 w-3 fill-white" />
+            <span>{tierBadge.label}</span>
           </div>
         )}
         
@@ -191,13 +200,18 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
           {isPrivateProfile(celebrity) && celebrity.real_name && (
             <p className="text-sm text-muted-foreground">({celebrity.real_name})</p>
           )}
-          <div className="flex items-center justify-center space-x-2">
+          <div className="flex items-center justify-center space-x-2 flex-wrap gap-1">
             <Badge variant={celebrity.is_available ? "default" : "secondary"} className="text-xs">
               {celebrity.is_available ? "Available" : "Busy"}
             </Badge>
             {celebrity.gender && (
               <Badge variant="outline" className="text-xs capitalize">
                 {celebrity.gender}
+              </Badge>
+            )}
+            {tierBadge && (
+              <Badge className={`text-xs ${tierBadge.bgColor} ${tierBadge.textColor} border-0`}>
+                {tierBadge.label}
               </Badge>
             )}
           </div>

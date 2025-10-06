@@ -62,13 +62,13 @@ const Index = () => {
 
   const fetchCelebrities = async () => {
     try {
-      // Use the database function to get non-admin celebrities
+      // Use the database function to get celebrities with subscription info
       const { data: celebrityData, error: celebrityError } = await supabase
-        .rpc('get_non_admin_celebrities');
+        .rpc('get_celebrities_with_subscription');
       
       if (celebrityError) throw celebrityError;
 
-      // Map to the expected format
+      // Map to the expected format with subscription info
       const celebrities = celebrityData?.map(celebrity => ({
         id: celebrity.id,
         stage_name: celebrity.stage_name,
@@ -85,7 +85,10 @@ const Index = () => {
         social_twitter: celebrity.social_twitter,
         social_tiktok: celebrity.social_tiktok,
         age: celebrity.age,
-        created_at: celebrity.created_at
+        created_at: celebrity.created_at,
+        subscription_tier: celebrity.subscription_tier,
+        duration_type: celebrity.duration_type,
+        subscription_end: celebrity.subscription_end,
       })) || [];
       
       setCelebrities(celebrities);
