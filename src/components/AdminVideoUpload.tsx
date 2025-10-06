@@ -103,10 +103,12 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
             .getPublicUrl(filePath);
 
           // Get admin email from localStorage
-          const adminEmail = localStorage.getItem('adminEmail');
-          if (!adminEmail) {
-            throw new Error('Admin email not found. Please log in again.');
+          const adminSession = localStorage.getItem('admin_session');
+          if (!adminSession) {
+            throw new Error('Admin session not found. Please log in again.');
           }
+          const adminData = JSON.parse(adminSession);
+          const adminEmail = adminData.email;
 
           // Save video metadata via edge function
           const response = await fetch(
