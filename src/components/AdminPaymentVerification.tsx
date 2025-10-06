@@ -66,14 +66,26 @@ const AdminPaymentVerification = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (paymentsError) throw paymentsError;
+      if (paymentsError) {
+        console.error('Error fetching payments:', paymentsError);
+        toast({
+          title: 'Error',
+          description: `Failed to fetch payments: ${paymentsError.message}`,
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+      }
 
       // Fetch celebrity profiles
       const { data: celebritiesData, error: celebritiesError } = await supabase
         .from('celebrity_profiles')
         .select('id, stage_name, email');
 
-      if (celebritiesError) throw celebritiesError;
+      if (celebritiesError) {
+        console.error('Error fetching celebrities:', celebritiesError);
+        // Continue even if celebrity fetch fails
+      }
 
       // Join data
       const enrichedPayments = paymentsData?.map(payment => ({
