@@ -116,6 +116,7 @@ const PremiumSupportUsers = () => {
   };
 
   useEffect(() => {
+    console.log('PremiumSupportUsers component mounted - responsive version');
     fetchPremiumSupportUsers();
 
     // Setup realtime subscription

@@ -54,6 +54,8 @@ const AdminPaymentVerification = () => {
     pending_amount: 0,
   });
 
+  console.log('AdminPaymentVerification: Responsive version loaded');
+
   useEffect(() => {
     fetchPayments();
     setupRealtimeSubscription();

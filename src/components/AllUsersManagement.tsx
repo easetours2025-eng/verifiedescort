@@ -63,6 +63,8 @@ const AllUsersManagement = () => {
   const [selectedImage, setSelectedImage] = useState<{ url: string; title: string } | null>(null);
   const { toast } = useToast();
 
+  console.log('AllUsersManagement: Responsive version loaded');
+
   useEffect(() => {
     fetchUsers();
   }, []);
