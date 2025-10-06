@@ -55,6 +55,12 @@ html, body {
 
     --radius: 0.75rem;
 
+    --chart-1: 340 82% 52%;
+    --chart-2: 280 40% 20%;
+    --chart-3: 45 93% 58%;
+    --chart-4: 217 91% 60%;
+    --chart-5: 142 76% 36%;
+
     --sidebar-background: 0 0% 96%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 217 91% 60%;
@@ -99,6 +105,13 @@ html, body {
     --gradient-gold: linear-gradient(135deg, hsl(45 93% 58%), hsl(35 91% 62%));
     --shadow-celebrity: 0 10px 30px -10px hsl(340 82% 52% / 0.4);
     --shadow-glow: 0 0 40px hsl(340 82% 65% / 0.5);
+
+    --chart-1: 340 82% 52%;
+    --chart-2: 280 40% 25%;
+    --chart-3: 45 93% 58%;
+    --chart-4: 217 91% 60%;
+    --chart-5: 142 76% 36%;
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;

@@ -14,6 +14,23 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  Line,
+  LineChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+} from "recharts";
 
 interface SystemStats {
   totalCelebrities: number;
@@ -27,6 +44,34 @@ interface SystemStats {
   totalViews: number;
   recentSignups: number;
 }
+
+interface ChartData {
+  name: string;
+  value: number;
+}
+
+const chartConfig = {
+  celebrities: {
+    label: "Celebrities",
+    color: "hsl(var(--chart-1))",
+  },
+  subscriptions: {
+    label: "Subscriptions",
+    color: "hsl(var(--chart-2))",
+  },
+  revenue: {
+    label: "Revenue",
+    color: "hsl(var(--chart-3))",
+  },
+  videos: {
+    label: "Videos",
+    color: "hsl(var(--chart-4))",
+  },
+  media: {
+    label: "Media",
+    color: "hsl(var(--chart-5))",
+  },
+};
 
 const AnalyticsDashboard = () => {
   const [stats, setStats] = useState<SystemStats>({
@@ -43,6 +88,25 @@ const AnalyticsDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState<Date | undefined>(new Date());
+
+  // Chart data
+  const platformData: ChartData[] = [
+    { name: "Celebrities", value: stats.totalCelebrities },
+    { name: "Active", value: stats.activeCelebrities },
+    { name: "Subscriptions", value: stats.activeSubscriptions },
+  ];
+
+  const contentData: ChartData[] = [
+    { name: "Videos", value: stats.totalVideos },
+    { name: "Media", value: stats.totalMedia },
+    { name: "Views", value: Math.floor(stats.totalViews / 100) },
+  ];
+
+  const revenueData: ChartData[] = [
+    { name: "Verified", value: Math.floor(stats.totalRevenue / 1000) },
+    { name: "Pending", value: stats.pendingPayments },
+    { name: "Total Subs", value: stats.totalSubscriptions },
+  ];
 
   useEffect(() => {
     console.log('AnalyticsDashboard mounted - fetching data...');
@@ -211,32 +275,131 @@ const AnalyticsDashboard = () => {
         </Card>
       </div>
 
+      {/* Charts Row */}
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base sm:text-lg">Platform Overview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[200px] w-full">
+              <BarChart data={platformData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis 
+                  dataKey="name" 
+                  className="text-xs"
+                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                />
+                <YAxis 
+                  className="text-xs"
+                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="value" fill="hsl(var(--chart-1))" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base sm:text-lg">Content Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[200px] w-full">
+              <AreaChart data={contentData}>
+                <defs>
+                  <linearGradient id="colorContent" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis 
+                  dataKey="name" 
+                  className="text-xs"
+                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                />
+                <YAxis 
+                  className="text-xs"
+                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Area 
+                  type="monotone" 
+                  dataKey="value" 
+                  stroke="hsl(var(--chart-4))" 
+                  fillOpacity={1} 
+                  fill="url(#colorContent)" 
+                />
+              </AreaChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base sm:text-lg">Revenue Metrics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[200px] w-full">
+              <LineChart data={revenueData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis 
+                  dataKey="name" 
+                  className="text-xs"
+                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                />
+                <YAxis 
+                  className="text-xs"
+                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Line 
+                  type="monotone" 
+                  dataKey="value" 
+                  stroke="hsl(var(--chart-3))" 
+                  strokeWidth={3}
+                  dot={{ fill: "hsl(var(--chart-3))", r: 4 }}
+                />
+              </LineChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Content Stats and Calendar */}
       <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
-        <Card>
+        <Card className="bg-gradient-to-br from-primary/5 to-secondary/5">
           <CardHeader>
             <CardTitle className="text-base sm:text-lg">Content Statistics</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 sm:space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 backdrop-blur-sm">
               <div className="flex items-center gap-2">
-                <Video className="h-5 w-5 text-primary" />
+                <div className="p-2 rounded-lg bg-chart-4/10">
+                  <Video className="h-5 w-5 text-chart-4" />
+                </div>
                 <span className="text-sm font-medium">Total Videos</span>
               </div>
               <span className="text-2xl font-bold">{stats.totalVideos}</span>
             </div>
             
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 backdrop-blur-sm">
               <div className="flex items-center gap-2">
-                <ImageIcon className="h-5 w-5 text-primary" />
+                <div className="p-2 rounded-lg bg-chart-5/10">
+                  <ImageIcon className="h-5 w-5 text-chart-5" />
+                </div>
                 <span className="text-sm font-medium">Total Media</span>
               </div>
               <span className="text-2xl font-bold">{stats.totalMedia}</span>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 backdrop-blur-sm">
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
+                <div className="p-2 rounded-lg bg-chart-1/10">
+                  <TrendingUp className="h-5 w-5 text-chart-1" />
+                </div>
                 <span className="text-sm font-medium">Total Views</span>
               </div>
               <span className="text-2xl font-bold">{stats.totalViews.toLocaleString()}</span>
@@ -244,7 +407,7 @@ const AnalyticsDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-accent/5 to-primary/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -263,14 +426,14 @@ const AnalyticsDashboard = () => {
       </div>
 
       {/* Quick Insights */}
-      <Card>
+      <Card className="bg-gradient-to-br from-muted/30 to-muted/10">
         <CardHeader>
           <CardTitle className="text-base sm:text-lg">Quick Insights</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 sm:space-y-3">
-            <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-              <div className="h-2 w-2 bg-green-500 rounded-full mt-2"></div>
+            <div className="flex items-start gap-3 p-3 bg-card/50 backdrop-blur-sm rounded-lg border border-chart-5/20">
+              <div className="h-2 w-2 bg-chart-5 rounded-full mt-2 shadow-lg shadow-chart-5/50"></div>
               <div>
                 <p className="text-sm font-medium">Platform Activity</p>
                 <p className="text-xs text-muted-foreground">
@@ -279,8 +442,8 @@ const AnalyticsDashboard = () => {
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-              <div className="h-2 w-2 bg-blue-500 rounded-full mt-2"></div>
+            <div className="flex items-start gap-3 p-3 bg-card/50 backdrop-blur-sm rounded-lg border border-chart-4/20">
+              <div className="h-2 w-2 bg-chart-4 rounded-full mt-2 shadow-lg shadow-chart-4/50"></div>
               <div>
                 <p className="text-sm font-medium">Content Library</p>
                 <p className="text-xs text-muted-foreground">
@@ -289,8 +452,8 @@ const AnalyticsDashboard = () => {
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-              <div className="h-2 w-2 bg-yellow-500 rounded-full mt-2"></div>
+            <div className="flex items-start gap-3 p-3 bg-card/50 backdrop-blur-sm rounded-lg border border-chart-3/20">
+              <div className="h-2 w-2 bg-chart-3 rounded-full mt-2 shadow-lg shadow-chart-3/50"></div>
               <div>
                 <p className="text-sm font-medium">Payment Status</p>
                 <p className="text-xs text-muted-foreground">
@@ -299,8 +462,8 @@ const AnalyticsDashboard = () => {
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-              <div className="h-2 w-2 bg-purple-500 rounded-full mt-2"></div>
+            <div className="flex items-start gap-3 p-3 bg-card/50 backdrop-blur-sm rounded-lg border border-chart-1/20">
+              <div className="h-2 w-2 bg-chart-1 rounded-full mt-2 shadow-lg shadow-chart-1/50"></div>
               <div>
                 <p className="text-sm font-medium">Growth Trend</p>
                 <p className="text-xs text-muted-foreground">
