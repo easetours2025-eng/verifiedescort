@@ -195,6 +195,51 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (action === "get_payment_data") {
+      console.log('Fetching payment verification data...');
+      
+      // Fetch payment verification data with celebrity profiles
+      const { data: paymentsData, error: paymentsError } = await supabaseServiceRole
+        .from('payment_verification')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (paymentsError) {
+        console.error('Payment error:', paymentsError);
+        throw paymentsError;
+      }
+
+      // Fetch celebrity profiles
+      const { data: celebrityProfilesData, error: celebrityError } = await supabaseServiceRole
+        .from('celebrity_profiles')
+        .select('id, stage_name, real_name, email, is_verified');
+
+      if (celebrityError) {
+        console.error('Celebrity error:', celebrityError);
+        throw celebrityError;
+      }
+
+      // Process payments data by joining with celebrity profiles
+      const processedPayments = paymentsData?.map(payment => {
+        const celebrity = celebrityProfilesData?.find(c => c.id === payment.celebrity_id);
+        return {
+          ...payment,
+          celebrity_profiles: celebrity
+        };
+      }).filter(payment => payment.celebrity_profiles) || [];
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          payments: processedPayments
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200
+        }
+      );
+    }
+
     // Fetch payment verification data with celebrity profiles
     console.log('Fetching payment verification data...');
     const { data: paymentsData, error: paymentsError } = await supabaseServiceRole
