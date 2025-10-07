@@ -58,7 +58,7 @@ const AdminSidebar = ({ activeTab, onTabChange, isOpen = true, onClose }: AdminS
       )}>
         {/* Logo and Close Button */}
         <div className="p-4 sm:p-6 border-b border-border flex items-center justify-between">
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground italic">Architect</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground italic">RoyalEscorts Staff</h1>
           <Button
             variant="ghost"
             size="sm"
