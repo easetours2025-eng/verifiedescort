@@ -24,12 +24,6 @@ interface PaymentRecord {
   verified_at?: string;
   subscription_tier?: string;
   duration_type?: string;
-  celebrity_profiles?: {
-    id: string;
-    stage_name: string;
-    email: string;
-  };
-  // Alias for backward compatibility
   celebrity?: {
     id: string;
     stage_name: string;
@@ -72,58 +66,40 @@ const AdminPaymentVerification = () => {
     try {
       setLoading(true);
 
-      // Get admin email from session
-      const { data: { user } } = await supabase.auth.getUser();
-      const adminEmail = user?.email;
+      // Fetch payments
+      const { data: paymentsData, error: paymentsError } = await supabase
+        .from('payment_verification')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      if (!adminEmail) {
+      if (paymentsError) {
+        console.error('Error fetching payments:', paymentsError);
         toast({
           title: 'Error',
-          description: 'Admin authentication required',
+          description: `Failed to fetch payments: ${paymentsError.message}`,
           variant: 'destructive',
         });
         setLoading(false);
         return;
       }
 
-      // Fetch payments using admin-data edge function
-      const { data, error } = await supabase.functions.invoke('admin-data', {
-        body: { 
-          action: 'get_payment_data',
-          adminEmail 
-        }
-      });
+      // Fetch celebrity profiles
+      const { data: celebritiesData, error: celebritiesError } = await supabase
+        .from('celebrity_profiles')
+        .select('id, stage_name, email');
 
-      if (error) {
-        console.error('Error fetching payments:', error);
-        toast({
-          title: 'Error',
-          description: `Failed to fetch payments: ${error.message}`,
-          variant: 'destructive',
-        });
-        setLoading(false);
-        return;
+      if (celebritiesError) {
+        console.error('Error fetching celebrities:', celebritiesError);
+        // Continue even if celebrity fetch fails
       }
 
-      if (!data.success) {
-        toast({
-          title: 'Error',
-          description: data.message || 'Failed to fetch payment records',
-          variant: 'destructive',
-        });
-        setLoading(false);
-        return;
-      }
-
-      const enrichedPayments = data.payments || [];
-      
-      // Normalize celebrity data for backward compatibility
-      const normalizedPayments = enrichedPayments.map(payment => ({
+      // Join data
+      const enrichedPayments = paymentsData?.map(payment => ({
         ...payment,
-        celebrity: payment.celebrity_profiles || payment.celebrity
-      }));
-      
-      setPayments(normalizedPayments);
+        celebrity: celebritiesData?.find(c => c.id === payment.celebrity_id),
+      })) || [];
+
+      setPayments(enrichedPayments);
 
       // Calculate stats
       const totalAmount = enrichedPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
