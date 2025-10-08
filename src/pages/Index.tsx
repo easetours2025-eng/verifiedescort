@@ -36,12 +36,38 @@ const Index = () => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [deviceType, setDeviceType] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
 
-  const ITEMS_PER_PAGE_MOBILE = 10;
+  // Detect device type
+  useEffect(() => {
+    const checkDeviceType = () => {
+      const width = window.innerWidth;
+      if (width < 768) {
+        setDeviceType('mobile');
+      } else if (width < 1024) {
+        setDeviceType('tablet');
+      } else {
+        setDeviceType('desktop');
+      }
+    };
+    
+    checkDeviceType();
+    window.addEventListener('resize', checkDeviceType);
+    return () => window.removeEventListener('resize', checkDeviceType);
+  }, []);
+
+  const getItemsPerPage = () => {
+    switch (deviceType) {
+      case 'mobile': return 10;
+      case 'tablet': return 20;
+      case 'desktop': return 30;
+    }
+  };
+
+  const itemsPerPage = getItemsPerPage();
 
   useEffect(() => {
     fetchCelebrities();
@@ -141,14 +167,12 @@ const Index = () => {
     return matchesSearch && matchesLocation && matchesAge && matchesGender;
   });
 
-  // Pagination for mobile
-  const totalPages = isMobile ? Math.ceil(filteredCelebrities.length / ITEMS_PER_PAGE_MOBILE) : 1;
-  const paginatedCelebrities = isMobile 
-    ? filteredCelebrities.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE_MOBILE,
-        currentPage * ITEMS_PER_PAGE_MOBILE
-      )
-    : filteredCelebrities;
+  // Pagination
+  const totalPages = Math.ceil(filteredCelebrities.length / itemsPerPage);
+  const paginatedCelebrities = filteredCelebrities.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -592,8 +616,8 @@ const Index = () => {
                 ))}
               </div>
 
-              {/* Mobile Pagination */}
-              {isMobile && totalPages > 1 && (
+              {/* Pagination */}
+              {totalPages > 1 && (
                 <div className="mt-6">
                   <Pagination>
                     <PaginationContent className="flex justify-center gap-2">
