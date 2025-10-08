@@ -412,45 +412,6 @@ const Index = () => {
                 />
               </div>
 
-              {/* Gender Filter */}
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <label className="text-sm font-medium">Filter by Gender</label>
-                </div>
-                
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant={genderFilter === 'all' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setGenderFilter('all')}
-                  >
-                    All
-                  </Button>
-                  <Button
-                    variant={genderFilter === 'Male' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setGenderFilter('Male')}
-                  >
-                    Male
-                  </Button>
-                  <Button
-                    variant={genderFilter === 'Female' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setGenderFilter('Female')}
-                  >
-                    Female
-                  </Button>
-                  <Button
-                    variant={genderFilter === 'Bisexual' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setGenderFilter('Bisexual')}
-                  >
-                    Bisexual
-                  </Button>
-                </div>
-              </div>
-
               {/* Location Filter - Compact Design */}
               {availableLocations.length > 0 && (
                 <div className="space-y-3">
@@ -520,6 +481,45 @@ const Index = () => {
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-4 pt-4">
+                      {/* Gender Filter */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Gender</label>
+                        <div className="grid grid-cols-4 gap-2">
+                          <Button
+                            variant={genderFilter === 'all' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setGenderFilter('all')}
+                            className="text-xs"
+                          >
+                            All
+                          </Button>
+                          <Button
+                            variant={genderFilter === 'Male' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setGenderFilter('Male')}
+                            className="text-xs"
+                          >
+                            Male
+                          </Button>
+                          <Button
+                            variant={genderFilter === 'Female' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setGenderFilter('Female')}
+                            className="text-xs"
+                          >
+                            Female
+                          </Button>
+                          <Button
+                            variant={genderFilter === 'Other' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setGenderFilter('Other')}
+                            className="text-xs"
+                          >
+                            Other
+                          </Button>
+                        </div>
+                      </div>
+
                       {/* Age Range */}
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Age Range</label>
