@@ -9,14 +9,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import CelebrityCard from '@/components/CelebrityCard';
-import { Crown, Sparkles, Search, Filter, Star, Users, Trophy, Heart, Video, ChevronDown, Menu, X, MapPin } from 'lucide-react';
+import { Crown, Sparkles, Search, Filter, Star, Users, Trophy, Heart, Video, ChevronDown, Menu, X, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   filterCelebrityDataArray, 
   PublicCelebrityProfile, 
   PrivateCelebrityProfile,
   CelebrityProfile as FullCelebrityProfile
 } from '@/lib/celebrity-utils';
+import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
 
 const Index = () => {
   const [celebrities, setCelebrities] = useState<PublicCelebrityProfile[]>([]);
@@ -33,9 +35,13 @@ const Index = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+
+  const ITEMS_PER_PAGE_MOBILE = 10;
 
   useEffect(() => {
     fetchCelebrities();
@@ -134,6 +140,20 @@ const Index = () => {
     
     return matchesSearch && matchesLocation && matchesAge && matchesGender;
   });
+
+  // Pagination for mobile
+  const totalPages = isMobile ? Math.ceil(filteredCelebrities.length / ITEMS_PER_PAGE_MOBILE) : 1;
+  const paginatedCelebrities = isMobile 
+    ? filteredCelebrities.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE_MOBILE,
+        currentPage * ITEMS_PER_PAGE_MOBILE
+      )
+    : filteredCelebrities;
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, locationFilter, genderFilter, minAge, maxAge]);
 
   const handleViewProfile = (id: string) => {
     navigate(`/celebrity/${id}`);
@@ -561,15 +581,58 @@ const Index = () => {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
-              {filteredCelebrities.map((celebrity) => (
-                <CelebrityCard
-                  key={celebrity.id}
-                  celebrity={celebrity}
-                  onViewProfile={handleViewProfile}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+                {paginatedCelebrities.map((celebrity) => (
+                  <CelebrityCard
+                    key={celebrity.id}
+                    celebrity={celebrity}
+                    onViewProfile={handleViewProfile}
+                  />
+                ))}
+              </div>
+
+              {/* Mobile Pagination */}
+              {isMobile && totalPages > 1 && (
+                <div className="mt-6">
+                  <Pagination>
+                    <PaginationContent className="flex justify-center gap-2">
+                      <PaginationItem>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                          disabled={currentPage === 1}
+                          className="gap-1"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          Previous
+                        </Button>
+                      </PaginationItem>
+                      
+                      <PaginationItem>
+                        <div className="flex items-center justify-center min-w-[80px] px-3 py-2 text-sm">
+                          Page {currentPage} of {totalPages}
+                        </div>
+                      </PaginationItem>
+
+                      <PaginationItem>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                          disabled={currentPage === totalPages}
+                          className="gap-1"
+                        >
+                          Next
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
