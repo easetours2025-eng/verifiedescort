@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { UserPlus, Users } from 'lucide-react';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { UserPlus, Users } from "lucide-react";
 
 interface UserManagementProps {
   onUserCreated: () => void;
@@ -18,37 +18,37 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    stage_name: '',
-    real_name: '',
-    bio: '',
-    location: '',
-    gender: '',
-    age: '',
-    base_price: '0',
-    hourly_rate: ''
+    email: "",
+    password: "",
+    stage_name: "",
+    real_name: "",
+    bio: "",
+    location: "",
+    gender: "",
+    age: "",
+    base_price: "0",
+    hourly_rate: "",
   });
   const { toast } = useToast();
 
   const resetForm = () => {
     setFormData({
-      email: '',
-      password: '',
-      stage_name: '',
-      real_name: '',
-      bio: '',
-      location: '',
-      gender: '',
-      age: '',
-      base_price: '0',
-      hourly_rate: ''
+      email: "",
+      password: "",
+      stage_name: "",
+      real_name: "",
+      bio: "",
+      location: "",
+      gender: "",
+      age: "",
+      base_price: "0",
+      hourly_rate: "",
     });
   };
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.email || !formData.password || !formData.stage_name) {
       toast({
         title: "Error",
@@ -66,31 +66,29 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
         password: formData.password,
         options: {
           data: {
-            stage_name: formData.stage_name
-          }
-        }
+            stage_name: formData.stage_name,
+          },
+        },
       });
 
       if (authError) throw authError;
 
       if (authData.user) {
         // Create celebrity profile
-        const { error: profileError } = await supabase
-          .from('celebrity_profiles')
-          .insert({
-            user_id: authData.user.id,
-            stage_name: formData.stage_name,
-            real_name: formData.real_name || null,
-            email: formData.email,
-            bio: formData.bio || null,
-            location: formData.location || null,
-            gender: formData.gender || null,
-            age: formData.age ? parseInt(formData.age) : null,
-            base_price: parseFloat(formData.base_price) || 0,
-            hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
-            is_verified: false,
-            is_available: true
-          });
+        const { error: profileError } = await supabase.from("celebrity_profiles").insert({
+          user_id: authData.user.id,
+          stage_name: formData.stage_name,
+          real_name: formData.real_name || null,
+          email: formData.email,
+          bio: formData.bio || null,
+          location: formData.location || null,
+          gender: formData.gender || null,
+          age: formData.age ? parseInt(formData.age) : null,
+          base_price: parseFloat(formData.base_price) || 0,
+          hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
+          is_verified: false,
+          is_available: true,
+        });
 
         if (profileError) throw profileError;
 
@@ -129,7 +127,7 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
             <span>Create New Celebrity User</span>
           </DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleCreateUser} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Required Fields */}
@@ -143,7 +141,7 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="password">Password *</Label>
               <Input
@@ -155,7 +153,7 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
                 minLength={6}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="stage_name">Stage Name *</Label>
               <Input
@@ -165,7 +163,7 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="real_name">Real Name</Label>
               <Input
@@ -174,7 +172,7 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
                 onChange={(e) => setFormData({ ...formData, real_name: e.target.value })}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="location">Location</Label>
               <Input
@@ -184,7 +182,7 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
                 placeholder="e.g., Los Angeles, CA"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="gender">Gender</Label>
               <Select value={formData.gender} onValueChange={(value) => setFormData({ ...formData, gender: value })}>
@@ -195,10 +193,11 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
                   <SelectItem value="male">Male</SelectItem>
                   <SelectItem value="female">Female</SelectItem>
                   <SelectItem value="bisexual">Bisexual</SelectItem>
+                  <SelectItem value="bisexual">Lesbians</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="age">Age</Label>
               <Input
@@ -210,7 +209,7 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
                 max="100"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="base_price">Base Price ($)</Label>
               <Input
@@ -222,7 +221,7 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
                 step="0.01"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="hourly_rate">Hourly Rate ($)</Label>
               <Input
@@ -235,7 +234,7 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
               />
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="bio">Bio</Label>
             <Textarea
@@ -246,7 +245,7 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
               rows={3}
             />
           </div>
-          
+
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
               Cancel
