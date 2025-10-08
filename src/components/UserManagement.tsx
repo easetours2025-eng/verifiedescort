@@ -194,7 +194,7 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
                 <SelectContent>
                   <SelectItem value="male">Male</SelectItem>
                   <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="bisexual">Bisexual</SelectItem>
                 </SelectContent>
               </Select>
             </div>

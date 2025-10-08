@@ -708,7 +708,7 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
                 <option value="">Select</option>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
-                <option value="other">Other</option>
+                <option value="bisexual">Bisexual</option>
               </select>
             </div>
           </div>
