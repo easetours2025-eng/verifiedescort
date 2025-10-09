@@ -424,27 +424,31 @@ const Index = () => {
                     variant={genderFilter === 'all' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setGenderFilter('all')}
+                    className="rounded-full px-4"
                   >
                     All
                   </Button>
                   <Button
-                    variant={genderFilter === 'Male' ? 'default' : 'outline'}
+                    variant={genderFilter === 'male' ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setGenderFilter('Male')}
+                    onClick={() => setGenderFilter('male')}
+                    className="rounded-full px-4"
                   >
                     Male
                   </Button>
                   <Button
-                    variant={genderFilter === 'Female' ? 'default' : 'outline'}
+                    variant={genderFilter === 'female' ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setGenderFilter('Female')}
+                    onClick={() => setGenderFilter('female')}
+                    className="rounded-full px-4"
                   >
                     Female
                   </Button>
                   <Button
-                    variant={genderFilter === 'Bisexual' ? 'default' : 'outline'}
+                    variant={genderFilter === 'bisexual' ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setGenderFilter('Bisexual')}
+                    onClick={() => setGenderFilter('bisexual')}
+                    className="rounded-full px-4"
                   >
                     Bisexual
                   </Button>
