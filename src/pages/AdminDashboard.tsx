@@ -526,7 +526,7 @@ const AdminDashboard = () => {
       />
 
       {/* Main Content */}
-      <div className="flex-1 lg:ml-64">
+      <div className="flex-1 w-full lg:ml-64">
         {/* Top Header */}
         <header className="bg-background border-b border-border sticky top-0 z-10">
           <div className="flex items-center justify-between px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
