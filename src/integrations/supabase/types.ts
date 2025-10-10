@@ -614,6 +614,38 @@ export type Database = {
           },
         ]
       }
+      profile_views: {
+        Row: {
+          celebrity_id: string
+          created_at: string
+          id: string
+          user_id: string | null
+          user_ip: string | null
+        }
+        Insert: {
+          celebrity_id: string
+          created_at?: string
+          id?: string
+          user_id?: string | null
+          user_ip?: string | null
+        }
+        Update: {
+          celebrity_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string | null
+          user_ip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_views_celebrity_id_fkey"
+            columns: ["celebrity_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_packages: {
         Row: {
           created_at: string
@@ -840,6 +872,10 @@ export type Database = {
           verified_amount: number
           verified_payments: number
         }[]
+      }
+      get_profile_view_count: {
+        Args: { profile_id: string }
+        Returns: number
       }
       get_public_celebrity_data: {
         Args: { celebrity_profile_id?: string }

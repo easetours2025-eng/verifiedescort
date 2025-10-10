@@ -91,6 +91,7 @@ const CelebrityDashboard = () => {
   const [saving, setSaving] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [profileViews, setProfileViews] = useState<number>(0);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -149,8 +150,23 @@ const CelebrityDashboard = () => {
       fetchSubscriptionStatus();
       fetchServices();
       fetchMedia(); // Fetch media after profile is loaded
+      fetchProfileViews();
     }
   }, [profile?.id]);
+
+  const fetchProfileViews = async () => {
+    if (!profile?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .rpc('get_profile_view_count', { profile_id: profile.id });
+      
+      if (error) throw error;
+      setProfileViews(data || 0);
+    } catch (error) {
+      console.error('Error fetching profile views:', error);
+    }
+  };
 
   const fetchMedia = async () => {
     if (!profile?.id) return; // Don't fetch if profile ID is not available
@@ -362,7 +378,27 @@ const CelebrityDashboard = () => {
           </TabsList>
 
           <TabsContent value="profile" className="max-w-full overflow-x-hidden">
-            <ProfileTab profile={profile} onUpdate={handleProfileUpdate} saving={saving} />
+            <div className="space-y-4">
+              {/* Profile Stats Card */}
+              <Card className="border-primary/20">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Eye className="h-5 w-5 text-primary" />
+                    Profile Statistics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground">Total Profile Views</p>
+                      <p className="text-3xl font-bold text-primary">{profileViews.toLocaleString()}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <ProfileTab profile={profile} onUpdate={handleProfileUpdate} saving={saving} />
+            </div>
           </TabsContent>
 
           <TabsContent value="subscription" className="max-w-full overflow-x-hidden">
