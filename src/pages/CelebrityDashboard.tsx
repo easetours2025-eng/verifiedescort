@@ -158,30 +158,12 @@ const CelebrityDashboard = () => {
     if (!profile?.id) return;
     
     try {
-      // Get analytics data from last 30 days
-      const endDate = new Date().toISOString().split('T')[0];
-      const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      
-      const response = await fetch(`https://kpjqcrhoablsllkgonbl.supabase.co/rest/v1/rpc/read_project_analytics`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwanFjcmhvYWJsc2xsa2dvbmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3MTY3NTksImV4cCI6MjA3MTI5Mjc1OX0.Guwh9JOeCCYUsqQfVANA-Kiqwl9yi_jGv92ZARqxl1w',
-        },
-        body: JSON.stringify({
-          startdate: startDate,
-          enddate: endDate,
-          granularity: 'daily'
-        })
+      const { data, error } = await supabase.functions.invoke('get-profile-analytics', {
+        body: { celebrityId: profile.id }
       });
-      
-      const data = await response.json();
-      
-      // Find the profile page in the analytics data
-      const profilePath = `/celebrity/${profile.id}`;
-      const pageData = data?.lists?.page?.data?.find((p: any) => p.label === profilePath);
-      
-      setProfileViews(pageData?.value || 0);
+
+      if (error) throw error;
+      setProfileViews(data?.views || 0);
     } catch (error) {
       console.error('Error fetching profile views from analytics:', error);
       setProfileViews(0);
