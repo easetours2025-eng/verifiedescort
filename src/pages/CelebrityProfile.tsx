@@ -95,25 +95,8 @@ const CelebrityProfile = () => {
       fetchCelebrityMedia();
       fetchServices();
       fetchOtherCelebrities();
-      recordProfileView();
     }
   }, [id]);
-
-  const recordProfileView = async () => {
-    if (!id) return;
-    
-    try {
-      const userIP = await getUserIP();
-      await supabase
-        .from('profile_views')
-        .insert({
-          celebrity_id: id,
-          user_ip: userIP
-        });
-    } catch (error) {
-      console.error('Error recording profile view:', error);
-    }
-  };
 
   useEffect(() => {
     if (media.length > 0) {
