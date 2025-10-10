@@ -158,14 +158,13 @@ const CelebrityDashboard = () => {
     if (!profile?.id) return;
     
     try {
-      const { data, error } = await supabase.functions.invoke('get-profile-analytics', {
-        body: { celebrityId: profile.id }
-      });
-
+      const { data, error } = await supabase
+        .rpc('get_profile_view_count', { profile_id: profile.id });
+      
       if (error) throw error;
-      setProfileViews(data?.views || 0);
+      setProfileViews(data || 0);
     } catch (error) {
-      console.error('Error fetching profile views from analytics:', error);
+      console.error('Error fetching profile views:', error);
       setProfileViews(0);
     }
   };
