@@ -95,6 +95,40 @@ const Index = () => {
     }
   };
 
+  const randomizeWithinTiers = (celebrities: any[]) => {
+    // Group celebrities by subscription tier
+    const tierGroups: { [key: string]: any[] } = {
+      vip_elite: [],
+      prime_plus: [],
+      basic_pro: [],
+      starter: [],
+      no_subscription: []
+    };
+
+    celebrities.forEach(celeb => {
+      const tier = celeb.subscription_tier || 'no_subscription';
+      if (tierGroups[tier]) {
+        tierGroups[tier].push(celeb);
+      } else {
+        tierGroups.no_subscription.push(celeb);
+      }
+    });
+
+    // Randomize within each tier group
+    Object.keys(tierGroups).forEach(tier => {
+      tierGroups[tier] = tierGroups[tier].sort(() => Math.random() - 0.5);
+    });
+
+    // Flatten back maintaining tier priority order
+    return [
+      ...tierGroups.vip_elite,
+      ...tierGroups.prime_plus,
+      ...tierGroups.basic_pro,
+      ...tierGroups.starter,
+      ...tierGroups.no_subscription
+    ];
+  };
+
   const fetchCelebrities = async () => {
     try {
       // Use the database function to get celebrities with subscription info
@@ -104,7 +138,7 @@ const Index = () => {
       if (celebrityError) throw celebrityError;
 
       // Map to the expected format with subscription info
-      const celebrities = celebrityData?.map(celebrity => ({
+      let celebrities = celebrityData?.map(celebrity => ({
         id: celebrity.id,
         stage_name: celebrity.stage_name,
         bio: celebrity.bio,
@@ -125,6 +159,17 @@ const Index = () => {
         duration_type: celebrity.duration_type,
         subscription_end: celebrity.subscription_end,
       })) || [];
+
+      // Check if this is the first visit
+      const hasVisited = localStorage.getItem('homepage_visited');
+      
+      if (hasVisited) {
+        // Randomize celebrities within their subscription tiers
+        celebrities = randomizeWithinTiers(celebrities);
+      } else {
+        // Mark as visited for next time
+        localStorage.setItem('homepage_visited', 'true');
+      }
       
       setCelebrities(celebrities);
       
