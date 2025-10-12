@@ -452,6 +452,22 @@ const Index = () => {
                   >
                     Bisexual
                   </Button>
+                  <Button
+                    variant={genderFilter === 'sugar_mummies' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setGenderFilter('sugar_mummies')}
+                    className="rounded-full px-4"
+                  >
+                    Sugar Mummies
+                  </Button>
+                  <Button
+                    variant={genderFilter === 'ben10' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setGenderFilter('ben10')}
+                    className="rounded-full px-4"
+                  >
+                    Ben10
+                  </Button>
                 </div>
               </div>
 

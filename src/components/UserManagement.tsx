@@ -193,8 +193,10 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
                   <SelectItem value="male">Male</SelectItem>
                   <SelectItem value="female">Female</SelectItem>
                   <SelectItem value="bisexual">Bisexual</SelectItem>
-                  <SelectItem value="bisexual">Lesbians</SelectItem>
-                  <SelectItem value="bisexual">Gay</SelectItem>
+                  <SelectItem value="lesbians">Lesbians</SelectItem>
+                  <SelectItem value="gay">Gay</SelectItem>
+                  <SelectItem value="sugar_mummies">Sugar Mummies</SelectItem>
+                  <SelectItem value="ben10">Ben10</SelectItem>
                 </SelectContent>
               </Select>
             </div>
