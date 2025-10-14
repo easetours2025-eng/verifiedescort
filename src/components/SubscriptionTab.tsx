@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
   CreditCard, 
   CheckCircle, 
@@ -11,11 +14,17 @@ import {
   Clock,
   Smartphone,
   Eye,
-  EyeOff
+  EyeOff,
+  Crown,
+  Gem,
+  Sparkles,
+  Star,
+  Check,
+  Copy
 } from 'lucide-react';
-import { NewSubscriptionModal } from './NewSubscriptionModal';
 import { useNavigate } from 'react-router-dom';
 import CelebritySubscriptionFeatures from './CelebritySubscriptionFeatures';
+import { toast as sonnerToast } from 'sonner';
 
 interface CelebrityProfile {
   id: string;
@@ -34,24 +43,81 @@ interface SubscriptionTabProps {
   onOpenPaymentModal: () => void;
 }
 
+interface SubscriptionPackage {
+  id: string;
+  tier_name: string;
+  duration_type: string;
+  price: number;
+  features: any;
+  display_order: number;
+}
+
+const TILL_NUMBER = "8980316";
+
+const tierIcons = {
+  vip_elite: <Crown className="w-6 h-6" />,
+  prime_plus: <Gem className="w-6 h-6" />,
+  basic_pro: <Sparkles className="w-6 h-6" />,
+  starter: <Star className="w-6 h-6" />,
+};
+
+const tierColors = {
+  vip_elite: "from-yellow-500 to-amber-600",
+  prime_plus: "from-purple-500 to-indigo-600",
+  basic_pro: "from-blue-500 to-cyan-600",
+  starter: "from-green-500 to-emerald-600",
+};
+
+const tierLabels = {
+  vip_elite: "VIP Elite",
+  prime_plus: "Prime Plus",
+  basic_pro: "Basic Pro",
+  starter: "Starter",
+};
+
 const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: SubscriptionTabProps) => {
-  const [showNewModal, setShowNewModal] = useState(false);
   const [isNewCelebrity, setIsNewCelebrity] = useState(false);
   const [specialOfferStatus, setSpecialOfferStatus] = useState<{
     isActive: boolean;
     daysLeft: number;
     registeredAt?: string;
   } | null>(null);
+  const [packages, setPackages] = useState<SubscriptionPackage[]>([]);
+  const [selectedPackage, setSelectedPackage] = useState<SubscriptionPackage | null>(null);
+  const [mpesaCode, setMpesaCode] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [selectedDuration, setSelectedDuration] = useState("1_month");
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Check if celebrity is new (created within last 30 days)
   useEffect(() => {
     if (profile) {
       setIsNewCelebrity(true);
       checkSpecialOfferStatus();
+      fetchPackages();
     }
   }, [profile]);
+
+  const fetchPackages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("subscription_packages")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+
+      if (error) throw error;
+      const parsedData = (data || []).map(pkg => ({
+        ...pkg,
+        features: Array.isArray(pkg.features) ? pkg.features : []
+      }));
+      setPackages(parsedData);
+    } catch (error) {
+      console.error("Error fetching packages:", error);
+      sonnerToast.error("Failed to load subscription packages");
+    }
+  };
 
   const checkSpecialOfferStatus = async () => {
     if (!profile?.id) return;
@@ -92,23 +158,70 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
     }
   };
 
-  const handleNewTierSubmission = async (
-    tier: string,
-    duration: string,
-    mpesaCode: string,
-    phoneNumber: string,
-    expectedAmount: number
-  ) => {
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      sonnerToast.success("Copied to clipboard!");
+    } catch (err) {
+      sonnerToast.error("Failed to copy");
+    }
+  };
+
+  const getPackagesByDuration = (duration: string) => {
+    return packages.filter((pkg) => pkg.duration_type === duration);
+  };
+
+  const getDurationLabel = (duration: string) => {
+    switch (duration) {
+      case "1_week":
+        return "1 Week";
+      case "2_weeks":
+        return "2 Weeks";
+      case "1_month":
+        return "1 Month";
+      default:
+        return duration;
+    }
+  };
+
+  const getSavingsText = (tier: string, duration: string) => {
+    const competitorPrices: Record<string, Record<string, number>> = {
+      vip_elite: { "1_week": 1250, "2_weeks": 2500, "1_month": 5000 },
+      prime_plus: { "1_week": 1000, "2_weeks": 2000, "1_month": 4000 },
+      basic_pro: { "1_week": 750, "2_weeks": 1500, "1_month": 3000 },
+      starter: { "1_week": 500, "2_weeks": 1000, "1_month": 2000 },
+    };
+
+    const pkg = packages.find((p) => p.tier_name === tier && p.duration_type === duration);
+    if (!pkg) return null;
+
+    const competitorPrice = competitorPrices[tier]?.[duration];
+    if (!competitorPrice) return null;
+
+    const savings = competitorPrice - pkg.price;
+    if (savings > 0) {
+      return `Save KSH ${savings}!`;
+    }
+    return null;
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedPackage || !mpesaCode.trim() || !phoneNumber.trim()) {
+      sonnerToast.error("Please fill in all fields");
+      return;
+    }
+
+    setSubmitting(true);
     try {
       const { data, error } = await supabase.functions.invoke('payment-verification', {
         body: {
           celebrityId: profile?.id,
-          phoneNumber,
-          mpesaCode,
-          amount: expectedAmount, // Use the expected amount as the amount
-          expectedAmount,
-          tier,
-          duration,
+          phoneNumber: phoneNumber.trim(),
+          mpesaCode: mpesaCode.trim(),
+          amount: selectedPackage.price,
+          expectedAmount: selectedPackage.price,
+          tier: selectedPackage.tier_name,
+          duration: selectedPackage.duration_type,
         }
       });
 
@@ -118,7 +231,17 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
         throw new Error(data.message || 'Failed to submit payment verification');
       }
 
-      // Show warning if payment status indicates issues
+      setMpesaCode("");
+      setPhoneNumber("");
+      setSelectedPackage(null);
+      
+      sonnerToast.success(
+        `Subscription request submitted! Expected amount: KSH ${selectedPackage.price.toLocaleString()}`,
+        {
+          description: "Your payment will be verified by admin. You'll be notified about the status."
+        }
+      );
+
       if (data.warning) {
         toast({
           title: data.payment_status === 'underpaid' ? "Payment Insufficient" : "Payment Received",
@@ -128,17 +251,14 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
       } else {
         toast({
           title: "Payment Verification Submitted",
-          description: `Your ${tier} plan payment verification has been submitted. An admin will review it shortly.`,
+          description: `Your ${selectedPackage.tier_name} plan payment verification has been submitted. An admin will review it shortly.`,
         });
       }
     } catch (error: any) {
       console.error('Payment submission error:', error);
-      toast({
-        title: "Submission Failed",
-        description: error.message || "Failed to submit payment verification",
-        variant: "destructive",
-      });
-      throw error;
+      sonnerToast.error(error.message || "Failed to submit payment verification");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -314,73 +434,188 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
         </CardContent>
       </Card>
 
-      {/* Payment Instructions Card */}
+      {/* Subscription Plans */}
       <Card className="border-accent/20">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Smartphone className="h-5 w-5 text-accent" />
-            <span>Choose Your Plan</span>
+            <span>Choose Your Subscription Plan</span>
           </CardTitle>
+          <CardDescription>
+            Select a plan that fits your needs. Better prices, more features than competitors!
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="text-center space-y-4 py-4">
-            <div className="inline-block">
-              <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 text-base">
-                🎉 Better Prices Than Competitors!
-              </Badge>
-            </div>
-            
-            <div>
-              <h3 className="text-xl sm:text-2xl font-bold mb-2">Choose Your Perfect Plan</h3>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                4 tiers available • 3 duration options • Competitive pricing
+          <Tabs value={selectedDuration} onValueChange={setSelectedDuration} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 gap-1 h-auto p-1">
+              <TabsTrigger 
+                value="1_month" 
+                className="text-xs sm:text-sm py-2 sm:py-2.5 px-1 sm:px-3 h-auto whitespace-normal leading-tight data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                <span className="hidden sm:inline">1 Month - Best Value</span>
+                <span className="sm:hidden">1 Month<br/><span className="text-[10px]">Best Value</span></span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="2_weeks" 
+                className="text-xs sm:text-sm py-2 sm:py-2.5 px-1 sm:px-3 h-auto data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                2 Weeks
+              </TabsTrigger>
+              <TabsTrigger 
+                value="1_week" 
+                className="text-xs sm:text-sm py-2 sm:py-2.5 px-1 sm:px-3 h-auto data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                1 Week
+              </TabsTrigger>
+            </TabsList>
+
+            {["1_month", "2_weeks", "1_week"].map((duration) => (
+              <TabsContent key={duration} value={duration} className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                  {getPackagesByDuration(duration).map((pkg) => (
+                    <Card
+                      key={pkg.id}
+                      className={`cursor-pointer transition-all hover:shadow-lg ${
+                        selectedPackage?.id === pkg.id
+                          ? "ring-2 ring-primary scale-105"
+                          : "hover:scale-102"
+                      }`}
+                      onClick={() => setSelectedPackage(pkg)}
+                    >
+                      <CardHeader className="pb-3 sm:pb-6">
+                        <div
+                          className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br ${
+                            tierColors[pkg.tier_name as keyof typeof tierColors]
+                          } flex items-center justify-center text-white mb-2`}
+                        >
+                          <div className="w-5 h-5 sm:w-6 sm:h-6">
+                            {tierIcons[pkg.tier_name as keyof typeof tierIcons]}
+                          </div>
+                        </div>
+                        <CardTitle className="text-lg sm:text-xl">
+                          {tierLabels[pkg.tier_name as keyof typeof tierLabels]}
+                        </CardTitle>
+                        <CardDescription className="text-sm">{getDurationLabel(pkg.duration_type)}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="pb-3 sm:pb-6">
+                        <div className="mb-3 sm:mb-4">
+                          <div className="text-2xl sm:text-3xl font-bold">
+                            KSH {pkg.price.toLocaleString()}
+                          </div>
+                          {getSavingsText(pkg.tier_name, pkg.duration_type) && (
+                            <Badge variant="secondary" className="mt-1.5 sm:mt-2 text-xs">
+                              {getSavingsText(pkg.tier_name, pkg.duration_type)}
+                            </Badge>
+                          )}
+                        </div>
+                        <ul className="space-y-1.5 sm:space-y-2">
+                          {pkg.features.map((feature: string, idx: number) => (
+                            <li key={idx} className="flex items-start gap-2 text-xs sm:text-sm">
+                              <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0 mt-0.5" />
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                      <CardFooter className="pt-3 sm:pt-6">
+                        <Button
+                          className="w-full h-9 sm:h-10 text-sm sm:text-base"
+                          variant={selectedPackage?.id === pkg.id ? "default" : "outline"}
+                        >
+                          {selectedPackage?.id === pkg.id ? "Selected" : "Select Plan"}
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+
+          {selectedPackage && (
+            <div className="space-y-3 sm:space-y-4 border-t pt-4 sm:pt-6">
+              <div className="bg-muted p-3 sm:p-4 rounded-lg">
+                <h3 className="font-semibold mb-2 text-sm sm:text-base">Payment Instructions</h3>
+                <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+                  <li>Go to M-Pesa on your phone</li>
+                  <li>Select "Lipa na M-Pesa" then "Buy Goods and Services"</li>
+                  <li>
+                    Enter Till Number:{" "}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto p-1"
+                      onClick={() => copyToClipboard(TILL_NUMBER)}
+                    >
+                      <span className="font-bold">{TILL_NUMBER}</span>
+                      <Copy className="w-3 h-3 ml-1" />
+                    </Button>
+                  </li>
+                  <li>
+                    Enter amount:{" "}
+                    <span className="font-bold text-primary">
+                      KSH {selectedPackage.price.toLocaleString()}
+                    </span>
+                  </li>
+                  <li>Complete the transaction and note your M-Pesa code</li>
+                </ol>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <Label htmlFor="mpesa-code" className="text-sm">M-Pesa Transaction Code *</Label>
+                  <Input
+                    id="mpesa-code"
+                    placeholder="e.g., QGH7KLM9NP"
+                    value={mpesaCode}
+                    onChange={(e) => setMpesaCode(e.target.value.toUpperCase())}
+                    className="mt-1 h-10 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone" className="text-sm">Phone Number *</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="e.g., 0712345678"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="mt-1 h-10 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-2.5 sm:p-3">
+                <p className="text-xs sm:text-sm font-semibold text-center">
+                  Total Amount to Pay: <span className="text-lg sm:text-xl text-primary">KSH {selectedPackage.price.toLocaleString()}</span>
+                </p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground text-center mt-1">
+                  {selectedPackage.duration_type === "1_week" && "Valid for 1 Week"}
+                  {selectedPackage.duration_type === "2_weeks" && "Valid for 2 Weeks"}
+                  {selectedPackage.duration_type === "1_month" && "Valid for 1 Month"}
+                </p>
+              </div>
+
+              <Button
+                onClick={handleSubmit}
+                disabled={submitting || !mpesaCode.trim() || !phoneNumber.trim()}
+                className="w-full h-11 sm:h-12 text-sm sm:text-base"
+              >
+                {submitting ? "Submitting..." : (
+                  <>
+                    <span className="hidden sm:inline">Submit Payment of KSH {selectedPackage.price.toLocaleString()}</span>
+                    <span className="sm:hidden">Submit KSH {selectedPackage.price.toLocaleString()}</span>
+                  </>
+                )}
+              </Button>
+              
+              <p className="text-xs text-muted-foreground text-center">
+                ⚠️ If you pay less than the required amount, your subscription will be disabled. If you pay more, the extra will be credited to your account.
               </p>
             </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 max-w-2xl mx-auto">
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-2 sm:p-3 rounded-lg border border-green-200">
-                <div className="text-sm sm:text-lg font-bold text-green-700">Starter</div>
-                <div className="text-xs sm:text-sm text-green-600">From KSH 400/week</div>
-              </div>
-              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-2 sm:p-3 rounded-lg border border-blue-200">
-                <div className="text-sm sm:text-lg font-bold text-blue-700">Basic Pro</div>
-                <div className="text-xs sm:text-sm text-blue-600">From KSH 600/week</div>
-              </div>
-              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-2 sm:p-3 rounded-lg border border-purple-200">
-                <div className="text-sm sm:text-lg font-bold text-purple-700">Prime Plus</div>
-                <div className="text-xs sm:text-sm text-purple-600">From KSH 800/week</div>
-              </div>
-              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 p-2 sm:p-3 rounded-lg border-2 border-yellow-300">
-                <div className="text-sm sm:text-lg font-bold text-yellow-700">VIP Elite</div>
-                <div className="text-xs sm:text-sm text-yellow-600">From KSH 1,000/week</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2 bg-muted/50 p-4 rounded-lg">
-            <h4 className="font-semibold flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-primary" />
-              All Plans Include:
-            </h4>
-            <ul className="text-sm text-muted-foreground space-y-1 ml-7">
-              <li>• Profile visibility in public listings</li>
-              <li>• Direct client messaging capabilities</li>
-              <li>• Media upload & management</li>
-              <li>• Access to booking requests</li>
-              <li>• Verification badge</li>
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <Button 
-              onClick={() => setShowNewModal(true)}
-              className="w-full bg-gradient-to-r from-primary to-accent h-11 sm:h-12 text-sm sm:text-base"
-            >
-              <CreditCard className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">View All Plans & Subscribe Now</span>
-              <span className="sm:hidden">View Plans & Subscribe</span>
-            </Button>
-            
+          )}
+          
+          <div className="pt-4 border-t">
             <Button 
               onClick={() => navigate('/faq')}
               variant="outline"
@@ -392,19 +627,12 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
         </CardContent>
       </Card>
 
-      <NewSubscriptionModal
-        open={showNewModal}
-        onOpenChange={setShowNewModal}
-        celebrityId={profile?.id || ''}
-        onSubmit={handleNewTierSubmission}
-      />
-
       {/* Subscription Features */}
       {profile && (
         <div className="mt-6">
           <CelebritySubscriptionFeatures
             celebrityId={profile.id}
-            onUpgrade={() => setShowNewModal(true)}
+            onUpgrade={() => {}}
           />
         </div>
       )}

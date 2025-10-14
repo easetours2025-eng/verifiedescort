@@ -338,6 +338,9 @@ const CelebrityDashboard = () => {
       </header>
 
       <div className="max-w-full mx-auto px-2 sm:px-4 py-3 sm:py-8 overflow-x-hidden">
+        {/* Profile Requirements Alert */}
+        <ProfileRequirementsAlert profile={profile} />
+        
         {/* Visibility Status Banner */}
         <div className="mb-3 sm:mb-6 max-w-full overflow-x-hidden">
           <VisibilityStatusBanner 
@@ -464,8 +467,64 @@ const CelebrityDashboard = () => {
   );
 };
 
+// Profile Requirements Alert Component
+const ProfileRequirementsAlert = ({ profile }: { profile: CelebrityProfile }) => {
+  const { toast } = useToast();
+  const missingRequirements: string[] = [];
+
+  if (!profile.profile_picture_path) {
+    missingRequirements.push("Profile Picture");
+  }
+  if (!profile.phone_number || profile.phone_number.trim() === '') {
+    missingRequirements.push("Phone Number");
+  }
+  if (!profile.is_verified) {
+    missingRequirements.push("Payment Verification");
+  }
+
+  if (missingRequirements.length === 0) {
+    return null;
+  }
+
+  return (
+    <Card className="mb-4 border-2 border-amber-500 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20">
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/40">
+            <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-500" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-amber-800 dark:text-amber-400 mb-2">
+              📋 Complete Your Profile to Appear on Homepage
+            </h3>
+            <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
+              To be visible to users on the homepage, you need to complete the following:
+            </p>
+            <ul className="space-y-2">
+              {missingRequirements.map((requirement, index) => (
+                <li key={index} className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <span className="font-medium">{requirement}</span>
+                  {requirement === "Profile Picture" && <span className="text-xs">(Upload in Profile tab)</span>}
+                  {requirement === "Phone Number" && <span className="text-xs">(Add in Profile tab)</span>}
+                  {requirement === "Payment Verification" && <span className="text-xs">(Subscribe and pay in Subscription tab)</span>}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-3 pt-3 border-t border-amber-200 dark:border-amber-800">
+              <p className="text-xs text-amber-600 dark:text-amber-400">
+                💡 Once all requirements are met and verified by admin, your profile will automatically appear on the homepage!
+              </p>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 // Visibility Status Banner Component
-const VisibilityStatusBanner = ({ 
+const VisibilityStatusBanner = ({
   subscriptionStatus, 
   profile 
 }: {
