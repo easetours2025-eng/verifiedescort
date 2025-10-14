@@ -516,7 +516,7 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* Location Filter - Compact Design */}
+              {/* Location Filter - Cards Display */}
               {availableLocations.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center space-x-2">
@@ -524,51 +524,37 @@ const Index = () => {
                     <label className="text-sm font-medium">Filter by Location</label>
                   </div>
                   
-                  <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {/* All Locations Button */}
-                    <Button
-                      variant={locationFilter === '' ? 'default' : 'outline'}
-                      size="sm"
+                    <Card
                       onClick={() => setLocationFilter('')}
-                      className="flex-shrink-0"
+                      className={`cursor-pointer transition-all hover:shadow-md ${
+                        locationFilter === '' 
+                          ? 'border-primary bg-primary text-primary-foreground shadow-md' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
                     >
-                      All Locations
-                    </Button>
+                      <CardContent className="p-3 text-center">
+                        <p className="text-sm font-medium">All Locations</p>
+                      </CardContent>
+                    </Card>
 
-                    {/* Quick Access - Show first 3-4 popular locations */}
-                    <div className="flex flex-wrap gap-2">
-                      {availableLocations.slice(0, 3).map((location) => (
-                        <Button
-                          key={location}
-                          variant={locationFilter === location ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setLocationFilter(location)}
-                          className="text-xs sm:text-sm"
-                        >
-                          {location}
-                        </Button>
-                      ))}
-                    </div>
-
-                    {/* Dropdown for all locations */}
-                    {availableLocations.length > 3 && (
-                      <Select 
-                        value={locationFilter || "all"} 
-                        onValueChange={(value) => setLocationFilter(value === "all" ? "" : value)}
+                    {/* Individual Location Cards */}
+                    {availableLocations.map((location) => (
+                      <Card
+                        key={location}
+                        onClick={() => setLocationFilter(location)}
+                        className={`cursor-pointer transition-all hover:shadow-md ${
+                          locationFilter === location 
+                            ? 'border-primary bg-primary text-primary-foreground shadow-md' 
+                            : 'border-border hover:border-primary/50'
+                        }`}
                       >
-                        <SelectTrigger className="w-full sm:w-[200px]">
-                          <SelectValue placeholder="More locations..." />
-                        </SelectTrigger>
-                        <SelectContent className="bg-background z-[100]">
-                          <SelectItem value="all">All Locations</SelectItem>
-                          {availableLocations.map((location) => (
-                            <SelectItem key={location} value={location}>
-                              {location}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
+                        <CardContent className="p-3 text-center">
+                          <p className="text-sm font-medium">{location}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
 
                   {/* Advanced Filters Toggle */}
