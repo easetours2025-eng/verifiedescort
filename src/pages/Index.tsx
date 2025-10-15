@@ -676,7 +676,10 @@ const Index = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                          onClick={() => {
+                            setCurrentPage(prev => Math.max(1, prev - 1));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
                           disabled={currentPage === 1}
                           className="gap-1"
                         >
@@ -695,7 +698,10 @@ const Index = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                          onClick={() => {
+                            setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
                           disabled={currentPage === totalPages}
                           className="gap-1"
                         >
