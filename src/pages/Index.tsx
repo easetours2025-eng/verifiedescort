@@ -200,7 +200,8 @@ const Index = () => {
 
   const filteredCelebrities = celebrities.filter(celebrity => {
     const matchesSearch = celebrity.stage_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         celebrity.bio?.toLowerCase().includes(searchTerm.toLowerCase());
+                         celebrity.bio?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         celebrity.location?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesLocation = !locationFilter || 
                            celebrity.location?.toLowerCase().includes(locationFilter.toLowerCase());
@@ -450,74 +451,76 @@ const Index = () => {
               {/* Main Search - Always visible */}
               <div className="flex-1">
                 <Input
-                  placeholder="Search by name, bio, or specialty..."
+                  placeholder="Search by name, bio, location, or specialty..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="h-10 sm:h-12"
                 />
               </div>
 
-              {/* Gender Filter */}
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <label className="text-sm font-medium">Filter by Gender</label>
+              {/* Gender Filter - Hide when search is active */}
+              {!searchTerm && (
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <label className="text-sm font-medium">Filter by Gender</label>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant={genderFilter === 'all' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setGenderFilter('all')}
+                      className="rounded-full px-4"
+                    >
+                      All
+                    </Button>
+                    <Button
+                      variant={genderFilter === 'male' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setGenderFilter('male')}
+                      className="rounded-full px-4"
+                    >
+                      Male
+                    </Button>
+                    <Button
+                      variant={genderFilter === 'female' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setGenderFilter('female')}
+                      className="rounded-full px-4"
+                    >
+                      Female
+                    </Button>
+                    <Button
+                      variant={genderFilter === 'bisexual' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setGenderFilter('bisexual')}
+                      className="rounded-full px-4"
+                    >
+                      Bisexual
+                    </Button>
+                    <Button
+                      variant={genderFilter === 'sugar_mummies' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setGenderFilter('sugar_mummies')}
+                      className="rounded-full px-4"
+                    >
+                      Sugar Mummies
+                    </Button>
+                    <Button
+                      variant={genderFilter === 'ben10' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setGenderFilter('ben10')}
+                      className="rounded-full px-4"
+                    >
+                      Ben10
+                    </Button>
+                  </div>
                 </div>
-                
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant={genderFilter === 'all' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setGenderFilter('all')}
-                    className="rounded-full px-4"
-                  >
-                    All
-                  </Button>
-                  <Button
-                    variant={genderFilter === 'male' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setGenderFilter('male')}
-                    className="rounded-full px-4"
-                  >
-                    Male
-                  </Button>
-                  <Button
-                    variant={genderFilter === 'female' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setGenderFilter('female')}
-                    className="rounded-full px-4"
-                  >
-                    Female
-                  </Button>
-                  <Button
-                    variant={genderFilter === 'bisexual' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setGenderFilter('bisexual')}
-                    className="rounded-full px-4"
-                  >
-                    Bisexual
-                  </Button>
-                  <Button
-                    variant={genderFilter === 'sugar_mummies' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setGenderFilter('sugar_mummies')}
-                    className="rounded-full px-4"
-                  >
-                    Sugar Mummies
-                  </Button>
-                  <Button
-                    variant={genderFilter === 'ben10' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setGenderFilter('ben10')}
-                    className="rounded-full px-4"
-                  >
-                    Ben10
-                  </Button>
-                </div>
-              </div>
+              )}
 
-              {/* Location Filter - Cards Display */}
-              {availableLocations.length > 0 && (
+              {/* Location Filter - Cards Display - Hide when search is active */}
+              {!searchTerm && availableLocations.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center space-x-2">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
