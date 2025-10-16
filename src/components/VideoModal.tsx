@@ -18,9 +18,10 @@ const VideoModal = ({ videoUrl, isOpen, onClose }: VideoModalProps) => {
           variant="ghost"
           size="sm"
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 bg-black/50 text-white hover:bg-black/70"
+          className="absolute top-4 right-4 z-10 bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm border border-white/20"
         >
-          <X className="h-6 w-6" />
+          <X className="h-5 w-5 mr-2" />
+          Close
         </Button>
         <video
           src={videoUrl}

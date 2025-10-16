@@ -41,7 +41,8 @@ import {
   ThumbsUp,
   CheckCircle,
   Music,
-  Calendar
+  Calendar,
+  X
 } from 'lucide-react';
 
 interface MediaItem {
@@ -538,12 +539,25 @@ const CelebrityProfile = () => {
               <div className="flex-shrink-0 mx-auto md:mx-0">
                 <div 
                   className="w-24 h-32 md:w-32 md:h-40 rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={() => {
+                  onClick={async () => {
                     if (profile.profile_picture_path) {
                       const imageUrl = profile.profile_picture_path.startsWith('http') ? 
                         profile.profile_picture_path : 
                         `https://kpjqcrhoablsllkgonbl.supabase.co/storage/v1/object/public/celebrity-photos/${profile.profile_picture_path}`;
                       setSelectedProfileImage(imageUrl);
+                      
+                      // Track profile picture view
+                      try {
+                        const userIP = await getUserIP();
+                        await supabase
+                          .from('profile_views')
+                          .insert({
+                            celebrity_id: id,
+                            user_ip: userIP
+                          });
+                      } catch (error) {
+                        console.error('Error recording profile picture view:', error);
+                      }
                     }
                   }}
                 >
@@ -806,15 +820,16 @@ const CelebrityProfile = () => {
 
       {/* Image Modal */}
       {selectedMedia && selectedMedia.file_type === 'image' && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="relative max-w-4xl w-full max-h-full overflow-hidden">
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+          <div className="relative max-w-4xl w-full">
             <Button
               variant="ghost"
               size="sm"
-              className="absolute -top-10 sm:-top-12 right-0 text-white hover:text-gray-300 z-10"
+              className="absolute top-4 right-4 z-10 bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm border border-white/20"
               onClick={() => setSelectedMedia(null)}
             >
-              ✕ Close
+              <X className="h-5 w-5 mr-2" />
+              Close
             </Button>
             
             <div className="bg-card rounded-lg overflow-hidden">
