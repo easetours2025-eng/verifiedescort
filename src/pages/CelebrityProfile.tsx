@@ -42,7 +42,8 @@ import {
   CheckCircle,
   Music,
   Calendar,
-  X
+  X,
+  Users
 } from 'lucide-react';
 
 interface MediaItem {
@@ -216,7 +217,13 @@ const CelebrityProfile = () => {
         throw new Error('Celebrity profile not found');
       }
 
-      setProfile(celebrityData);
+      // Cast gender to correct type
+      const profileData = {
+        ...celebrityData,
+        gender: Array.isArray(celebrityData.gender) ? celebrityData.gender : (celebrityData.gender ? [celebrityData.gender as string] : null)
+      } as PublicCelebrityProfile;
+
+      setProfile(profileData);
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
@@ -281,10 +288,14 @@ const CelebrityProfile = () => {
       if (error) throw error;
       
       if (data) {
-        // Filter out current celebrity and limit to 6
+        // Filter out current celebrity and limit to 6, cast gender to correct type
         const filteredData = data
           .filter(profile => profile.id !== id)
-          .slice(0, 6);
+          .slice(0, 6)
+          .map(profile => ({
+            ...profile,
+            gender: Array.isArray(profile.gender) ? profile.gender : (profile.gender ? [profile.gender as string] : null)
+          })) as PublicCelebrityProfile[];
         setOtherCelebrities(filteredData);
       }
     } catch (error) {
@@ -599,6 +610,12 @@ const CelebrityProfile = () => {
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
                       {profile.age} years old
+                    </span>
+                  )}
+                  {profile.gender && profile.gender.length > 0 && (
+                    <span className="flex items-center gap-1">
+                      <Users className="w-3 h-3" />
+                      {profile.gender.join(', ')}
                     </span>
                   )}
                   {(profile as any).phone_number && (

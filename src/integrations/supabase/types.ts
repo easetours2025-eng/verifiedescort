@@ -207,7 +207,7 @@ export type Database = {
           credit_balance: number | null
           date_of_birth: string | null
           email: string | null
-          gender: string | null
+          gender: string[] | null
           hourly_rate: number | null
           id: string
           is_available: boolean | null
@@ -233,7 +233,7 @@ export type Database = {
           credit_balance?: number | null
           date_of_birth?: string | null
           email?: string | null
-          gender?: string | null
+          gender?: string[] | null
           hourly_rate?: number | null
           id?: string
           is_available?: boolean | null
@@ -259,7 +259,7 @@ export type Database = {
           credit_balance?: number | null
           date_of_birth?: string | null
           email?: string | null
-          gender?: string | null
+          gender?: string[] | null
           hourly_rate?: number | null
           id?: string
           is_available?: boolean | null

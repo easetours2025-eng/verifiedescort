@@ -9,7 +9,7 @@ export interface CelebrityProfile {
   phone_number?: string;
   email?: string;
   location?: string;
-  gender?: string;
+  gender?: string[];
   age?: number;
   date_of_birth?: string;
   base_price: number;
@@ -29,7 +29,7 @@ export interface PublicCelebrityProfile {
   stage_name: string;
   bio?: string;
   location?: string; // Only city/state, not full address
-  gender?: string;
+  gender?: string[];
   age?: number;
   base_price: number;
   hourly_rate?: number;
@@ -91,23 +91,25 @@ export const filterCelebrityData = async (
 ): Promise<PublicCelebrityProfile> => {
   // Use the secure database function instead of client-side filtering
   const { data } = await supabase.rpc('get_safe_celebrity_profiles', { celebrity_id: profile.id });
-  return data?.[0] || {
-    id: profile.id,
-    stage_name: profile.stage_name,
-    bio: profile.bio,
-    location: profile.location,
-    gender: profile.gender,
-    age: profile.age,
-    base_price: profile.base_price,
-    hourly_rate: profile.hourly_rate,
+  const dbProfile = data?.[0];
+  
+  return {
+    id: dbProfile?.id || profile.id,
+    stage_name: dbProfile?.stage_name || profile.stage_name,
+    bio: dbProfile?.bio || profile.bio,
+    location: dbProfile?.location || profile.location,
+    gender: Array.isArray(dbProfile?.gender) ? dbProfile.gender : (dbProfile?.gender ? [dbProfile.gender as string] : (Array.isArray(profile.gender) ? profile.gender : (profile.gender ? [profile.gender as string] : null))),
+    age: dbProfile?.age || profile.age,
+    base_price: dbProfile?.base_price || profile.base_price,
+    hourly_rate: dbProfile?.hourly_rate || profile.hourly_rate,
     phone_number: profile.phone_number,
-    social_instagram: profile.social_instagram,
-    social_twitter: profile.social_twitter,
-    social_tiktok: profile.social_tiktok,
-    is_verified: profile.is_verified,
-    is_available: profile.is_available,
-    created_at: profile.created_at,
-    profile_picture_path: profile.profile_picture_path,
+    social_instagram: dbProfile?.social_instagram || profile.social_instagram,
+    social_twitter: dbProfile?.social_twitter || profile.social_twitter,
+    social_tiktok: dbProfile?.social_tiktok || profile.social_tiktok,
+    is_verified: dbProfile?.is_verified ?? profile.is_verified,
+    is_available: dbProfile?.is_available ?? profile.is_available,
+    created_at: dbProfile?.created_at || profile.created_at,
+    profile_picture_path: dbProfile?.profile_picture_path || profile.profile_picture_path,
   };
 };
 

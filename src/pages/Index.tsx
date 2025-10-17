@@ -26,6 +26,7 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
   const [availableLocations, setAvailableLocations] = useState<string[]>([]);
+  const [availableGenders, setAvailableGenders] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState<number>(0);
   const [maxPrice, setMaxPrice] = useState<number>(10000);
   const [minAge, setMinAge] = useState<number>(18);
@@ -148,7 +149,7 @@ const Index = () => {
         is_verified: celebrity.is_verified,
         is_available: celebrity.is_available,
         location: celebrity.location,
-        gender: celebrity.gender,
+        gender: Array.isArray(celebrity.gender) ? celebrity.gender : (celebrity.gender ? [celebrity.gender] : null),
         phone_number: celebrity.phone_number,
         social_instagram: celebrity.social_instagram,
         social_twitter: celebrity.social_twitter,
@@ -158,7 +159,7 @@ const Index = () => {
         subscription_tier: celebrity.subscription_tier,
         duration_type: celebrity.duration_type,
         subscription_end: celebrity.subscription_end,
-      })) || [];
+      })) as PublicCelebrityProfile[] || [];
 
       // Check if this is the first visit
       const hasVisited = localStorage.getItem('homepage_visited');
@@ -186,6 +187,21 @@ const Index = () => {
         .sort();
       
       setAvailableLocations(locations);
+
+      // Extract unique genders from all celebrities
+      const genders = celebrities
+        .flatMap(c => c.gender || [])
+        .filter((gender): gender is string => !!gender && gender.trim() !== '')
+        .reduce((acc: string[], gender) => {
+          const lowerGender = gender.toLowerCase();
+          if (!acc.some(g => g.toLowerCase() === lowerGender)) {
+            acc.push(gender);
+          }
+          return acc;
+        }, [])
+        .sort();
+      
+      setAvailableGenders(genders);
     } catch (error) {
       console.error('Error fetching celebrities:', error);
       toast({
@@ -208,7 +224,8 @@ const Index = () => {
     
     const matchesAge = !celebrity.age || (celebrity.age >= minAge && celebrity.age <= maxAge);
     
-    const matchesGender = genderFilter === 'all' || celebrity.gender === genderFilter;
+    const matchesGender = genderFilter === 'all' || 
+                         (celebrity.gender && Array.isArray(celebrity.gender) && celebrity.gender.some(g => g.toLowerCase() === genderFilter.toLowerCase()));
     
     return matchesSearch && matchesLocation && matchesAge && matchesGender;
   });
@@ -475,46 +492,17 @@ const Index = () => {
                     >
                       All
                     </Button>
-                    <Button
-                      variant={genderFilter === 'male' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setGenderFilter('male')}
-                      className="rounded-full px-4"
-                    >
-                      Male
-                    </Button>
-                    <Button
-                      variant={genderFilter === 'female' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setGenderFilter('female')}
-                      className="rounded-full px-4"
-                    >
-                      Female
-                    </Button>
-                    <Button
-                      variant={genderFilter === 'bisexual' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setGenderFilter('bisexual')}
-                      className="rounded-full px-4"
-                    >
-                      Bisexual
-                    </Button>
-                    <Button
-                      variant={genderFilter === 'sugar_mummies' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setGenderFilter('sugar_mummies')}
-                      className="rounded-full px-4"
-                    >
-                      Sugar Mummies
-                    </Button>
-                    <Button
-                      variant={genderFilter === 'ben10' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setGenderFilter('ben10')}
-                      className="rounded-full px-4"
-                    >
-                      Ben10
-                    </Button>
+                    {availableGenders.map((gender) => (
+                      <Button
+                        key={gender}
+                        variant={genderFilter.toLowerCase() === gender.toLowerCase() ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setGenderFilter(gender.toLowerCase())}
+                        className="rounded-full px-4"
+                      >
+                        {gender}
+                      </Button>
+                    ))}
                   </div>
                 </div>
               )}

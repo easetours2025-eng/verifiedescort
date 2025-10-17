@@ -17,6 +17,7 @@ import SubscriptionUpgrade from '@/components/SubscriptionUpgrade';
 import ProfilePictureUpload from '@/components/ProfilePictureUpload';
 import PaymentVerificationModal from '@/components/PaymentVerificationModal';
 import SubscriptionTab from '@/components/SubscriptionTab';
+import { GenderSelect } from '@/components/GenderSelect';
 import { 
   User, 
   Settings, 
@@ -43,7 +44,7 @@ interface CelebrityProfile {
   bio?: string;
   phone_number?: string;
   location?: string;
-  gender?: string;
+  gender?: string[];
   age?: number;
   date_of_birth?: string;
   profile_picture_path?: string;
@@ -711,7 +712,7 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
     real_name: profile.real_name || '',
     bio: profile.bio || '',
     location: profile.location || '',
-    gender: profile.gender || '',
+    gender: profile.gender || [],
     phone_number: profile.phone_number || '',
     age: profile.age || 18,
     social_instagram: profile.social_instagram || '',
@@ -721,20 +722,10 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate that gender is selected if it's not empty
-    if (formData.gender === '') {
-      toast({
-        title: "Validation Error",
-        description: "Please select a gender or leave it unset",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Only include gender in update if it has a valid value
+    // Only include gender in update if it has valid values
     const updateData = {
       ...formData,
-      gender: formData.gender || null, // Send null instead of empty string
+      gender: formData.gender.length > 0 ? formData.gender : null,
     };
     
     onUpdate(updateData);
@@ -794,18 +785,11 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
                 className="text-sm sm:text-base h-10 sm:h-10 w-full"
               />
             </div>
-            <div className="space-y-1.5 sm:space-y-2 min-w-0">
-              <label className="text-sm sm:text-sm font-medium">Gender</label>
-              <select
+            <div className="space-y-1.5 sm:space-y-2 min-w-0 sm:col-span-2">
+              <GenderSelect
                 value={formData.gender}
-                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                className="w-full h-10 sm:h-10 px-2 sm:px-3 border border-input rounded-md bg-background text-sm sm:text-base"
-              >
-                <option value="">Select</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="bisexual">Bisexual</option>
-              </select>
+                onChange={(genders) => setFormData({ ...formData, gender: genders })}
+              />
             </div>
           </div>
 

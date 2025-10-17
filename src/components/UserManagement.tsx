@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserPlus, Users } from "lucide-react";
+import { GenderSelect } from "@/components/GenderSelect";
 
 interface UserManagementProps {
   onUserCreated: () => void;
@@ -24,7 +25,7 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
     real_name: "",
     bio: "",
     location: "",
-    gender: "",
+    gender: [] as string[],
     age: "",
     base_price: "0",
     hourly_rate: "",
@@ -39,7 +40,7 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
       real_name: "",
       bio: "",
       location: "",
-      gender: "",
+      gender: [],
       age: "",
       base_price: "0",
       hourly_rate: "",
@@ -82,7 +83,7 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
           email: formData.email,
           bio: formData.bio || null,
           location: formData.location || null,
-          gender: formData.gender || null,
+          gender: formData.gender.length > 0 ? formData.gender : null,
           age: formData.age ? parseInt(formData.age) : null,
           base_price: parseFloat(formData.base_price) || 0,
           hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
@@ -183,22 +184,11 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="gender">Gender</Label>
-              <Select value={formData.gender} onValueChange={(value) => setFormData({ ...formData, gender: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="bisexual">Bisexual</SelectItem>
-                  <SelectItem value="lesbians">Lesbians</SelectItem>
-                  <SelectItem value="gay">Gay</SelectItem>
-                  <SelectItem value="sugar_mummies">Sugar Mummies</SelectItem>
-                  <SelectItem value="ben10">Ben10</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="space-y-2 md:col-span-2">
+              <GenderSelect
+                value={formData.gender}
+                onChange={(genders) => setFormData({ ...formData, gender: genders })}
+              />
             </div>
 
             <div className="space-y-2">
