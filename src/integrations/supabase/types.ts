@@ -799,7 +799,7 @@ export type Database = {
           date_of_birth: string
           duration_type: string
           email: string
-          gender: string
+          gender: string[]
           hourly_rate: number
           id: string
           is_available: boolean
@@ -842,7 +842,7 @@ export type Database = {
           created_at: string
           date_of_birth: string
           email: string
-          gender: string
+          gender: string[]
           hourly_rate: number
           id: string
           is_available: boolean
@@ -884,7 +884,7 @@ export type Database = {
           base_price: number
           bio: string
           created_at: string
-          gender: string
+          gender: string[]
           hourly_rate: number
           id: string
           is_available: boolean
@@ -905,7 +905,7 @@ export type Database = {
           base_price: number
           bio: string
           created_at: string
-          gender: string
+          gender: string[]
           hourly_rate: number
           id: string
           is_available: boolean
@@ -926,7 +926,7 @@ export type Database = {
           base_price: number
           bio: string
           created_at: string
-          gender: string
+          gender: string[]
           hourly_rate: number
           id: string
           is_available: boolean
