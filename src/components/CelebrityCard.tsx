@@ -206,7 +206,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
             </Badge>
             {celebrity.gender && (
               <Badge variant="outline" className="text-xs capitalize">
-                {celebrity.gender}
+                {Array.isArray(celebrity.gender) ? celebrity.gender.join(', ') : celebrity.gender}
               </Badge>
             )}
             {tierBadge && (
