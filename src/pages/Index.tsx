@@ -174,13 +174,15 @@ const Index = () => {
       
       setCelebrities(celebrities);
       
-      // Extract unique locations
+      // Extract unique locations (case-insensitive deduplication)
       const locations = celebrities
         .map(c => c.location)
         .filter((loc): loc is string => !!loc && loc.trim() !== '')
         .reduce((acc: string[], loc) => {
-          if (!acc.includes(loc)) {
-            acc.push(loc);
+          const normalizedLoc = loc.trim().toLowerCase();
+          const exists = acc.some(existing => existing.toLowerCase() === normalizedLoc);
+          if (!exists) {
+            acc.push(loc.trim());
           }
           return acc;
         }, [])
