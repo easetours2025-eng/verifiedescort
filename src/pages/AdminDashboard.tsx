@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, Clock, Users, CreditCard, TrendingUp, RefreshCw, Search, Eye, EyeOff, Trash2, Shield, ShieldCheck, LayoutGrid, Table2, LogOut, Video, Wallet, DollarSign, Building2, Bell, Flag, Timer, Star, Plus, Menu } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Users, CreditCard, TrendingUp, RefreshCw, Search, Eye, EyeOff, Trash2, Shield, ShieldCheck, LayoutGrid, Table2, LogOut, Wallet, DollarSign, Building2, Bell, Flag, Timer, Star, Plus, Menu } from 'lucide-react';
 import AdminSidebar from '@/components/AdminSidebar';
 import StatsCard from '@/components/StatsCard';
 import ChartCard from '@/components/ChartCard';
@@ -35,7 +35,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import AdminVideoSection from '@/components/AdminVideoSection';
 import UserManagement from '@/components/UserManagement';
 import AdminManagement from '@/components/AdminManagement';
 import AllUsersManagement from '@/components/AllUsersManagement';
@@ -903,13 +902,6 @@ const AdminDashboard = () => {
 
           {activeTab === 'premium-support' && (
             <PremiumSupportUsers />
-          )}
-
-          {activeTab === 'videos' && (
-            <div className="space-y-4 sm:space-y-6">
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">Video Management</h1>
-              <AdminVideoSection />
-            </div>
           )}
         </main>
       </div>

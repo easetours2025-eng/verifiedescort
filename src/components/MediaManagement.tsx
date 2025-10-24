@@ -25,7 +25,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import ImageModal from '@/components/ImageModal';
-import VideoModal from '@/components/VideoModal';
 
 interface MediaItem {
   id: string;
@@ -55,7 +54,6 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
   const [mediaStats, setMediaStats] = useState<Record<string, MediaStats>>({});
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ url: string; title: string } | null>(null);
-  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -187,11 +185,9 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
   };
 
   const handleMediaClick = (item: MediaItem) => {
-    const mediaUrl = getMediaUrl(item.file_path, item.file_type);
     if (item.file_type === 'image') {
+      const mediaUrl = getMediaUrl(item.file_path, item.file_type);
       setSelectedImage({ url: mediaUrl, title: item.title || 'Image' });
-    } else {
-      setSelectedVideo(mediaUrl);
     }
   };
 
@@ -389,13 +385,6 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
         isOpen={!!selectedImage}
         onClose={() => setSelectedImage(null)}
         title={selectedImage?.title}
-      />
-
-      {/* Video Modal */}
-      <VideoModal
-        videoUrl={selectedVideo || ''}
-        isOpen={!!selectedVideo}
-        onClose={() => setSelectedVideo(null)}
       />
     </div>
   );
