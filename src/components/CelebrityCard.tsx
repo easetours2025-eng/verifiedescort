@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, MapPin, Phone, Instagram, Twitter, Video, Image as ImageIcon, Verified, MessageCircle, Check } from 'lucide-react';
+import { Star, MapPin, Phone, Instagram, Twitter, Image as ImageIcon, Verified, MessageCircle, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   PublicCelebrityProfile, 
@@ -25,15 +25,11 @@ interface CelebrityCardProps {
 
 const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile }) => {
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [profileVideo, setProfileVideo] = useState<string | null>(null);
-  const [hasVideos, setHasVideos] = useState(false);
   const [isVIP, setIsVIP] = useState(false);
   const [services, setServices] = useState<any[]>([]);
 
   useEffect(() => {
     fetchProfileImage();
-    fetchProfileVideo();
-    checkForVideos();
     checkVIPStatus();
     fetchServices();
   }, [celebrity.id]);
@@ -73,44 +69,6 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
       }
     } catch (error) {
       // Error silently handled - profile image will not display
-    }
-  };
-
-  const fetchProfileVideo = async () => {
-    try {
-      const { data } = await supabase
-        .from('celebrity_media')
-        .select('file_path')
-        .eq('celebrity_id', celebrity.id)
-        .eq('is_public', true)
-        .eq('file_type', 'video')
-        .order('upload_date', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (data?.file_path) {
-        const { data: urlData } = supabase.storage
-          .from('celebrity-videos')
-          .getPublicUrl(data.file_path);
-        setProfileVideo(urlData.publicUrl);
-      }
-    } catch (error) {
-      // Error silently handled - profile video will not display
-    }
-  };
-
-  const checkForVideos = async () => {
-    try {
-      const { count } = await supabase
-        .from('celebrity_media')
-        .select('*', { count: 'exact', head: true })
-        .eq('celebrity_id', celebrity.id)
-        .eq('is_public', true)
-        .eq('file_type', 'video');
-
-      setHasVideos((count || 0) > 0);
-    } catch (error) {
-      // Error silently handled - videos check will not display
     }
   };
 
@@ -157,10 +115,9 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
     <Card className="group hover:shadow-celebrity transition-all duration-300 hover:-translate-y-1 border-primary/20 overflow-hidden cursor-pointer flex flex-col h-full" onClick={() => onViewProfile(celebrity.id)}>
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       
-      {/* Profile Image/Video - 3/4 of card */}
+      {/* Profile Image - 3/4 of card */}
       <div className="relative h-64">
-        {/* Always show profile image instead of video */}
-        <img 
+        <img
           src={profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${celebrity.stage_name}`}
           alt={celebrity.stage_name}
           className="w-full h-full object-cover"
@@ -179,13 +136,6 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
         {celebrity.is_verified && (
           <div className="absolute top-2 right-2 bg-accent rounded-full p-1">
             <Verified className="h-4 w-4 text-accent-foreground" />
-          </div>
-        )}
-        
-        {/* Video Indicator */}
-        {hasVideos && (
-          <div className="absolute bottom-2 right-2 bg-primary rounded-full p-2">
-            <Video className="h-4 w-4 text-primary-foreground" />
           </div>
         )}
       </div>

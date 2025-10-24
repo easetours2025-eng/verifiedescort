@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { 
   Users, 
   DollarSign, 
-  Video, 
   Image as ImageIcon, 
   Calendar as CalendarIcon,
   TrendingUp,
@@ -39,7 +38,6 @@ interface SystemStats {
   activeSubscriptions: number;
   totalRevenue: number;
   pendingPayments: number;
-  totalVideos: number;
   totalMedia: number;
   totalViews: number;
   recentSignups: number;
@@ -63,10 +61,6 @@ const chartConfig = {
     label: "Revenue",
     color: "hsl(var(--chart-3))",
   },
-  videos: {
-    label: "Videos",
-    color: "hsl(var(--chart-4))",
-  },
   media: {
     label: "Media",
     color: "hsl(var(--chart-5))",
@@ -81,7 +75,6 @@ const AnalyticsDashboard = () => {
     activeSubscriptions: 0,
     totalRevenue: 0,
     pendingPayments: 0,
-    totalVideos: 0,
     totalMedia: 0,
     totalViews: 0,
     recentSignups: 0,
@@ -97,7 +90,6 @@ const AnalyticsDashboard = () => {
   ];
 
   const contentData: ChartData[] = [
-    { name: "Videos", value: stats.totalVideos },
     { name: "Media", value: stats.totalMedia },
     { name: "Views", value: Math.floor(stats.totalViews / 100) },
   ];
@@ -138,13 +130,6 @@ const AnalyticsDashboard = () => {
 
       if (paymentsError) throw paymentsError;
 
-      // Fetch videos stats
-      const { data: videos, error: videosError } = await supabase
-        .from('admin_videos')
-        .select('id, view_count');
-
-      if (videosError) throw videosError;
-
       // Fetch media stats
       const { data: media, error: mediaError } = await supabase
         .from('celebrity_media')
@@ -172,9 +157,8 @@ const AnalyticsDashboard = () => {
       
       const pendingPayments = payments?.filter(p => !p.is_verified).length || 0;
 
-      const totalVideos = videos?.length || 0;
-      const totalViews = videos?.reduce((sum, v) => sum + (v.view_count || 0), 0) || 0;
       const totalMedia = media?.length || 0;
+      const totalViews = 0; // Reset since we removed videos
 
       setStats({
         totalCelebrities,
@@ -183,7 +167,6 @@ const AnalyticsDashboard = () => {
         activeSubscriptions,
         totalRevenue,
         pendingPayments,
-        totalVideos,
         totalMedia,
         totalViews,
         recentSignups,
@@ -377,16 +360,6 @@ const AnalyticsDashboard = () => {
           <CardContent className="space-y-3 sm:space-y-4">
             <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 backdrop-blur-sm">
               <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-chart-4/10">
-                  <Video className="h-5 w-5 text-chart-4" />
-                </div>
-                <span className="text-sm font-medium">Total Videos</span>
-              </div>
-              <span className="text-2xl font-bold">{stats.totalVideos}</span>
-            </div>
-            
-            <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 backdrop-blur-sm">
-              <div className="flex items-center gap-2">
                 <div className="p-2 rounded-lg bg-chart-5/10">
                   <ImageIcon className="h-5 w-5 text-chart-5" />
                 </div>
@@ -447,7 +420,7 @@ const AnalyticsDashboard = () => {
               <div>
                 <p className="text-sm font-medium">Content Library</p>
                 <p className="text-xs text-muted-foreground">
-                  Platform has {stats.totalVideos} videos and {stats.totalMedia} media items with {stats.totalViews.toLocaleString()} total views
+                  Platform has {stats.totalMedia} media items
                 </p>
               </div>
             </div>
