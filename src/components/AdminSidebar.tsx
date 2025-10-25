@@ -4,6 +4,7 @@ import {
   LayoutDashboard, 
   Users, 
   CreditCard, 
+  Video,
   Settings,
   ChevronRight,
   BarChart3,
@@ -32,6 +33,7 @@ const AdminSidebar = ({ activeTab, onTabChange, isOpen = true, onClose }: AdminS
     { id: 'payments', label: 'Payments', icon: CreditCard },
     { id: 'subscriptions', label: 'Subscriptions', icon: Package },
     { id: 'premium-support', label: 'Premium Support', icon: HeadphonesIcon },
+    { id: 'videos', label: 'Videos', icon: Video },
   ];
 
   const handleNavClick = (id: string) => {

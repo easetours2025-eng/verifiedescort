@@ -10,6 +10,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import MessagingModal from '@/components/MessagingModal';
 import MediaCard from '@/components/MediaCard';
+import CelebrityMediaVideoCard from '@/components/CelebrityMediaVideoCard';
+import VideoModal from '@/components/VideoModal';
 import ImageModal from '@/components/ImageModal';
 import { 
   filterCelebrityData, 
@@ -25,6 +27,7 @@ import {
   Phone, 
   Instagram, 
   Twitter,
+  Video,
   Image as ImageIcon,
   Verified,
   DollarSign,
@@ -65,7 +68,10 @@ const CelebrityProfile = () => {
   const [isLoadingMedia, setIsLoadingMedia] = useState(true);
   const [isLoadingOthers, setIsLoadingOthers] = useState(true);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<MediaItem | null>(null);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [showMessaging, setShowMessaging] = useState(false);
+  const [mediaFilter, setMediaFilter] = useState<'all' | 'images' | 'videos'>('all');
   const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
   const [likeCounts, setLikeCounts] = useState<Record<string, { likes: number; loves: number }>>({});
   const [userLikes, setUserLikes] = useState<Record<string, string[]>>({});
@@ -377,6 +383,16 @@ const CelebrityProfile = () => {
     }
   };
 
+  const handleVideoPlay = (video: MediaItem) => {
+    setSelectedVideo(video);
+    setIsVideoModalOpen(true);
+  };
+
+  const handleCloseVideoModal = () => {
+    setIsVideoModalOpen(false);
+    setSelectedVideo(null);
+  };
+
   const handleLike = async (mediaId: string, type: 'like' | 'love') => {
     try {
       const userIP = await getUserIP();
@@ -440,7 +456,12 @@ const CelebrityProfile = () => {
     }
   };
 
-  const filteredMedia = media.filter(item => item.file_type === 'image');
+  const filteredMedia = media.filter(item => {
+    if (mediaFilter === 'all') return true;
+    if (mediaFilter === 'images') return item.file_type === 'image';
+    if (mediaFilter === 'videos') return item.file_type === 'video';
+    return true;
+  });
 
   if (loading) {
     return (
@@ -480,7 +501,7 @@ const CelebrityProfile = () => {
               <span className="hidden sm:inline">Back</span>
             </Button>
             
-            {/* Join Celebrity button */}
+            {/* Videos and Join Celebrity buttons */}
             <div className="flex items-center space-x-1 sm:space-x-2">
               <Button 
                 variant="outline" 
@@ -491,7 +512,16 @@ const CelebrityProfile = () => {
                 <span className="hidden sm:inline">FAQ</span>
                 <span className="sm:hidden">?</span>
               </Button>
-              <Button
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/videos')}
+                className="border-primary/20 hover:bg-primary/10 flex items-center"
+              >
+                <Video className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Videos</span>
+              </Button>
+              <Button 
                 onClick={() => navigate('/auth')}
                 size="sm"
                 className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-celebrity text-xs sm:text-sm"
@@ -672,6 +702,34 @@ const CelebrityProfile = () => {
           {/* Media Gallery */}
           <Card className="p-4 md:p-6">
             <h2 className="text-xl md:text-2xl font-semibold mb-4">Media Gallery</h2>
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Button
+                variant={mediaFilter === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMediaFilter('all')}
+                className="text-xs"
+              >
+                All ({media.length})
+              </Button>
+              <Button
+                variant={mediaFilter === 'images' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMediaFilter('images')}
+                className="text-xs"
+              >
+                <ImageIcon className="w-3 h-3 mr-1" />
+                Images ({media.filter(m => m.file_type === 'image').length})
+              </Button>
+              <Button
+                variant={mediaFilter === 'videos' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMediaFilter('videos')}
+                className="text-xs"
+              >
+                <Video className="w-3 h-3 mr-1" />
+                Videos ({media.filter(m => m.file_type === 'video').length})
+              </Button>
+            </div>
             
             {isLoadingMedia ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
@@ -682,11 +740,19 @@ const CelebrityProfile = () => {
             ) : filteredMedia && filteredMedia.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
                 {filteredMedia.map((mediaItem) => (
-                  <MediaCard 
-                    key={mediaItem.id} 
-                    media={mediaItem} 
-                    onMediaClick={handleMediaClick}
-                  />
+                  mediaItem.file_type === 'video' ? (
+                    <CelebrityMediaVideoCard 
+                      key={mediaItem.id} 
+                      media={mediaItem} 
+                      onPlay={() => handleVideoPlay(mediaItem)}
+                    />
+                  ) : (
+                    <MediaCard 
+                      key={mediaItem.id} 
+                      media={mediaItem} 
+                      onMediaClick={handleMediaClick}
+                    />
+                  )
                 ))}
               </div>
             ) : (
@@ -830,6 +896,15 @@ const CelebrityProfile = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Video Modal */}
+      {selectedVideo && (
+        <VideoModal
+          videoUrl={getMediaUrl(selectedVideo.file_path, 'video')}
+          isOpen={isVideoModalOpen}
+          onClose={handleCloseVideoModal}
+        />
       )}
     </div>
   );
