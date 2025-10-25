@@ -97,13 +97,14 @@ Deno.serve(async (req) => {
           created_at: authUser.created_at,
           last_sign_in_at: authUser.last_sign_in_at,
           email_confirmed_at: authUser.email_confirmed_at,
-          phone: authUser.phone,
+          phone: profile?.phone_number || authUser.phone || authUser.raw_user_meta_data?.phone_number,
           user_id: authUser.id,
           // Celebrity profile data
           stage_name: profile?.stage_name,
           real_name: profile?.real_name,
           is_verified: profile?.is_verified,
           is_available: profile?.is_available,
+          profile_picture_path: profile?.profile_picture_path,
         };
       });
 
