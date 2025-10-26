@@ -9,7 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { CheckCircle, XCircle, Clock, Users, CreditCard, TrendingUp, RefreshCw, Search, Eye, EyeOff, Trash2, Shield, ShieldCheck, LayoutGrid, Table2, LogOut, Video, Wallet, DollarSign, Building2, Bell, Flag, Timer, Star, Plus, Menu } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import AdminSidebar from '@/components/AdminSidebar';
+import AdminGlobalSearch from '@/components/AdminGlobalSearch';
 import StatsCard from '@/components/StatsCard';
 import ChartCard from '@/components/ChartCard';
 import TimelineCard from '@/components/TimelineCard';
@@ -95,6 +97,7 @@ const AdminDashboard = () => {
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [activeTab, setActiveTab] = useState('analytics');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
 
   console.log('AdminDashboard rendering with activeTab:', activeTab);
@@ -524,10 +527,15 @@ const AdminDashboard = () => {
         onTabChange={setActiveTab}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
 
       {/* Main Content */}
-      <div className="flex-1 w-full lg:ml-64">
+      <div className={cn(
+        "flex-1 w-full transition-all duration-300",
+        sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"
+      )}>
         {/* Top Header */}
         <header className="bg-background border-b border-border sticky top-0 z-10">
           <div className="flex items-center justify-between px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
@@ -542,11 +550,7 @@ const AdminDashboard = () => {
             </Button>
 
             <div className="flex items-center gap-2 sm:gap-4 flex-1 lg:ml-0">
-              <Input
-                type="search"
-                placeholder="Search..."
-                className="max-w-md hidden sm:block"
-              />
+              <AdminGlobalSearch onNavigate={setActiveTab} />
             </div>
             
             <div className="flex items-center gap-2 sm:gap-4">

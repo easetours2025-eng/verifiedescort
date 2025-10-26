@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -11,21 +11,25 @@ import {
   Package,
   HeadphonesIcon,
   X,
-  MessageSquare
+  MessageSquare,
+  ChevronLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface AdminSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   isOpen?: boolean;
   onClose?: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-const AdminSidebar = ({ activeTab, onTabChange, isOpen = true, onClose }: AdminSidebarProps) => {
-  const [isDashboardOpen, setIsDashboardOpen] = React.useState(true);
+const AdminSidebar = ({ activeTab, onTabChange, isOpen = true, onClose, collapsed = false, onToggleCollapse }: AdminSidebarProps) => {
+  const [isDashboardOpen, setIsDashboardOpen] = useState(true);
 
   const navItems = [
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
@@ -55,20 +59,33 @@ const AdminSidebar = ({ activeTab, onTabChange, isOpen = true, onClose }: AdminS
 
       {/* Sidebar */}
       <div className={cn(
-        "w-64 bg-sidebar border-r border-border h-screen fixed left-0 top-0 flex flex-col z-50 transition-transform duration-300",
+        "bg-sidebar border-r border-border h-screen fixed left-0 top-0 flex flex-col z-50 transition-all duration-300",
+        collapsed ? "w-16" : "w-64",
         !isOpen && "-translate-x-full lg:translate-x-0"
       )}>
-        {/* Logo and Close Button */}
-        <div className="p-4 sm:p-6 border-b border-border flex items-center justify-between">
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground italic">RoyalEscorts Staff</h1>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="lg:hidden"
-            onClick={onClose}
-          >
-            <X className="h-5 w-5" />
-          </Button>
+        {/* Logo and Close/Collapse Buttons */}
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          {!collapsed && (
+            <h1 className="text-xl font-bold text-foreground italic truncate">RoyalEscorts Staff</h1>
+          )}
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hidden lg:flex"
+              onClick={onToggleCollapse}
+            >
+              {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden"
+              onClick={onClose}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
       {/* Navigation */}
@@ -76,37 +93,80 @@ const AdminSidebar = ({ activeTab, onTabChange, isOpen = true, onClose }: AdminS
         <div className="space-y-6">
           {/* Main Navigation */}
           <div>
-            <p className="text-xs font-semibold text-muted-foreground mb-3 px-3">
-              MAIN NAVIGATION
-            </p>
+            {!collapsed && (
+              <p className="text-xs font-semibold text-muted-foreground mb-3 px-3">
+                MAIN NAVIGATION
+              </p>
+            )}
             
-            <Collapsible open={isDashboardOpen} onOpenChange={setIsDashboardOpen}>
-              <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors">
-                <div className="flex items-center gap-2">
-                  <LayoutDashboard className="h-4 w-4" />
-                  <span>Dashboards</span>
-                </div>
-                <ChevronRight className={cn(
-                  "h-4 w-4 transition-transform",
-                  isDashboardOpen && "rotate-90"
-                )} />
-              </CollapsibleTrigger>
+            <Collapsible open={isDashboardOpen && !collapsed} onOpenChange={setIsDashboardOpen}>
+              {collapsed ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button 
+                        onClick={() => setIsDashboardOpen(!isDashboardOpen)}
+                        className="flex items-center justify-center w-full px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>Dashboards</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors">
+                  <div className="flex items-center gap-2">
+                    <LayoutDashboard className="h-4 w-4" />
+                    <span>Dashboards</span>
+                  </div>
+                  <ChevronRight className={cn(
+                    "h-4 w-4 transition-transform",
+                    isDashboardOpen && "rotate-90"
+                  )} />
+                </CollapsibleTrigger>
+              )}
               
               <CollapsibleContent className="mt-1 space-y-1">
                 {navItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => handleNavClick(item.id)}
-                    className={cn(
-                      "flex items-center gap-2 w-full pl-9 pr-3 py-2 text-sm rounded-md transition-colors",
-                      activeTab === item.id
-                        ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent"
-                    )}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </button>
+                  collapsed ? (
+                    <TooltipProvider key={item.id}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => handleNavClick(item.id)}
+                            className={cn(
+                              "flex items-center justify-center w-full px-3 py-2 text-sm rounded-md transition-colors",
+                              activeTab === item.id
+                                ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium"
+                                : "text-sidebar-foreground hover:bg-sidebar-accent"
+                            )}
+                          >
+                            <item.icon className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>{item.label}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <button
+                      key={item.id}
+                      onClick={() => handleNavClick(item.id)}
+                      className={cn(
+                        "flex items-center gap-2 w-full pl-9 pr-3 py-2 text-sm rounded-md transition-colors",
+                        activeTab === item.id
+                          ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent"
+                      )}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </button>
+                  )
                 ))}
               </CollapsibleContent>
             </Collapsible>
@@ -114,10 +174,25 @@ const AdminSidebar = ({ activeTab, onTabChange, isOpen = true, onClose }: AdminS
 
           {/* Settings */}
           <div>
-            <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors">
-              <Settings className="h-4 w-4" />
-              <span>Settings</span>
-            </button>
+            {collapsed ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="flex items-center justify-center w-full px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors">
+                      <Settings className="h-4 w-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Settings</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors">
+                <Settings className="h-4 w-4" />
+                <span>Settings</span>
+              </button>
+            )}
           </div>
         </div>
       </nav>

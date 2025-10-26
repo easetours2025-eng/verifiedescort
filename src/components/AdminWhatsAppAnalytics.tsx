@@ -54,24 +54,34 @@ const AdminWhatsAppAnalytics = () => {
     try {
       setLoading(true);
 
-      // Fetch all WhatsApp clicks with celebrity info
+      // Fetch all WhatsApp clicks
       const { data: clicksData, error: clicksError } = await supabase
         .from('whatsapp_clicks')
-        .select(`
-          *,
-          celebrity:celebrity_id (
-            stage_name,
-            profile_picture_path
-          )
-        `)
+        .select('*')
         .order('clicked_at', { ascending: false });
 
-      if (clicksError) throw clicksError;
+      if (clicksError) {
+        console.error('Error fetching WhatsApp clicks:', clicksError);
+        throw clicksError;
+      }
 
-      const processedClicks = (clicksData || []).map(click => ({
-        ...click,
-        celebrity: Array.isArray(click.celebrity) ? click.celebrity[0] : click.celebrity
-      }));
+      // Fetch celebrity profiles separately
+      const { data: celebritiesData, error: celebritiesError } = await supabase
+        .from('celebrity_profiles')
+        .select('id, stage_name, profile_picture_path');
+
+      if (celebritiesError) {
+        console.error('Error fetching celebrity profiles:', celebritiesError);
+      }
+
+      // Join clicks with celebrity data manually
+      const processedClicks = (clicksData || []).map(click => {
+        const celebrity = celebritiesData?.find(c => c.id === click.celebrity_id);
+        return {
+          ...click,
+          celebrity: celebrity || { stage_name: 'Unknown', profile_picture_path: null }
+        };
+      });
 
       setClicks(processedClicks);
       setTotalClicks(processedClicks.length);
