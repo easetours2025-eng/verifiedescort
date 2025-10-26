@@ -43,6 +43,7 @@ import AdminPaymentVerification from '@/components/AdminPaymentVerification';
 import { AdminNotifications } from '@/components/AdminNotifications';
 import PremiumSupportUsers from '@/components/PremiumSupportUsers';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
+import AdminWhatsAppAnalytics from '@/components/AdminWhatsAppAnalytics';
 
 // Data Interfaces
 interface PaymentRecord {
@@ -898,6 +899,13 @@ const AdminDashboard = () => {
               <div className="mt-6 sm:mt-8">
                 <AdminActiveSubscriptions />
               </div>
+            </div>
+          )}
+
+          {activeTab === 'whatsapp-analytics' && (
+            <div className="space-y-4 sm:space-y-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">WhatsApp Analytics</h1>
+              <AdminWhatsAppAnalytics />
             </div>
           )}
 

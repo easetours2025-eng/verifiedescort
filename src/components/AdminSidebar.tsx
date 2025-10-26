@@ -10,7 +10,8 @@ import {
   BarChart3,
   Package,
   HeadphonesIcon,
-  X
+  X,
+  MessageSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -28,6 +29,7 @@ const AdminSidebar = ({ activeTab, onTabChange, isOpen = true, onClose }: AdminS
 
   const navItems = [
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'whatsapp-analytics', label: 'WhatsApp Analytics', icon: MessageSquare },
     { id: 'users', label: 'Users', icon: Users },
     { id: 'celebrities', label: 'Celebrities', icon: Users },
     { id: 'payments', label: 'Payments', icon: CreditCard },

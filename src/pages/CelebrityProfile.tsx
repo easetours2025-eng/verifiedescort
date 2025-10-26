@@ -315,9 +315,20 @@ const CelebrityProfile = () => {
     });
   };
 
-  const handleWhatsApp = () => {
+  const handleWhatsApp = async () => {
     // Check if profile has a phone number
     if (profile && (profile as any).phone_number) {
+      // Record the WhatsApp click
+      try {
+        await supabase.from('whatsapp_clicks').insert({
+          celebrity_id: profile.id,
+          user_ip: null, // Will be handled by backend if needed
+          clicked_at: new Date().toISOString()
+        });
+      } catch (error) {
+        console.error('Failed to record WhatsApp click:', error);
+      }
+
       const phoneNumber = (profile as any).phone_number.replace(/\D/g, ''); // Remove non-digits
       const message = encodeURIComponent(
         `Royal Escorts | Finest Escort services and Hookups\n\nMeet escorts for discreet companionship and relaxation.\n\nI'm interested in connecting with ${profile.stage_name}.`

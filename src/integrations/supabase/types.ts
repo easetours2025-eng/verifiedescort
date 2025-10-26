@@ -764,6 +764,33 @@ export type Database = {
           },
         ]
       }
+      whatsapp_clicks: {
+        Row: {
+          celebrity_id: string
+          clicked_at: string
+          created_at: string
+          id: string
+          user_id: string | null
+          user_ip: string | null
+        }
+        Insert: {
+          celebrity_id: string
+          clicked_at?: string
+          created_at?: string
+          id?: string
+          user_id?: string | null
+          user_ip?: string | null
+        }
+        Update: {
+          celebrity_id?: string
+          clicked_at?: string
+          created_at?: string
+          id?: string
+          user_id?: string | null
+          user_ip?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -782,7 +809,7 @@ export type Database = {
         Returns: number
       }
       get_admin_video_statistics: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           video_id: string
           view_count: number
@@ -790,7 +817,7 @@ export type Database = {
         }[]
       }
       get_celebrities_with_subscription: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           age: number
           base_price: number
@@ -821,12 +848,9 @@ export type Database = {
           user_id: string
         }[]
       }
-      get_media_like_count: {
-        Args: { media_uuid: string }
-        Returns: number
-      }
+      get_media_like_count: { Args: { media_uuid: string }; Returns: number }
       get_media_statistics: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           media_id: string
           view_count: number
@@ -834,7 +858,7 @@ export type Database = {
         }[]
       }
       get_non_admin_celebrities: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           age: number
           base_price: number
@@ -862,7 +886,7 @@ export type Database = {
         }[]
       }
       get_payment_statistics: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           month: string
           pending_amount: number
@@ -873,10 +897,7 @@ export type Database = {
           verified_payments: number
         }[]
       }
-      get_profile_view_count: {
-        Args: { profile_id: string }
-        Returns: number
-      }
+      get_profile_view_count: { Args: { profile_id: string }; Returns: number }
       get_public_celebrity_data: {
         Args: { celebrity_profile_id?: string }
         Returns: {
@@ -899,7 +920,7 @@ export type Database = {
         }[]
       }
       get_public_celebrity_profiles: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           age: number
           base_price: number
@@ -939,16 +960,21 @@ export type Database = {
           stage_name: string
         }[]
       }
-      get_video_like_count: {
-        Args: { video_uuid: string }
-        Returns: number
-      }
+      get_video_like_count: { Args: { video_uuid: string }; Returns: number }
       get_video_statistics: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           video_id: string
           view_count: number
           view_date: string
+        }[]
+      }
+      get_whatsapp_click_statistics: {
+        Args: never
+        Returns: {
+          celebrity_id: string
+          click_count: number
+          click_date: string
         }[]
       }
       has_user_liked_admin_video: {
@@ -963,34 +989,16 @@ export type Database = {
         Args: { user_ip_param: string; video_uuid: string }
         Returns: boolean
       }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_admin_access: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_admin_request: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_admin_user: {
-        Args: { user_email: string }
-        Returns: boolean
-      }
+      is_admin: { Args: never; Returns: boolean }
+      is_admin_access: { Args: never; Returns: boolean }
+      is_admin_request: { Args: never; Returns: boolean }
+      is_admin_user: { Args: { user_email: string }; Returns: boolean }
       is_celebrity_subscription_active: {
         Args: { celebrity_profile_id: string }
         Returns: boolean
       }
-      is_current_user_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_in_grace_period: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_current_user_admin: { Args: never; Returns: boolean }
+      is_in_grace_period: { Args: never; Returns: boolean }
       is_special_offer_active: {
         Args: {
           profile_created_at: string
