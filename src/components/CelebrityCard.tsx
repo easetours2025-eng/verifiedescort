@@ -257,8 +257,21 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
               variant="outline"
               size="sm"
               className="w-full border-green-500 text-green-600 hover:bg-green-50 dark:border-green-600 dark:text-green-500 dark:hover:bg-green-950"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
+                
+                // Record the call click
+                try {
+                  await supabase.from('call_clicks').insert({
+                    celebrity_id: celebrity.id,
+                    user_ip: null,
+                    clicked_at: new Date().toISOString()
+                  });
+                } catch (error) {
+                  console.error('Failed to record call click:', error);
+                }
+                
+                // Open phone dialer
                 window.open(`tel:${celebrity.phone_number}`, '_self');
               }}
             >
