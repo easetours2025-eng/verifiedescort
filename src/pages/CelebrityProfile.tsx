@@ -306,13 +306,31 @@ const CelebrityProfile = () => {
   };
 
 
-  const handleContact = () => {
-    // Phone numbers are not available in public profiles for security
-    toast({
-      title: "Contact Info",
-      description: "Direct phone contact is not available. Please use messaging instead.",
-      variant: "destructive",
-    });
+  const handleContact = async () => {
+    // Record the call click
+    if (profile) {
+      try {
+        await supabase.from('call_clicks').insert({
+          celebrity_id: profile.id,
+          user_ip: null,
+          clicked_at: new Date().toISOString()
+        });
+      } catch (error) {
+        console.error('Failed to record call click:', error);
+      }
+    }
+
+    // Check if profile has a phone number
+    if (profile && (profile as any).phone_number) {
+      const phoneNumber = (profile as any).phone_number;
+      window.open(`tel:${phoneNumber}`, '_self');
+    } else {
+      toast({
+        title: "Contact Info",
+        description: "Phone contact is not available for this profile.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleWhatsApp = async () => {
@@ -677,13 +695,20 @@ const CelebrityProfile = () => {
                     </Button>
                   )}
                 </div>
-                <div className="flex justify-center md:justify-start">
+                <div className="flex flex-col sm:flex-row justify-center md:justify-start gap-2">
                   <Button 
-                    className="flex-1 md:flex-initial bg-green-600 hover:bg-green-700 text-white" 
+                    className="flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 text-white" 
                     onClick={handleWhatsApp}
                   >
                     <MessageCircle className="w-4 h-4 mr-2" />
                     WhatsApp
+                  </Button>
+                  <Button 
+                    className="flex-1 sm:flex-initial bg-blue-600 hover:bg-blue-700 text-white" 
+                    onClick={handleContact}
+                  >
+                    <Phone className="w-4 h-4 mr-2" />
+                    Call
                   </Button>
                 </div>
               </div>

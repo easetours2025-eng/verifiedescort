@@ -144,6 +144,41 @@ export type Database = {
         }
         Relationships: []
       }
+      call_clicks: {
+        Row: {
+          celebrity_id: string
+          clicked_at: string
+          created_at: string
+          id: string
+          user_id: string | null
+          user_ip: string | null
+        }
+        Insert: {
+          celebrity_id: string
+          clicked_at?: string
+          created_at?: string
+          id?: string
+          user_id?: string | null
+          user_ip?: string | null
+        }
+        Update: {
+          celebrity_id?: string
+          clicked_at?: string
+          created_at?: string
+          id?: string
+          user_id?: string | null
+          user_ip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_clicks_celebrity_id_fkey"
+            columns: ["celebrity_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       celebrity_media: {
         Row: {
           celebrity_id: string
@@ -814,6 +849,27 @@ export type Database = {
           video_id: string
           view_count: number
           view_date: string
+        }[]
+      }
+      get_call_click_statistics: {
+        Args: never
+        Returns: {
+          celebrity_id: string
+          click_count: number
+          click_date: string
+        }[]
+      }
+      get_celebrities_with_expired_subscriptions: {
+        Args: never
+        Returns: {
+          days_expired: number
+          email: string
+          id: string
+          phone_number: string
+          stage_name: string
+          subscription_end: string
+          subscription_tier: string
+          user_id: string
         }[]
       }
       get_celebrities_with_subscription: {

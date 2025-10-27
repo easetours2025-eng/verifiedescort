@@ -46,6 +46,8 @@ import { AdminNotifications } from '@/components/AdminNotifications';
 import PremiumSupportUsers from '@/components/PremiumSupportUsers';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import AdminWhatsAppAnalytics from '@/components/AdminWhatsAppAnalytics';
+import AdminCallAnalytics from '@/components/AdminCallAnalytics';
+import AdminExpiredSubscriptions from '@/components/AdminExpiredSubscriptions';
 
 // Data Interfaces
 interface PaymentRecord {
@@ -910,6 +912,20 @@ const AdminDashboard = () => {
             <div className="space-y-4 sm:space-y-6">
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">WhatsApp Analytics</h1>
               <AdminWhatsAppAnalytics />
+            </div>
+          )}
+
+          {activeTab === 'call-analytics' && (
+            <div className="space-y-4 sm:space-y-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">Call Analytics</h1>
+              <AdminCallAnalytics />
+            </div>
+          )}
+
+          {activeTab === 'expired-subscriptions' && (
+            <div className="space-y-4 sm:space-y-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">Expired Subscriptions</h1>
+              <AdminExpiredSubscriptions />
             </div>
           )}
 
