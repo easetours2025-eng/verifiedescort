@@ -161,22 +161,40 @@ const AdminWhatsAppAnalytics = () => {
     
     setCelebrityStats(sortedStats);
 
-    // Calculate daily statistics
+    // Calculate daily statistics with proper date range
     const dailyMap = new Map<string, number>();
-    const daysToShow = dateRange === 'all' ? 90 : dateRange === '90days' ? 90 : dateRange === '30days' ? 30 : 7;
-    const startDate = subDays(new Date(), daysToShow);
+    
+    // Determine the chart date range based on filters
+    let chartStartDate: Date;
+    let chartEndDate: Date;
+    let daysToShow: number;
 
+    if (dateRange === 'custom' && startDate && endDate) {
+      chartStartDate = startOfDay(startDate);
+      chartEndDate = endOfDay(endDate);
+      daysToShow = Math.ceil((chartEndDate.getTime() - chartStartDate.getTime()) / (1000 * 60 * 60 * 24));
+    } else if (dateRange === 'all') {
+      // For "all time", show last 90 days or use actual data range
+      daysToShow = 90;
+      chartStartDate = subDays(new Date(), daysToShow);
+      chartEndDate = new Date();
+    } else {
+      daysToShow = dateRange === '90days' ? 90 : dateRange === '30days' ? 30 : 7;
+      chartStartDate = subDays(new Date(), daysToShow);
+      chartEndDate = new Date();
+    }
+
+    // Map clicks to dates
     filteredClicks.forEach(click => {
       const clickDate = new Date(click.clicked_at);
-      if (clickDate >= startDate) {
-        const dateKey = format(clickDate, 'yyyy-MM-dd');
-        dailyMap.set(dateKey, (dailyMap.get(dateKey) || 0) + 1);
-      }
+      const dateKey = format(clickDate, 'yyyy-MM-dd');
+      dailyMap.set(dateKey, (dailyMap.get(dateKey) || 0) + 1);
     });
 
+    // Generate daily stats array covering the full date range
     const dailyStatsArray: DailyClickStats[] = [];
-    for (let i = daysToShow - 1; i >= 0; i--) {
-      const date = subDays(new Date(), i);
+    for (let i = 0; i <= daysToShow; i++) {
+      const date = subDays(chartEndDate, daysToShow - i);
       const dateKey = format(date, 'yyyy-MM-dd');
       dailyStatsArray.push({
         date: format(date, 'MMM dd'),
