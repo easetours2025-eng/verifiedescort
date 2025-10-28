@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Table,
@@ -12,23 +11,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { MessageCircle, TrendingUp, Users, CalendarIcon, Filter, X } from 'lucide-react';
+import { MessageCircle, TrendingUp, Users } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { format, subDays, startOfDay, endOfDay } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 interface WhatsAppClick {
   id: string;
@@ -55,155 +40,15 @@ interface DailyClickStats {
 
 const AdminWhatsAppAnalytics = () => {
   const [clicks, setClicks] = useState<WhatsAppClick[]>([]);
-  const [allClicks, setAllClicks] = useState<WhatsAppClick[]>([]);
   const [celebrityStats, setCelebrityStats] = useState<CelebrityClickStats[]>([]);
   const [dailyStats, setDailyStats] = useState<DailyClickStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalClicks, setTotalClicks] = useState(0);
-  const [allCelebrities, setAllCelebrities] = useState<{ id: string; stage_name: string }[]>([]);
-  
-  // Filter states
-  const [dateRange, setDateRange] = useState<'7days' | '30days' | '90days' | 'all' | 'custom'>('30days');
-  const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 30));
-  const [endDate, setEndDate] = useState<Date | undefined>(new Date());
-  const [selectedCelebrity, setSelectedCelebrity] = useState<string>('all');
 
   useEffect(() => {
     fetchWhatsAppAnalytics();
     setupRealtimeSubscription();
   }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [allClicks, dateRange, startDate, endDate, selectedCelebrity]);
-
-  const handleDateRangeChange = (range: '7days' | '30days' | '90days' | 'all' | 'custom') => {
-    setDateRange(range);
-    const now = new Date();
-    
-    switch (range) {
-      case '7days':
-        setStartDate(subDays(now, 7));
-        setEndDate(now);
-        break;
-      case '30days':
-        setStartDate(subDays(now, 30));
-        setEndDate(now);
-        break;
-      case '90days':
-        setStartDate(subDays(now, 90));
-        setEndDate(now);
-        break;
-      case 'all':
-        setStartDate(undefined);
-        setEndDate(undefined);
-        break;
-      // custom: user will set dates manually
-    }
-  };
-
-  const applyFilters = () => {
-    let filtered = [...allClicks];
-
-    // Filter by date range
-    if (startDate && endDate) {
-      const start = startOfDay(startDate);
-      const end = endOfDay(endDate);
-      filtered = filtered.filter(click => {
-        const clickDate = new Date(click.clicked_at);
-        return clickDate >= start && clickDate <= end;
-      });
-    }
-
-    // Filter by celebrity
-    if (selectedCelebrity !== 'all') {
-      filtered = filtered.filter(click => click.celebrity_id === selectedCelebrity);
-    }
-
-    setClicks(filtered);
-    calculateStats(filtered);
-  };
-
-  const calculateStats = (filteredClicks: WhatsAppClick[]) => {
-    setTotalClicks(filteredClicks.length);
-
-    // Calculate celebrity-wise statistics
-    const statsMap = new Map<string, CelebrityClickStats>();
-    
-    filteredClicks.forEach(click => {
-      const celebId = click.celebrity_id;
-      const existing = statsMap.get(celebId);
-      
-      if (existing) {
-        existing.total_clicks++;
-        // Count clicks in last 7 days
-        const clickDate = new Date(click.clicked_at);
-        const weekAgo = subDays(new Date(), 7);
-        if (clickDate >= weekAgo) {
-          existing.recent_clicks++;
-        }
-      } else {
-        const clickDate = new Date(click.clicked_at);
-        const weekAgo = subDays(new Date(), 7);
-        
-        statsMap.set(celebId, {
-          celebrity_id: celebId,
-          stage_name: click.celebrity?.stage_name || 'Unknown',
-          profile_picture_path: click.celebrity?.profile_picture_path,
-          total_clicks: 1,
-          recent_clicks: clickDate >= weekAgo ? 1 : 0
-        });
-      }
-    });
-
-    const sortedStats = Array.from(statsMap.values())
-      .sort((a, b) => b.total_clicks - a.total_clicks);
-    
-    setCelebrityStats(sortedStats);
-
-    // Calculate daily statistics with proper date range
-    const dailyMap = new Map<string, number>();
-    
-    // Determine the chart date range based on filters
-    let chartStartDate: Date;
-    let chartEndDate: Date;
-    let daysToShow: number;
-
-    if (dateRange === 'custom' && startDate && endDate) {
-      chartStartDate = startOfDay(startDate);
-      chartEndDate = endOfDay(endDate);
-      daysToShow = Math.ceil((chartEndDate.getTime() - chartStartDate.getTime()) / (1000 * 60 * 60 * 24));
-    } else if (dateRange === 'all') {
-      // For "all time", show last 90 days or use actual data range
-      daysToShow = 90;
-      chartStartDate = subDays(new Date(), daysToShow);
-      chartEndDate = new Date();
-    } else {
-      daysToShow = dateRange === '90days' ? 90 : dateRange === '30days' ? 30 : 7;
-      chartStartDate = subDays(new Date(), daysToShow);
-      chartEndDate = new Date();
-    }
-
-    // Map clicks to dates
-    filteredClicks.forEach(click => {
-      const clickDate = new Date(click.clicked_at);
-      const dateKey = format(clickDate, 'yyyy-MM-dd');
-      dailyMap.set(dateKey, (dailyMap.get(dateKey) || 0) + 1);
-    });
-
-    // Generate daily stats array covering the full date range
-    const dailyStatsArray: DailyClickStats[] = [];
-    for (let i = 0; i <= daysToShow; i++) {
-      const date = subDays(chartEndDate, daysToShow - i);
-      const dateKey = format(date, 'yyyy-MM-dd');
-      dailyStatsArray.push({
-        date: format(date, 'MMM dd'),
-        clicks: dailyMap.get(dateKey) || 0
-      });
-    }
-
-    setDailyStats(dailyStatsArray);
-  };
 
   const fetchWhatsAppAnalytics = async () => {
     try {
@@ -229,9 +74,6 @@ const AdminWhatsAppAnalytics = () => {
         console.error('Error fetching celebrity profiles:', celebritiesError);
       }
 
-      // Store all celebrities for filter dropdown
-      setAllCelebrities(celebritiesData || []);
-
       // Join clicks with celebrity data manually
       const processedClicks = (clicksData || []).map(click => {
         const celebrity = celebritiesData?.find(c => c.id === click.celebrity_id);
@@ -241,8 +83,70 @@ const AdminWhatsAppAnalytics = () => {
         };
       });
 
-      setAllClicks(processedClicks);
       setClicks(processedClicks);
+      setTotalClicks(processedClicks.length);
+
+      // Calculate celebrity-wise statistics
+      const statsMap = new Map<string, CelebrityClickStats>();
+      
+      processedClicks.forEach(click => {
+        const celebId = click.celebrity_id;
+        const existing = statsMap.get(celebId);
+        
+        if (existing) {
+          existing.total_clicks++;
+          // Count clicks in last 7 days
+          const clickDate = new Date(click.clicked_at);
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          if (clickDate >= weekAgo) {
+            existing.recent_clicks++;
+          }
+        } else {
+          const clickDate = new Date(click.clicked_at);
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          
+          statsMap.set(celebId, {
+            celebrity_id: celebId,
+            stage_name: click.celebrity?.stage_name || 'Unknown',
+            profile_picture_path: click.celebrity?.profile_picture_path,
+            total_clicks: 1,
+            recent_clicks: clickDate >= weekAgo ? 1 : 0
+          });
+        }
+      });
+
+      const sortedStats = Array.from(statsMap.values())
+        .sort((a, b) => b.total_clicks - a.total_clicks);
+      
+      setCelebrityStats(sortedStats);
+
+      // Calculate daily statistics for the last 30 days
+      const dailyMap = new Map<string, number>();
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      processedClicks.forEach(click => {
+        const clickDate = new Date(click.clicked_at);
+        if (clickDate >= thirtyDaysAgo) {
+          const dateKey = format(clickDate, 'yyyy-MM-dd');
+          dailyMap.set(dateKey, (dailyMap.get(dateKey) || 0) + 1);
+        }
+      });
+
+      const dailyStatsArray: DailyClickStats[] = [];
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateKey = format(date, 'yyyy-MM-dd');
+        dailyStatsArray.push({
+          date: format(date, 'MMM dd'),
+          clicks: dailyMap.get(dateKey) || 0
+        });
+      }
+
+      setDailyStats(dailyStatsArray);
 
     } catch (error) {
       console.error('Error fetching WhatsApp analytics:', error);
@@ -287,157 +191,6 @@ const AdminWhatsAppAnalytics = () => {
 
   return (
     <div className="space-y-6">
-      {/* Filters Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {/* Quick Date Range Filters */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Date Range</label>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  size="sm"
-                  variant={dateRange === '7days' ? 'default' : 'outline'}
-                  onClick={() => handleDateRangeChange('7days')}
-                >
-                  7 Days
-                </Button>
-                <Button
-                  size="sm"
-                  variant={dateRange === '30days' ? 'default' : 'outline'}
-                  onClick={() => handleDateRangeChange('30days')}
-                >
-                  30 Days
-                </Button>
-                <Button
-                  size="sm"
-                  variant={dateRange === '90days' ? 'default' : 'outline'}
-                  onClick={() => handleDateRangeChange('90days')}
-                >
-                  90 Days
-                </Button>
-                <Button
-                  size="sm"
-                  variant={dateRange === 'all' ? 'default' : 'outline'}
-                  onClick={() => handleDateRangeChange('all')}
-                >
-                  All Time
-                </Button>
-              </div>
-            </div>
-
-            {/* Custom Date Range */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Start Date</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !startDate && 'text-muted-foreground'
-                    )}
-                    onClick={() => setDateRange('custom')}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, 'PPP') : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={(date) => {
-                      setStartDate(date);
-                      setDateRange('custom');
-                    }}
-                    initialFocus
-                    className={cn('p-3 pointer-events-auto')}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">End Date</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !endDate && 'text-muted-foreground'
-                    )}
-                    onClick={() => setDateRange('custom')}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, 'PPP') : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={(date) => {
-                      setEndDate(date);
-                      setDateRange('custom');
-                    }}
-                    initialFocus
-                    className={cn('p-3 pointer-events-auto')}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Celebrity Filter */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Celebrity</label>
-              <Select value={selectedCelebrity} onValueChange={setSelectedCelebrity}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Celebrities" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Celebrities</SelectItem>
-                  {allCelebrities.map((celeb) => (
-                    <SelectItem key={celeb.id} value={celeb.id}>
-                      {celeb.stage_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Active Filters Summary */}
-          <div className="mt-4 flex flex-wrap gap-2">
-            {dateRange === 'custom' && startDate && endDate && (
-              <Badge variant="secondary" className="gap-1">
-                {format(startDate, 'MMM dd')} - {format(endDate, 'MMM dd')}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => handleDateRangeChange('30days')}
-                />
-              </Badge>
-            )}
-            {selectedCelebrity !== 'all' && (
-              <Badge variant="secondary" className="gap-1">
-                {allCelebrities.find(c => c.id === selectedCelebrity)?.stage_name}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => setSelectedCelebrity('all')}
-                />
-              </Badge>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Header Stats */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -464,13 +217,7 @@ const AdminWhatsAppAnalytics = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {dateRange === '7days' ? 'Last 7 Days' : 
-               dateRange === '30days' ? 'Last 30 Days' : 
-               dateRange === '90days' ? 'Last 90 Days' : 
-               dateRange === 'custom' && startDate && endDate ? 'Selected Period' : 
-               'Recent Period'}
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Last 7 Days</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -485,14 +232,7 @@ const AdminWhatsAppAnalytics = () => {
       {/* Daily Clicks Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            WhatsApp Clicks Over Time 
-            {dateRange === '7days' && ' (Last 7 Days)'}
-            {dateRange === '30days' && ' (Last 30 Days)'}
-            {dateRange === '90days' && ' (Last 90 Days)'}
-            {dateRange === 'all' && ' (All Time)'}
-            {dateRange === 'custom' && startDate && endDate && ` (${format(startDate, 'MMM dd')} - ${format(endDate, 'MMM dd')})`}
-          </CardTitle>
+          <CardTitle>WhatsApp Clicks Over Time (Last 30 Days)</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -548,7 +288,7 @@ const AdminWhatsAppAnalytics = () => {
               <TableRow>
                 <TableHead>Celebrity</TableHead>
                 <TableHead>Total Clicks</TableHead>
-                <TableHead>Recent Activity</TableHead>
+                <TableHead>Last 7 Days</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
