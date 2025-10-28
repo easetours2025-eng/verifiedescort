@@ -242,6 +242,8 @@ export type Database = {
           credit_balance: number | null
           date_of_birth: string | null
           email: string | null
+          featured_payment_id: string | null
+          featured_until: string | null
           gender: string[] | null
           hourly_rate: number | null
           id: string
@@ -268,6 +270,8 @@ export type Database = {
           credit_balance?: number | null
           date_of_birth?: string | null
           email?: string | null
+          featured_payment_id?: string | null
+          featured_until?: string | null
           gender?: string[] | null
           hourly_rate?: number | null
           id?: string
@@ -294,6 +298,8 @@ export type Database = {
           credit_balance?: number | null
           date_of_birth?: string | null
           email?: string | null
+          featured_payment_id?: string | null
+          featured_until?: string | null
           gender?: string[] | null
           hourly_rate?: number | null
           id?: string
@@ -312,7 +318,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "celebrity_profiles_featured_payment_id_fkey"
+            columns: ["featured_payment_id"]
+            isOneToOne: false
+            referencedRelation: "payment_verification"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       celebrity_services: {
         Row: {
@@ -598,6 +612,7 @@ export type Database = {
           mpesa_code: string
           payment_date: string
           payment_status: string | null
+          payment_type: string | null
           phone_number: string
           subscription_tier: string | null
           verified_at: string | null
@@ -616,6 +631,7 @@ export type Database = {
           mpesa_code: string
           payment_date?: string
           payment_status?: string | null
+          payment_type?: string | null
           phone_number: string
           subscription_tier?: string | null
           verified_at?: string | null
@@ -634,6 +650,7 @@ export type Database = {
           mpesa_code?: string
           payment_date?: string
           payment_status?: string | null
+          payment_type?: string | null
           phone_number?: string
           subscription_tier?: string | null
           verified_at?: string | null
@@ -882,10 +899,12 @@ export type Database = {
           date_of_birth: string
           duration_type: string
           email: string
+          featured_until: string
           gender: string[]
           hourly_rate: number
           id: string
           is_available: boolean
+          is_featured: boolean
           is_special_offer_active: boolean
           is_verified: boolean
           location: string

@@ -14,8 +14,10 @@ import {
   Clock, 
   AlertCircle, 
   Smartphone,
-  X 
+  X,
+  Star 
 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface PaymentRecord {
   id: string;
@@ -25,6 +27,7 @@ interface PaymentRecord {
   payment_date: string;
   is_verified: boolean;
   expires_at: string;
+  payment_type?: string;
 }
 
 interface PaymentVerificationModalProps {
@@ -39,6 +42,7 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
   const [submitting, setSubmitting] = useState(false);
   const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [paymentType, setPaymentType] = useState<'subscription' | 'featured'>('subscription');
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -77,12 +81,15 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
 
     setSubmitting(true);
     try {
+      const amount = paymentType === 'featured' ? 5 : 10; // 500 KSH for featured, 1000 KSH for subscription
+      
       const { data, error } = await supabase.functions.invoke('payment-verification', {
         body: {
           celebrityId,
           phoneNumber: phoneNumber.trim(),
           mpesaCode: mpesaCode.trim().toUpperCase(),
-          amount: 10
+          amount,
+          paymentType
         }
       });
 
@@ -100,7 +107,9 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
 
       toast({
         title: "Payment Submitted",
-        description: "Your payment verification has been submitted for admin review",
+        description: paymentType === 'featured' 
+          ? "Your featured payment has been submitted for admin review (1 week featured listing)" 
+          : "Your subscription payment has been submitted for admin review",
       });
     } catch (error) {
       console.error('Payment submission error:', error);
@@ -152,8 +161,8 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <CreditCard className="h-5 w-5" />
-              <span>Monthly Subscription Payment</span>
+              {paymentType === 'featured' ? <Star className="h-5 w-5 text-yellow-500" /> : <CreditCard className="h-5 w-5" />}
+              <span>{paymentType === 'featured' ? 'Featured Listing Payment' : 'Monthly Subscription Payment'}</span>
             </div>
             <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
               <X className="h-4 w-4" />
@@ -162,6 +171,39 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
         </DialogHeader>
 
         <div className="flex-1 overflow-auto space-y-6">
+          {/* Payment Type Selection */}
+          <Card className="border-primary/20">
+            <CardContent className="pt-6">
+              <div className="space-y-2">
+                <Label>Payment Type</Label>
+                <Select value={paymentType} onValueChange={(value: 'subscription' | 'featured') => setPaymentType(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="subscription">
+                      <div className="flex items-center space-x-2">
+                        <CreditCard className="h-4 w-4" />
+                        <span>Monthly Subscription - KSH 1,000</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="featured">
+                      <div className="flex items-center space-x-2">
+                        <Star className="h-4 w-4 text-yellow-500" />
+                        <span>Featured Listing (1 Week) - KSH 500</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {paymentType === 'featured' 
+                    ? 'Featured listings appear at the top of search results for 1 week' 
+                    : 'Monthly subscription activates your profile on the platform'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Payment Instructions */}
           <Card className="border-primary/20">
             <CardHeader>
@@ -174,10 +216,10 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
               <div className="bg-muted p-4 rounded-lg">
                 <h4 className="font-semibold mb-2">Payment Details:</h4>
                 <ul className="space-y-1 text-sm">
-                  <li><strong>Amount:</strong> KSH 1,000 (≈ $10)</li>
+                  <li><strong>Amount:</strong> KSH {paymentType === 'featured' ? '500' : '1,000'} (≈ ${paymentType === 'featured' ? '5' : '10'})</li>
                   <li><strong>Paybill Number:</strong> 2727278</li>
                   <li><strong>Account Number:</strong> Your celebrity profile name</li>
-                  <li><strong>Description:</strong> Monthly subscription</li>
+                  <li><strong>Description:</strong> {paymentType === 'featured' ? 'Featured listing' : 'Monthly subscription'}</li>
                 </ul>
               </div>
               
@@ -189,7 +231,7 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
                   <li>Select "Pay Bill"</li>
                   <li>Enter Business Number: <strong>2727278</strong></li>
                   <li>Enter Account Number: Your celebrity name</li>
-                  <li>Enter Amount: <strong>1000</strong></li>
+                  <li>Enter Amount: <strong>{paymentType === 'featured' ? '500' : '1000'}</strong></li>
                   <li>Enter your M-Pesa PIN</li>
                   <li>Copy the M-Pesa code and submit below</li>
                 </ol>
@@ -265,9 +307,12 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
                       <div className="flex items-center space-x-3">
                         {getStatusIcon(record)}
                         <div>
-                          <p className="font-medium">{record.mpesa_code}</p>
+                          <p className="font-medium flex items-center gap-2">
+                            {record.mpesa_code}
+                            {record.payment_type === 'featured' && <Star className="h-3 w-3 text-yellow-500" />}
+                          </p>
                           <p className="text-sm text-muted-foreground">
-                            {record.phone_number} • KSH {record.amount * 100}
+                            {record.phone_number} • KSH {record.amount * 100} • {record.payment_type === 'featured' ? 'Featured' : 'Subscription'}
                           </p>
                         </div>
                       </div>

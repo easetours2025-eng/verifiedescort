@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { celebrityId, phoneNumber, mpesaCode, amount, tier, duration, expectedAmount } = await req.json();
+    const { celebrityId, phoneNumber, mpesaCode, amount, tier, duration, expectedAmount, paymentType } = await req.json();
 
     if (!celebrityId || !phoneNumber || !mpesaCode) {
       return new Response(
@@ -85,7 +85,8 @@ Deno.serve(async (req) => {
         payment_date: new Date().toISOString(),
         is_verified: false,
         subscription_tier: tier || null,
-        duration_type: duration || null
+        duration_type: duration || null,
+        payment_type: paymentType || 'subscription'
       })
       .select()
       .single();

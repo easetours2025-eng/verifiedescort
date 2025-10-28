@@ -288,66 +288,31 @@ const AdminDashboard = () => {
 
   const verifyPayment = async (paymentId: string, celebrityId: string) => {
     try {
-      
-      // First, mark payment as verified
-      const { error: paymentError } = await supabase
+      // Get the payment details first to check payment type
+      const { data: payment, error: fetchError } = await supabase
         .from('payment_verification')
-        .update({
-          is_verified: true,
-          verified_at: new Date().toISOString(),
-          verified_by: null // Set to null for development admin
-        })
-        .eq('id', paymentId);
+        .select('*')
+        .eq('id', paymentId)
+        .single();
 
-      if (paymentError) {
-        throw paymentError;
+      if (fetchError || !payment) {
+        throw fetchError || new Error('Payment not found');
       }
 
-      // Mark celebrity as verified and available
-      const { error: celebrityError } = await supabase
-        .from('celebrity_profiles')
-        .update({ 
-          is_verified: true,
-          is_available: true 
-        })
-        .eq('id', celebrityId);
-
-      if (celebrityError) {
-        console.error('Celebrity update error:', celebrityError);
-        throw celebrityError;
-      }
-
-      // Create or update celebrity subscription
-      const subscriptionStart = new Date();
-      const subscriptionEnd = new Date();
-      subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1);
-
-      console.log('Creating subscription:', {
-        celebrity_id: celebrityId,
-        is_active: true,
-        subscription_start: subscriptionStart.toISOString(),
-        subscription_end: subscriptionEnd.toISOString(),
-        last_payment_id: paymentId
+      // Use the verify-payment edge function which handles both subscription and featured payments
+      const { data, error } = await supabase.functions.invoke('verify-payment', {
+        body: { paymentId }
       });
 
-      const { error: subscriptionError } = await supabase
-        .from('celebrity_subscriptions')
-        .upsert({
-          celebrity_id: celebrityId,
-          is_active: true,
-          subscription_start: subscriptionStart.toISOString(),
-          subscription_end: subscriptionEnd.toISOString(),
-          last_payment_id: paymentId
-        });
+      if (error) throw error;
 
-      if (subscriptionError) {
-        console.error('Subscription creation error:', subscriptionError);
-        throw subscriptionError;
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to verify payment');
       }
 
       toast({
         title: "Payment Verified",
-        description: "Celebrity subscription activated and profile verified for 1 month",
+        description: data.message,
       });
 
       fetchData();

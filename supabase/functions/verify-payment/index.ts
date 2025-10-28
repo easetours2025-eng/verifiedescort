@@ -112,8 +112,29 @@ Deno.serve(async (req) => {
 
     let message = 'Payment verified successfully';
 
+    // Handle featured payment
+    if (payment.payment_type === 'featured') {
+      const featuredEnd = new Date();
+      featuredEnd.setDate(featuredEnd.getDate() + 7); // 1 week featured
+
+      const { error: profileError } = await supabaseAdmin
+        .from('celebrity_profiles')
+        .update({
+          featured_until: featuredEnd.toISOString(),
+          featured_payment_id: payment.id,
+        })
+        .eq('id', payment.celebrity_id);
+
+      if (profileError) {
+        console.error('Error updating profile for featured:', profileError);
+        throw new Error(`Failed to activate featured status: ${profileError.message}`);
+      }
+
+      console.log('Celebrity featured status activated');
+      message = 'Payment verified and featured status activated for 1 week';
+    }
     // Only activate subscription if payment is not underpaid
-    if (!isUnderpaid && payment.subscription_tier && payment.duration_type) {
+    else if (!isUnderpaid && payment.subscription_tier && payment.duration_type) {
       // Calculate subscription end date based on duration
       let durationDays = 30; // default 1 month
       if (payment.duration_type === '1_week') durationDays = 7;
