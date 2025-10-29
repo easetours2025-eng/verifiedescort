@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from '@/components/ui/switch';
 import ImageModal from '@/components/ImageModal';
+import CelebrityProfileEditor from '@/components/CelebrityProfileEditor';
 
 interface User {
   id: string;
@@ -61,6 +62,7 @@ const AllUsersManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'verified' | 'pending'>('all');
   const [selectedImage, setSelectedImage] = useState<{ url: string; title: string } | null>(null);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const { toast } = useToast();
 
   console.log('AllUsersManagement: Responsive version loaded');
@@ -382,31 +384,40 @@ const AllUsersManagement = () => {
                         className="scale-75"
                       />
                     </div>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete User</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete user "{user.stage_name || user.email}"? 
-                            This will permanently delete their account and all associated data. This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => deleteUser(user.user_id || user.id, user.email || '')}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Delete User
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <div className="flex items-center gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setEditingUserId(user.id)}
+                      >
+                        <Edit className="h-4 w-4 text-primary" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete User</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete user "{user.stage_name || user.email}"? 
+                              This will permanently delete their account and all associated data. This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteUser(user.user_id || user.id, user.email || '')}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete User
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
                 </Card>
               ))}
@@ -499,6 +510,13 @@ const AllUsersManagement = () => {
                       </td>
                       <td className="p-2 sm:p-3">
                         <div className="flex items-center justify-end space-x-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => setEditingUserId(user.id)}
+                          >
+                            <Edit className="h-4 w-4 text-primary" />
+                          </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="sm">
@@ -541,6 +559,21 @@ const AllUsersManagement = () => {
           onClose={() => setSelectedImage(null)}
           title={selectedImage?.title}
         />
+
+        {/* Celebrity Profile Editor */}
+        {editingUserId && (
+          <CelebrityProfileEditor
+            open={!!editingUserId}
+            onOpenChange={(open) => {
+              if (!open) setEditingUserId(null);
+            }}
+            celebrityId={editingUserId}
+            onSave={() => {
+              fetchUsers();
+              setEditingUserId(null);
+            }}
+          />
+        )}
       </CardContent>
     </Card>
   );
