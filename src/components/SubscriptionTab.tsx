@@ -369,6 +369,63 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
         </Card>
       )}
 
+      {/* Featured Listing Card */}
+      <Card className="border-2 border-yellow-500/30 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center space-x-2">
+            <Star className="h-5 w-5 text-yellow-500" />
+            <span>Featured Listing</span>
+          </CardTitle>
+          <CardDescription>
+            Appear at the top of search results for 1 week - Only KSH 500!
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-start space-x-3 p-3 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg border border-yellow-200 dark:border-yellow-800">
+            <Star className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h4 className="font-semibold text-yellow-900 dark:text-yellow-200 mb-1">
+                Get Maximum Visibility!
+              </h4>
+              <p className="text-sm text-yellow-800 dark:text-yellow-300">
+                Featured profiles appear at the very top of the homepage and search results, giving you maximum exposure to potential clients for an entire week.
+              </p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>Top Position</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>7 Days Duration</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>More Bookings</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>KSH 500 Only</span>
+            </div>
+          </div>
+
+          <Button 
+            onClick={onOpenPaymentModal}
+            className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white font-semibold"
+          >
+            <Star className="h-4 w-4 mr-2" />
+            Request Featured Listing
+          </Button>
+          
+          <p className="text-xs text-center text-muted-foreground">
+            After payment verification, your profile will be featured for 1 week
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Subscription Status Card */}
       <Card className="border-primary/20">
         <CardHeader>
