@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Check, Copy, Crown, Gem, Sparkles, Star } from "lucide-react";
 import { toast } from "sonner";
+import { formatPrice } from '@/lib/currency-utils';
 
 interface SubscriptionPackage {
   id: string;
@@ -61,12 +62,30 @@ export function NewSubscriptionModal({
   const [phoneNumber, setPhoneNumber] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState("1_month");
+  const [userCountry, setUserCountry] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       fetchPackages();
+      fetchCelebrityCountry();
     }
   }, [open]);
+
+  const fetchCelebrityCountry = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('celebrity_profiles')
+        .select('country')
+        .eq('id', celebrityId)
+        .single();
+      
+      if (data && !error) {
+        setUserCountry(data.country);
+      }
+    } catch (error) {
+      console.error('Error fetching country:', error);
+    }
+  };
 
   const fetchPackages = async () => {
     try {
@@ -122,7 +141,7 @@ export function NewSubscriptionModal({
       setSelectedPackage(null);
       onOpenChange(false);
       toast.success(
-        `Subscription request submitted! Expected amount: KSH ${selectedPackage.price.toLocaleString()}`,
+        `Subscription request submitted! Expected amount: ${formatPrice(selectedPackage.price, userCountry)}`,
         {
           description: "Your payment will be verified by admin. You'll be notified about the status."
         }
@@ -164,7 +183,7 @@ export function NewSubscriptionModal({
 
     const savings = competitorPrice - pkg.price;
     if (savings > 0) {
-      return `Save KSH ${savings}!`;
+      return `Save ${formatPrice(savings, userCountry)}!`;
     }
     return null;
   };
@@ -233,7 +252,7 @@ export function NewSubscriptionModal({
                     <CardContent className="pb-3 sm:pb-6">
                       <div className="mb-3 sm:mb-4">
                         <div className="text-2xl sm:text-3xl font-bold">
-                          KSH {pkg.price.toLocaleString()}
+                          {formatPrice(pkg.price, userCountry)}
                         </div>
                         {getSavingsText(pkg.tier_name, pkg.duration_type) && (
                           <Badge variant="secondary" className="mt-1.5 sm:mt-2 text-xs">
@@ -284,12 +303,12 @@ export function NewSubscriptionModal({
                     <Copy className="w-3 h-3 ml-1" />
                   </Button>
                 </li>
-                <li>
-                  Enter amount:{" "}
-                  <span className="font-bold text-primary">
-                    KSH {selectedPackage.price.toLocaleString()}
-                  </span>
-                </li>
+                      <li>
+                        Enter amount:{" "}
+                        <span className="font-bold text-primary">
+                          {formatPrice(selectedPackage.price, userCountry)}
+                        </span>
+                      </li>
                 <li>Complete the transaction and note your M-Pesa code</li>
               </ol>
             </div>
@@ -320,7 +339,7 @@ export function NewSubscriptionModal({
 
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-2.5 sm:p-3">
               <p className="text-xs sm:text-sm font-semibold text-center">
-                Total Amount to Pay: <span className="text-lg sm:text-xl text-primary">KSH {selectedPackage.price.toLocaleString()}</span>
+                Total Amount to Pay: <span className="text-lg sm:text-xl text-primary">{formatPrice(selectedPackage.price, userCountry)}</span>
               </p>
               <p className="text-[10px] sm:text-xs text-muted-foreground text-center mt-1">
                 {selectedPackage.duration_type === "1_week" && "Valid for 1 Week"}
@@ -336,8 +355,8 @@ export function NewSubscriptionModal({
             >
               {submitting ? "Submitting..." : (
                 <>
-                  <span className="hidden sm:inline">Submit Payment of KSH {selectedPackage.price.toLocaleString()}</span>
-                  <span className="sm:hidden">Submit KSH {selectedPackage.price.toLocaleString()}</span>
+                  <span className="hidden sm:inline">Submit Payment of {formatPrice(selectedPackage.price, userCountry)}</span>
+                  <span className="sm:hidden">Submit {formatPrice(selectedPackage.price, userCountry)}</span>
                 </>
               )}
             </Button>

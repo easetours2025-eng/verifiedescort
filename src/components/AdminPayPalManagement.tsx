@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatPrice } from '@/lib/currency-utils';
 
 interface PayPalPayment {
   id: string;
@@ -265,12 +266,12 @@ export default function AdminPayPalManagement() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Total Amount</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground">Total Amount (KES)</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
                 <DollarSign className="h-4 w-4 text-blue-500" />
-                <span className="text-2xl font-bold text-blue-600">${stats.totalAmount}</span>
+                <span className="text-2xl font-bold text-blue-600">KSH {stats.totalAmount.toLocaleString()}</span>
               </div>
             </CardContent>
           </Card>
@@ -364,7 +365,14 @@ export default function AdminPayPalManagement() {
                         {payment.transaction_id || 'N/A'}
                       </TableCell>
                       <TableCell className="font-semibold">
-                        ${payment.amount}
+                        <div className="flex flex-col">
+                          <span>{formatPrice(payment.amount, payment.country)}</span>
+                          {payment.country && payment.country !== 'Kenya' && (
+                            <span className="text-xs text-muted-foreground">
+                              (KSH {payment.amount.toLocaleString()})
+                            </span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-sm">
                         {new Date(payment.payment_date).toLocaleDateString()}

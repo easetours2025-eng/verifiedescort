@@ -26,6 +26,7 @@ import { useNavigate } from 'react-router-dom';
 import CelebritySubscriptionFeatures from './CelebritySubscriptionFeatures';
 import PayPalPayment from './PayPalPayment';
 import { toast as sonnerToast } from 'sonner';
+import { formatPrice, convertToKES, getCurrencyCode } from '@/lib/currency-utils';
 
 interface CelebrityProfile {
   id: string;
@@ -91,6 +92,7 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
   const [selectedDuration, setSelectedDuration] = useState("1_month");
   const [isEastAfrica, setIsEastAfrica] = useState(true);
   const [paypalTransactionId, setPaypalTransactionId] = useState("");
+  const [userCountry, setUserCountry] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -114,6 +116,8 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
         .single();
       
       if (error || !profileData?.country) return;
+
+      setUserCountry(profileData.country);
 
       // Check if country is in East Africa
       const { data: countryData } = await supabase
@@ -229,7 +233,7 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
 
     const savings = competitorPrice - pkg.price;
     if (savings > 0) {
-      return `Save KSH ${savings}!`;
+      return `Save ${formatPrice(savings, userCountry)}!`;
     }
     return null;
   };
@@ -249,13 +253,17 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
 
       setSubmitting(true);
       try {
+        // Convert the displayed price back to KES for storage
+        const amountInKES = selectedPackage.price; // Already in KES
+        const displayCurrency = getCurrencyCode(userCountry);
+        
         const { data, error } = await supabase
           .from('paypal_payments')
           .insert({
             celebrity_id: profile?.id,
             paypal_email: 'rashidjuma198@gmail.com',
             paypal_transaction_id: paypalTransactionId.trim(),
-            amount_usd: selectedPackage.price,
+            amount_usd: amountInKES, // Store KES amount (will rename column later)
             subscription_tier: selectedPackage.tier_name,
             duration_type: selectedPackage.duration_type,
           })
@@ -270,7 +278,7 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
         sonnerToast.success(
           "PayPal payment submitted successfully!",
           {
-            description: "Your payment will be verified by admin. You'll be notified about the status."
+            description: `Amount: ${formatPrice(selectedPackage.price, userCountry)}. Your payment will be verified by admin.`
           }
         );
 
@@ -639,7 +647,7 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
                       <CardContent className="pb-3 sm:pb-6">
                         <div className="mb-3 sm:mb-4">
                           <div className="text-2xl sm:text-3xl font-bold">
-                            KSH {pkg.price.toLocaleString()}
+                            {formatPrice(pkg.price, userCountry)}
                           </div>
                           {getSavingsText(pkg.tier_name, pkg.duration_type) && (
                             <Badge variant="secondary" className="mt-1.5 sm:mt-2 text-xs">
@@ -687,7 +695,7 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
                     
                     <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground mb-4">
                       <li>Click the button below to copy our PayPal email</li>
-                      <li>Go to PayPal and send <span className="font-bold">${selectedPackage.price}</span> USD</li>
+                      <li>Go to PayPal and send <span className="font-bold">{formatPrice(selectedPackage.price, userCountry)}</span></li>
                       <li>Copy your PayPal transaction ID</li>
                       <li>Paste the transaction ID below and submit</li>
                     </ol>
@@ -715,7 +723,7 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
 
                   <div className="bg-primary/10 border border-primary/20 rounded-lg p-2.5 sm:p-3">
                     <p className="text-xs sm:text-sm font-semibold text-center">
-                      Total Amount to Pay: <span className="text-lg sm:text-xl text-primary">${selectedPackage.price} USD</span>
+                      Total Amount to Pay: <span className="text-lg sm:text-xl text-primary">{formatPrice(selectedPackage.price, userCountry)}</span>
                     </p>
                     <p className="text-[10px] sm:text-xs text-muted-foreground text-center mt-1">
                       {selectedPackage.duration_type === "1_week" && "Valid for 1 Week"}
@@ -729,7 +737,7 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
                     disabled={submitting || !paypalTransactionId.trim()}
                     className="w-full h-11 sm:h-12 text-sm sm:text-base"
                   >
-                    {submitting ? "Submitting..." : `Submit PayPal Payment of $${selectedPackage.price}`}
+                    {submitting ? "Submitting..." : `Submit Payment of ${formatPrice(selectedPackage.price, userCountry)}`}
                   </Button>
                   
                   <p className="text-xs text-muted-foreground text-center">
