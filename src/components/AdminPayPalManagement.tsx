@@ -29,6 +29,8 @@ interface PayPalPayment {
   celebrity_name?: string;
   celebrity_email?: string;
   country?: string;
+  subscription_tier?: string;
+  duration_type?: string;
 }
 
 export default function AdminPayPalManagement() {
@@ -47,7 +49,7 @@ export default function AdminPayPalManagement() {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from("payment_verification")
+        .from("paypal_payments")
         .select(`
           *,
           celebrity:celebrity_profiles!celebrity_id (
@@ -56,24 +58,25 @@ export default function AdminPayPalManagement() {
             country
           )
         `)
-        .eq('payment_type', 'paypal')
-        .order('payment_date', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       const formattedData = (data || []).map(payment => ({
         id: payment.id,
         celebrity_id: payment.celebrity_id,
-        amount: payment.amount,
-        paypal_email: payment.phone_number, // Using phone_number field for PayPal email
-        transaction_id: payment.mpesa_code, // Using mpesa_code field for transaction ID
-        payment_date: payment.payment_date,
+        amount: payment.amount_usd,
+        paypal_email: payment.paypal_email,
+        transaction_id: payment.paypal_transaction_id,
+        payment_date: payment.created_at,
         is_verified: payment.is_verified,
         verified_at: payment.verified_at,
         verified_by: payment.verified_by,
-        celebrity_name: payment.celebrity?.[0]?.stage_name || 'Unknown',
-        celebrity_email: payment.celebrity?.[0]?.email || '',
-        country: payment.celebrity?.[0]?.country || 'Unknown'
+        celebrity_name: payment.celebrity?.stage_name || 'Unknown',
+        celebrity_email: payment.celebrity?.email || '',
+        country: payment.celebrity?.country || 'Unknown',
+        subscription_tier: payment.subscription_tier,
+        duration_type: payment.duration_type
       }));
 
       setPayments(formattedData);
@@ -94,18 +97,60 @@ export default function AdminPayPalManagement() {
 
   const verifyPayment = async (paymentId: string) => {
     try {
-      const { error } = await supabase
-        .from("payment_verification")
+      const { data: adminUser } = await supabase.auth.getUser();
+      
+      // Get payment details
+      const { data: payment, error: paymentError } = await supabase
+        .from('paypal_payments')
+        .select('*')
+        .eq('id', paymentId)
+        .single();
+
+      if (paymentError || !payment) {
+        throw new Error('Payment not found');
+      }
+
+      // Update payment verification
+      const { error: updateError } = await supabase
+        .from('paypal_payments')
         .update({ 
           is_verified: true,
           verified_at: new Date().toISOString(),
-          verified_by: (await supabase.auth.getUser()).data.user?.id
+          verified_by: adminUser.user?.id,
+          payment_status: 'verified'
         })
-        .eq("id", paymentId);
+        .eq('id', paymentId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Update celebrity subscription if tier and duration are provided
+      if (payment.subscription_tier && payment.duration_type) {
+        const durationDays = payment.duration_type === '1_month' ? 30 
+                           : payment.duration_type === '2_weeks' ? 14 
+                           : 7;
+
+        const subscriptionEnd = new Date();
+        subscriptionEnd.setDate(subscriptionEnd.getDate() + durationDays);
+
+        const { error: subError } = await supabase
+          .from('celebrity_subscriptions')
+          .upsert({
+            celebrity_id: payment.celebrity_id,
+            subscription_tier: payment.subscription_tier,
+            duration_type: payment.duration_type,
+            subscription_start: new Date().toISOString(),
+            subscription_end: subscriptionEnd.toISOString(),
+            is_active: true,
+            amount_paid: payment.amount_usd,
+            last_payment_id: paymentId
+          }, {
+            onConflict: 'celebrity_id'
+          });
+
+        if (subError) throw subError;
+      }
       
-      toast.success("Payment verified successfully");
+      toast.success("Payment verified successfully and subscription activated");
       fetchPayments();
     } catch (error) {
       console.error("Error verifying payment:", error);

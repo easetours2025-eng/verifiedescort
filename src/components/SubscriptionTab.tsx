@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import CelebritySubscriptionFeatures from './CelebritySubscriptionFeatures';
+import PayPalPayment from './PayPalPayment';
 import { toast as sonnerToast } from 'sonner';
 
 interface CelebrityProfile {
@@ -88,6 +89,8 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
   const [phoneNumber, setPhoneNumber] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState("1_month");
+  const [isEastAfrica, setIsEastAfrica] = useState(true);
+  const [paypalTransactionId, setPaypalTransactionId] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -96,8 +99,34 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
       setIsNewCelebrity(true);
       checkSpecialOfferStatus();
       fetchPackages();
+      checkCountryRegion();
     }
   }, [profile]);
+
+  const checkCountryRegion = async () => {
+    if (!profile?.id) return;
+    
+    try {
+      const { data: profileData, error } = await supabase
+        .from('celebrity_profiles')
+        .select('country')
+        .eq('id', profile.id)
+        .single();
+      
+      if (error || !profileData?.country) return;
+
+      // Check if country is in East Africa
+      const { data: countryData } = await supabase
+        .from('available_countries')
+        .select('is_east_africa')
+        .eq('country_name', profileData.country)
+        .single();
+      
+      setIsEastAfrica(countryData?.is_east_africa ?? true);
+    } catch (error) {
+      console.error('Error checking country region:', error);
+    }
+  };
 
   const fetchPackages = async () => {
     try {
@@ -206,7 +235,60 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
   };
 
   const handleSubmit = async () => {
-    if (!selectedPackage || !mpesaCode.trim() || !phoneNumber.trim()) {
+    if (!selectedPackage) {
+      sonnerToast.error("Please select a package");
+      return;
+    }
+
+    // PayPal payment for non-East Africa users
+    if (!isEastAfrica) {
+      if (!paypalTransactionId.trim()) {
+        sonnerToast.error("Please enter your PayPal transaction ID");
+        return;
+      }
+
+      setSubmitting(true);
+      try {
+        const { data, error } = await supabase
+          .from('paypal_payments')
+          .insert({
+            celebrity_id: profile?.id,
+            paypal_email: 'rashidjuma198@gmail.com',
+            paypal_transaction_id: paypalTransactionId.trim(),
+            amount_usd: selectedPackage.price,
+            subscription_tier: selectedPackage.tier_name,
+            duration_type: selectedPackage.duration_type,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setPaypalTransactionId("");
+        setSelectedPackage(null);
+        
+        sonnerToast.success(
+          "PayPal payment submitted successfully!",
+          {
+            description: "Your payment will be verified by admin. You'll be notified about the status."
+          }
+        );
+
+        toast({
+          title: "Payment Verification Submitted",
+          description: `Your ${selectedPackage.tier_name} plan PayPal payment has been submitted. An admin will review it shortly.`,
+        });
+      } catch (error: any) {
+        console.error('PayPal payment submission error:', error);
+        sonnerToast.error(error.message || "Failed to submit PayPal payment");
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
+    // M-Pesa payment for East Africa users
+    if (!mpesaCode.trim() || !phoneNumber.trim()) {
       sonnerToast.error("Please fill in all fields");
       return;
     }
@@ -591,84 +673,152 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
 
           {selectedPackage && (
             <div className="space-y-3 sm:space-y-4 border-t pt-4 sm:pt-6">
-              <div className="bg-muted p-3 sm:p-4 rounded-lg">
-                <h3 className="font-semibold mb-2 text-sm sm:text-base">Payment Instructions</h3>
-                <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-                  <li>Go to M-Pesa on your phone</li>
-                  <li>Select "Lipa na M-Pesa" then "Buy Goods and Services"</li>
-                  <li>
-                    Enter Till Number:{" "}
+              {!isEastAfrica ? (
+                /* PayPal Payment for Non-East Africa Users */
+                <div className="space-y-4">
+                  <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <h3 className="font-semibold mb-2 text-sm sm:text-base flex items-center">
+                      <CreditCard className="h-4 w-4 mr-2 text-blue-600" />
+                      International Payment via PayPal
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      You're viewing from outside East Africa. Please use PayPal for international payments.
+                    </p>
+                    
+                    <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground mb-4">
+                      <li>Click the button below to copy our PayPal email</li>
+                      <li>Go to PayPal and send <span className="font-bold">${selectedPackage.price}</span> USD</li>
+                      <li>Copy your PayPal transaction ID</li>
+                      <li>Paste the transaction ID below and submit</li>
+                    </ol>
+
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-auto p-1"
-                      onClick={() => copyToClipboard(TILL_NUMBER)}
+                      onClick={() => copyToClipboard('rashidjuma198@gmail.com')}
+                      variant="outline"
+                      className="w-full mb-3"
                     >
-                      <span className="font-bold">{TILL_NUMBER}</span>
-                      <Copy className="w-3 h-3 ml-1" />
+                      <Copy className="mr-2 h-4 w-4" />
+                      Copy PayPal Email
                     </Button>
-                  </li>
-                  <li>
-                    Enter amount:{" "}
-                    <span className="font-bold text-primary">
-                      KSH {selectedPackage.price.toLocaleString()}
-                    </span>
-                  </li>
-                  <li>Complete the transaction and note your M-Pesa code</li>
-                </ol>
-              </div>
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                  <Label htmlFor="mpesa-code" className="text-sm">M-Pesa Transaction Code *</Label>
-                  <Input
-                    id="mpesa-code"
-                    placeholder="e.g., QGH7KLM9NP"
-                    value={mpesaCode}
-                    onChange={(e) => setMpesaCode(e.target.value.toUpperCase())}
-                    className="mt-1 h-10 text-sm"
-                  />
+                  <div>
+                    <Label htmlFor="paypal-transaction" className="text-sm">PayPal Transaction ID *</Label>
+                    <Input
+                      id="paypal-transaction"
+                      placeholder="e.g., 1AB23456C7890123D"
+                      value={paypalTransactionId}
+                      onChange={(e) => setPaypalTransactionId(e.target.value)}
+                      className="mt-1 h-10 text-sm"
+                    />
+                  </div>
+
+                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-2.5 sm:p-3">
+                    <p className="text-xs sm:text-sm font-semibold text-center">
+                      Total Amount to Pay: <span className="text-lg sm:text-xl text-primary">${selectedPackage.price} USD</span>
+                    </p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground text-center mt-1">
+                      {selectedPackage.duration_type === "1_week" && "Valid for 1 Week"}
+                      {selectedPackage.duration_type === "2_weeks" && "Valid for 2 Weeks"}
+                      {selectedPackage.duration_type === "1_month" && "Valid for 1 Month"}
+                    </p>
+                  </div>
+
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={submitting || !paypalTransactionId.trim()}
+                    className="w-full h-11 sm:h-12 text-sm sm:text-base"
+                  >
+                    {submitting ? "Submitting..." : `Submit PayPal Payment of $${selectedPackage.price}`}
+                  </Button>
+                  
+                  <p className="text-xs text-muted-foreground text-center">
+                    After payment, admin will verify your transaction within 24 hours.
+                  </p>
                 </div>
-                <div>
-                  <Label htmlFor="phone" className="text-sm">Phone Number *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="e.g., 0712345678"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="mt-1 h-10 text-sm"
-                  />
-                </div>
-              </div>
+              ) : (
+                /* M-Pesa Payment for East Africa Users */
+                <>
+                  <div className="bg-muted p-3 sm:p-4 rounded-lg">
+                    <h3 className="font-semibold mb-2 text-sm sm:text-base">Payment Instructions</h3>
+                    <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+                      <li>Go to M-Pesa on your phone</li>
+                      <li>Select "Lipa na M-Pesa" then "Buy Goods and Services"</li>
+                      <li>
+                        Enter Till Number:{" "}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-auto p-1"
+                          onClick={() => copyToClipboard(TILL_NUMBER)}
+                        >
+                          <span className="font-bold">{TILL_NUMBER}</span>
+                          <Copy className="w-3 h-3 ml-1" />
+                        </Button>
+                      </li>
+                      <li>
+                        Enter amount:{" "}
+                        <span className="font-bold text-primary">
+                          KSH {selectedPackage.price.toLocaleString()}
+                        </span>
+                      </li>
+                      <li>Complete the transaction and note your M-Pesa code</li>
+                    </ol>
+                  </div>
 
-              <div className="bg-primary/10 border border-primary/20 rounded-lg p-2.5 sm:p-3">
-                <p className="text-xs sm:text-sm font-semibold text-center">
-                  Total Amount to Pay: <span className="text-lg sm:text-xl text-primary">KSH {selectedPackage.price.toLocaleString()}</span>
-                </p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground text-center mt-1">
-                  {selectedPackage.duration_type === "1_week" && "Valid for 1 Week"}
-                  {selectedPackage.duration_type === "2_weeks" && "Valid for 2 Weeks"}
-                  {selectedPackage.duration_type === "1_month" && "Valid for 1 Month"}
-                </p>
-              </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                      <Label htmlFor="mpesa-code" className="text-sm">M-Pesa Transaction Code *</Label>
+                      <Input
+                        id="mpesa-code"
+                        placeholder="e.g., QGH7KLM9NP"
+                        value={mpesaCode}
+                        onChange={(e) => setMpesaCode(e.target.value.toUpperCase())}
+                        className="mt-1 h-10 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="phone" className="text-sm">Phone Number *</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="e.g., 0712345678"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        className="mt-1 h-10 text-sm"
+                      />
+                    </div>
+                  </div>
 
-              <Button
-                onClick={handleSubmit}
-                disabled={submitting || !mpesaCode.trim() || !phoneNumber.trim()}
-                className="w-full h-11 sm:h-12 text-sm sm:text-base"
-              >
-                {submitting ? "Submitting..." : (
-                  <>
-                    <span className="hidden sm:inline">Submit Payment of KSH {selectedPackage.price.toLocaleString()}</span>
-                    <span className="sm:hidden">Submit KSH {selectedPackage.price.toLocaleString()}</span>
-                  </>
-                )}
-              </Button>
-              
-              <p className="text-xs text-muted-foreground text-center">
-                ⚠️ If you pay less than the required amount, your subscription will be disabled. If you pay more, the extra will be credited to your account.
-              </p>
+                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-2.5 sm:p-3">
+                    <p className="text-xs sm:text-sm font-semibold text-center">
+                      Total Amount to Pay: <span className="text-lg sm:text-xl text-primary">KSH {selectedPackage.price.toLocaleString()}</span>
+                    </p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground text-center mt-1">
+                      {selectedPackage.duration_type === "1_week" && "Valid for 1 Week"}
+                      {selectedPackage.duration_type === "2_weeks" && "Valid for 2 Weeks"}
+                      {selectedPackage.duration_type === "1_month" && "Valid for 1 Month"}
+                    </p>
+                  </div>
+
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={submitting || !mpesaCode.trim() || !phoneNumber.trim()}
+                    className="w-full h-11 sm:h-12 text-sm sm:text-base"
+                  >
+                    {submitting ? "Submitting..." : (
+                      <>
+                        <span className="hidden sm:inline">Submit Payment of KSH {selectedPackage.price.toLocaleString()}</span>
+                        <span className="sm:hidden">Submit KSH {selectedPackage.price.toLocaleString()}</span>
+                      </>
+                    )}
+                  </Button>
+                  
+                  <p className="text-xs text-muted-foreground text-center">
+                    ⚠️ If you pay less than the required amount, your subscription will be disabled. If you pay more, the extra will be credited to your account.
+                  </p>
+                </>
+              )}
             </div>
           )}
           

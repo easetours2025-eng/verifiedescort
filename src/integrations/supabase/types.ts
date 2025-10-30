@@ -690,6 +690,62 @@ export type Database = {
           },
         ]
       }
+      paypal_payments: {
+        Row: {
+          amount_usd: number
+          celebrity_id: string
+          created_at: string
+          duration_type: string | null
+          id: string
+          is_verified: boolean
+          notes: string | null
+          payment_status: string | null
+          paypal_email: string
+          paypal_transaction_id: string | null
+          subscription_tier: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          amount_usd: number
+          celebrity_id: string
+          created_at?: string
+          duration_type?: string | null
+          id?: string
+          is_verified?: boolean
+          notes?: string | null
+          payment_status?: string | null
+          paypal_email: string
+          paypal_transaction_id?: string | null
+          subscription_tier?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          amount_usd?: number
+          celebrity_id?: string
+          created_at?: string
+          duration_type?: string | null
+          id?: string
+          is_verified?: boolean
+          notes?: string | null
+          payment_status?: string | null
+          paypal_email?: string
+          paypal_transaction_id?: string | null
+          subscription_tier?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paypal_payments_celebrity_id_fkey"
+            columns: ["celebrity_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_views: {
         Row: {
           celebrity_id: string
