@@ -18,6 +18,8 @@ import ProfilePictureUpload from '@/components/ProfilePictureUpload';
 import PaymentVerificationModal from '@/components/PaymentVerificationModal';
 import SubscriptionTab from '@/components/SubscriptionTab';
 import { GenderSelect } from '@/components/GenderSelect';
+import { CountrySelect } from '@/components/CountrySelect';
+import NavigationHeader from '@/components/NavigationHeader';
 import { 
   User, 
   Settings, 
@@ -45,6 +47,7 @@ interface CelebrityProfile {
   phone_number?: string;
   location?: string;
   gender?: string[];
+  country?: string;
   age?: number;
   date_of_birth?: string;
   profile_picture_path?: string;
@@ -712,6 +715,7 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
     real_name: profile.real_name || '',
     bio: profile.bio || '',
     location: profile.location || '',
+    country: profile.country || '',
     gender: profile.gender || [],
     phone_number: profile.phone_number || '',
     age: profile.age || 18,
@@ -777,12 +781,18 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
             <div className="space-y-1.5 sm:space-y-2 min-w-0">
-              <label className="text-sm sm:text-sm font-medium">Location</label>
+              <label className="text-sm sm:text-sm font-medium">Location (City)</label>
               <Input
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="City"
                 className="text-sm sm:text-base h-10 sm:h-10 w-full"
+              />
+            </div>
+            <div className="space-y-1.5 sm:space-y-2 min-w-0">
+              <CountrySelect
+                value={formData.country}
+                onChange={(country) => setFormData({ ...formData, country })}
               />
             </div>
             <div className="space-y-1.5 sm:space-y-2 min-w-0 sm:col-span-2">

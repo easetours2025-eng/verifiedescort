@@ -20,6 +20,8 @@ import {
   CelebrityProfile as FullCelebrityProfile,
   isPrivateProfile 
 } from '@/lib/celebrity-utils';
+import NavigationHeader from '@/components/NavigationHeader';
+import PayPalPayment from '@/components/PayPalPayment';
 import { 
   ArrowLeft,
   Star, 

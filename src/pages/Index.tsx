@@ -20,10 +20,14 @@ import {
 } from '@/lib/celebrity-utils';
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
 
+import NavigationHeader from '@/components/NavigationHeader';
+
 const Index = () => {
   const [celebrities, setCelebrities] = useState<PublicCelebrityProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [countryFilter, setCountryFilter] = useState<string>('all');
+  const [availableCountries, setAvailableCountries] = useState<Array<{name: string, isEastAfrica: boolean}>>([]);
   const [locationFilter, setLocationFilter] = useState('');
   const [availableLocations, setAvailableLocations] = useState<string[]>([]);
   const [availableGenders, setAvailableGenders] = useState<string[]>([]);
@@ -72,10 +76,29 @@ const Index = () => {
 
   useEffect(() => {
     fetchCelebrities();
+    fetchCountries();
     if (user) {
       checkUserPaymentStatus();
     }
   }, [user]);
+
+  const fetchCountries = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('available_countries')
+        .select('country_name, is_east_africa')
+        .order('country_name');
+
+      if (error) throw error;
+      
+      setAvailableCountries(data?.map(c => ({ 
+        name: c.country_name, 
+        isEastAfrica: c.is_east_africa 
+      })) || []);
+    } catch (error) {
+      console.error('Error fetching countries:', error);
+    }
+  };
 
   const checkUserPaymentStatus = async () => {
     if (!user) return;
@@ -139,7 +162,7 @@ const Index = () => {
       if (celebrityError) throw celebrityError;
 
       // Map to the expected format with subscription info
-      let celebrities = celebrityData?.map(celebrity => ({
+      let celebrities = celebrityData?.map((celebrity: any) => ({
         id: celebrity.id,
         stage_name: celebrity.stage_name,
         bio: celebrity.bio,
@@ -149,6 +172,7 @@ const Index = () => {
         is_verified: celebrity.is_verified,
         is_available: celebrity.is_available,
         location: celebrity.location,
+        country: celebrity.country || null,
         gender: Array.isArray(celebrity.gender) ? celebrity.gender : (celebrity.gender ? [celebrity.gender] : null),
         phone_number: celebrity.phone_number,
         social_instagram: celebrity.social_instagram,
@@ -221,7 +245,12 @@ const Index = () => {
                          celebrity.bio?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          celebrity.location?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesLocation = !locationFilter || 
+    // Country filter - primary filter
+    const matchesCountry = countryFilter === 'all' || 
+                          (celebrity as any).country?.toLowerCase() === countryFilter.toLowerCase();
+    
+    // Location filter - only applies when specific country is selected
+    const matchesLocation = countryFilter === 'all' || !locationFilter || 
                            celebrity.location?.toLowerCase().includes(locationFilter.toLowerCase());
     
     const matchesAge = !celebrity.age || (celebrity.age >= minAge && celebrity.age <= maxAge);
@@ -229,7 +258,7 @@ const Index = () => {
     const matchesGender = genderFilter === 'all' || 
                          (celebrity.gender && Array.isArray(celebrity.gender) && celebrity.gender.some(g => g.toLowerCase() === genderFilter.toLowerCase()));
     
-    return matchesSearch && matchesLocation && matchesAge && matchesGender;
+    return matchesSearch && matchesCountry && matchesLocation && matchesAge && matchesGender;
   });
 
   // Pagination
@@ -242,7 +271,11 @@ const Index = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, locationFilter, genderFilter, minAge, maxAge]);
+    // Reset location filter when country changes
+    if (countryFilter !== 'all') {
+      setLocationFilter('');
+    }
+  }, [searchTerm, locationFilter, genderFilter, minAge, maxAge, countryFilter]);
 
   const handleViewProfile = (id: string) => {
     navigate(`/celebrity/${id}`);
@@ -280,8 +313,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
+      <NavigationHeader />
       {/* Header */}
-      <header className="border-b border-primary/20 backdrop-blur-sm bg-background/80 sticky top-0 z-50">
+      <header className="border-b border-primary/20 backdrop-blur-sm bg-background/80 sticky top-16 z-40 mt-16">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-3">
@@ -477,6 +511,38 @@ const Index = () => {
                 />
               </div>
 
+              {/* Country Filter - PRIMARY FILTER - Always visible */}
+              {!searchTerm && availableCountries.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <label className="text-sm font-medium">Filter by Country</label>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant={countryFilter === 'all' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setCountryFilter('all')}
+                      className="rounded-full px-4"
+                    >
+                      All Countries
+                    </Button>
+                    {availableCountries.map((country) => (
+                      <Button
+                        key={country.name}
+                        variant={countryFilter === country.name ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setCountryFilter(country.name)}
+                        className="rounded-full px-4"
+                      >
+                        {country.name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Gender Filter - Hide when search is active */}
               {!searchTerm && (
                 <div className="space-y-3">
@@ -509,8 +575,8 @@ const Index = () => {
                 </div>
               )}
 
-              {/* Location Filter - Cards Display - Hide when search is active */}
-              {!searchTerm && availableLocations.length > 0 && (
+              {/* Location Filter - Cards Display - Hide when search is active or "All Countries" selected */}
+              {!searchTerm && countryFilter !== 'all' && availableLocations.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center space-x-2">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
