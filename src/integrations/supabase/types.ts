@@ -144,27 +144,6 @@ export type Database = {
         }
         Relationships: []
       }
-      available_countries: {
-        Row: {
-          country_name: string
-          created_at: string
-          id: string
-          is_east_africa: boolean | null
-        }
-        Insert: {
-          country_name: string
-          created_at?: string
-          id?: string
-          is_east_africa?: boolean | null
-        }
-        Update: {
-          country_name?: string
-          created_at?: string
-          id?: string
-          is_east_africa?: boolean | null
-        }
-        Relationships: []
-      }
       call_clicks: {
         Row: {
           celebrity_id: string
@@ -259,7 +238,6 @@ export type Database = {
           age: number | null
           base_price: number
           bio: string | null
-          country: string | null
           created_at: string
           credit_balance: number | null
           date_of_birth: string | null
@@ -288,7 +266,6 @@ export type Database = {
           age?: number | null
           base_price?: number
           bio?: string | null
-          country?: string | null
           created_at?: string
           credit_balance?: number | null
           date_of_birth?: string | null
@@ -317,7 +294,6 @@ export type Database = {
           age?: number | null
           base_price?: number
           bio?: string | null
-          country?: string | null
           created_at?: string
           credit_balance?: number | null
           date_of_birth?: string | null

@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { GenderSelect } from '@/components/GenderSelect';
-import { CountrySelect } from '@/components/CountrySelect';
 import { 
   Save, 
   Upload, 
@@ -38,7 +37,6 @@ interface CelebrityProfile {
   email?: string;
   phone_number?: string;
   location?: string;
-  country?: string;
   age?: number;
   date_of_birth?: string;
   gender?: string[];
@@ -506,13 +504,6 @@ const CelebrityProfileEditor = ({ open, onOpenChange, celebrityId, onSave }: Cel
                   <GenderSelect
                     value={profile.gender || []}
                     onChange={(genders) => setProfile({ ...profile, gender: genders })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <CountrySelect
-                    value={profile.country || ''}
-                    onChange={(country) => setProfile({ ...profile, country })}
                   />
                 </div>
 
