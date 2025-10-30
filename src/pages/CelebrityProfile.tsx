@@ -47,7 +47,6 @@ import {
   X,
   Users
 } from 'lucide-react';
-<NavigationHeader />
 
 interface MediaItem {
   id: string;
