@@ -940,6 +940,7 @@ export type Database = {
           age: number
           base_price: number
           bio: string
+          country: string
           created_at: string
           date_of_birth: string
           duration_type: string
