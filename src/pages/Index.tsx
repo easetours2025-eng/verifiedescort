@@ -268,38 +268,13 @@ const Index = () => {
     currentPage * itemsPerPage
   );
 
-  // Update locations when country filter changes
-  useEffect(() => {
-    if (countryFilter !== 'all') {
-      // Filter locations for the selected country only
-      const countrySpecificCelebs = celebrities.filter(c => 
-        (c as any).country?.toLowerCase() === countryFilter.toLowerCase()
-      );
-      
-      const locations = countrySpecificCelebs
-        .map(c => c.location)
-        .filter((loc): loc is string => !!loc && loc.trim() !== '')
-        .reduce((acc: string[], loc) => {
-          const normalizedLoc = loc.trim().toLowerCase();
-          const exists = acc.some(existing => existing.toLowerCase() === normalizedLoc);
-          if (!exists) {
-            acc.push(loc.trim());
-          }
-          return acc;
-        }, [])
-        .sort();
-      
-      setAvailableLocations(locations);
-      setLocationFilter(''); // Reset location filter when country changes
-    } else {
-      setAvailableLocations([]);
-      setLocationFilter('');
-    }
-  }, [countryFilter, celebrities]);
-
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
+    // Reset location filter when country changes
+    if (countryFilter !== 'all') {
+      setLocationFilter('');
+    }
   }, [searchTerm, locationFilter, genderFilter, minAge, maxAge, countryFilter]);
 
   const handleViewProfile = (id: string) => {

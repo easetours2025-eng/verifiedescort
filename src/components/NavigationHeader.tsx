@@ -25,18 +25,17 @@ const NavigationHeader = ({ showBackButton = true }: NavigationHeaderProps) => {
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border shadow-sm">
-      <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+    <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <button
           onClick={goHome}
-          className="flex items-center gap-1.5 sm:gap-2 hover:opacity-80 transition-opacity group"
-          aria-label="Go to homepage"
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity group"
         >
-          <div className="bg-gradient-to-r from-primary to-accent p-1.5 sm:p-2 rounded-lg group-hover:scale-105 transition-transform shadow-sm">
-            <Crown className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
+          <div className="bg-gradient-to-r from-primary to-accent p-2 rounded-lg group-hover:scale-105 transition-transform">
+            <Crown className="h-6 w-6 text-white" />
           </div>
-          <span className="font-bold text-base sm:text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hidden sm:inline">
+          <span className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hidden sm:inline">
             Royal Escorts
           </span>
         </button>
@@ -47,11 +46,10 @@ const NavigationHeader = ({ showBackButton = true }: NavigationHeaderProps) => {
             variant="ghost"
             size="sm"
             onClick={goBack}
-            className="flex items-center gap-1.5 hover:bg-accent/10"
-            aria-label="Go back"
+            className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline text-sm">Back</span>
+            <span className="hidden sm:inline">Back</span>
           </Button>
         )}
       </div>

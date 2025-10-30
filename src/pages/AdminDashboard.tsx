@@ -42,7 +42,6 @@ import UserManagement from '@/components/UserManagement';
 import AdminManagement from '@/components/AdminManagement';
 import AllUsersManagement from '@/components/AllUsersManagement';
 import AdminPaymentVerification from '@/components/AdminPaymentVerification';
-import AdminPayPalManagement from '@/components/AdminPayPalManagement';
 import { AdminNotifications } from '@/components/AdminNotifications';
 import PremiumSupportUsers from '@/components/PremiumSupportUsers';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
@@ -563,10 +562,6 @@ const AdminDashboard = () => {
 
           {activeTab === 'payments' && (
             <AdminPaymentVerification />
-          )}
-
-          {activeTab === 'paypal' && (
-            <AdminPayPalManagement />
           )}
 
           {activeTab === 'users' && (
