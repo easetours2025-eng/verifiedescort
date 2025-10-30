@@ -351,7 +351,7 @@ const CelebrityProfile = () => {
 
       const phoneNumber = (profile as any).phone_number.replace(/\D/g, ''); // Remove non-digits
       const message = encodeURIComponent(
-        `Royal Escorts | Finest Escort services and Hookups\n\nMeet escorts for discreet companionship and relaxation.\n\nI'm interested in connecting with ${profile.stage_name}.`
+        `Royal Escorts | Finest Escort services and Hookups\n\nMeet escorts for discreet companionship and relaxation.\n\n I'm So much interested with you ${profile.stage_name}.`
       );
       // Open WhatsApp with the celebrity's phone number and pre-filled message
       window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
