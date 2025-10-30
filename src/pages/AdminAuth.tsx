@@ -38,15 +38,27 @@ const AdminAuth = () => {
         throw new Error(authError.message);
       }
 
-      // Verify the user has admin role via server-side function
-      const { data: hasAdminRole, error: roleError } = await supabase
-        .rpc('is_user_admin');
+      // Verify the user is an admin
+      const { data: adminCheck, error: adminError } = await supabase
+        .from('admin_users')
+        .select('id, email, is_super_admin')
+        .eq('email', email)
+        .single();
 
-      if (roleError || !hasAdminRole) {
+      if (adminError || !adminCheck) {
         // Sign out if not an admin
         await supabase.auth.signOut();
-        throw new Error("You don't have admin access. Please contact an administrator.");
+        throw new Error("You don't have admin access");
       }
+
+      // Store admin session in localStorage
+      localStorage.setItem('admin_session', JSON.stringify({
+        email: adminCheck.email,
+        id: adminCheck.id,
+        is_super_admin: adminCheck.is_super_admin,
+        loginTime: new Date().toISOString(),
+        supabase_user_id: authData.user.id
+      }));
 
       toast({
         title: "Welcome back!",

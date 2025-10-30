@@ -17,56 +17,11 @@ Deno.serve(async (req) => {
   try {
     const { celebrityId, phoneNumber, mpesaCode, amount, tier, duration, expectedAmount, paymentType } = await req.json();
 
-    // Validate required fields
     if (!celebrityId || !phoneNumber || !mpesaCode) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: "Missing required fields: celebrityId, phoneNumber, and mpesaCode are required" 
-        }),
-        { 
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400 
-        }
-      );
-    }
-
-    // Validate phone number format (Kenyan format)
-    const phoneRegex = /^\+254[17]\d{8}$/;
-    if (!phoneRegex.test(phoneNumber.trim())) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: "Invalid phone number format. Must be in format: +254XXXXXXXXX" 
-        }),
-        { 
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400 
-        }
-      );
-    }
-
-    // Validate M-Pesa code format
-    const mpesaRegex = /^[A-Z0-9]{10,20}$/;
-    if (!mpesaRegex.test(mpesaCode.trim().toUpperCase())) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: "Invalid M-Pesa code format. Must be 10-20 uppercase alphanumeric characters" 
-        }),
-        { 
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400 
-        }
-      );
-    }
-
-    // Validate amount
-    if (amount && (amount <= 0 || amount > 100000)) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: "Invalid amount. Must be between 0 and 100,000" 
+          message: "Missing required fields" 
         }),
         { 
           headers: { ...corsHeaders, "Content-Type": "application/json" },
