@@ -104,32 +104,37 @@ const AdminDashboard = () => {
 
   console.log('AdminDashboard rendering with activeTab:', activeTab);
 
-  // Check admin authentication 
+  // Check admin authentication via Supabase Auth and role verification
   useEffect(() => {
     const checkAdminAuth = async () => {
-      const adminSession = localStorage.getItem('admin_session');
-      if (!adminSession) {
-        navigate('/admin-auth');
-        return;
-      }
-
       try {
-        const session = JSON.parse(adminSession);
+        // Check if user is authenticated
+        const { data: { session } } = await supabase.auth.getSession();
         
-        // For development - skip time validation
-        // Set admin user data
+        if (!session) {
+          navigate('/admin-auth');
+          return;
+        }
+
+        // Verify admin role server-side
+        const { data: hasAdminRole, error } = await supabase.rpc('is_user_admin');
+        
+        if (error || !hasAdminRole) {
+          console.error('Admin role verification failed:', error);
+          await supabase.auth.signOut();
+          navigate('/admin-auth');
+          return;
+        }
+
+        // Set admin user data from authenticated session
         setAdminUser({
-          id: session.id || 'dev-admin-id',
-          email: session.email || 'admin@admin.com',
-          loginTime: session.loginTime
-        });
-      } catch (error) {
-        // For development - allow fallback
-        setAdminUser({
-          id: 'dev-admin-id',
-          email: 'admin@admin.com',
+          id: session.user.id,
+          email: session.user.email || 'admin@admin.com',
           loginTime: new Date().toISOString()
         });
+      } catch (error) {
+        console.error('Admin auth check failed:', error);
+        navigate('/admin-auth');
       }
     };
 

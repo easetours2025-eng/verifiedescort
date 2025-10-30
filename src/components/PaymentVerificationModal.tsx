@@ -18,6 +18,22 @@ import {
   Star 
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { z } from 'zod';
+
+// Input validation schema for payment data
+const paymentSchema = z.object({
+  phoneNumber: z.string()
+    .trim()
+    .regex(/^(\+254|254|0)?[17]\d{8}$/, 'Invalid Kenyan phone number. Use format: 254XXXXXXXXX or 0XXXXXXXXX'),
+  mpesaCode: z.string()
+    .trim()
+    .min(10, 'M-Pesa code must be at least 10 characters')
+    .max(20, 'M-Pesa code must not exceed 20 characters')
+    .regex(/^[A-Z0-9]+$/, 'M-Pesa code must contain only uppercase letters and numbers'),
+  amount: z.number()
+    .positive('Amount must be positive')
+    .max(100000, 'Amount cannot exceed KSH 100,000')
+});
 
 interface PaymentRecord {
   id: string;
@@ -83,12 +99,34 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
     try {
       const amount = paymentType === 'featured' ? 5 : 10; // 500 KSH for featured, 1000 KSH for subscription
       
+      // Validate input data using zod schema
+      const validationResult = paymentSchema.safeParse({
+        phoneNumber: phoneNumber.trim(),
+        mpesaCode: mpesaCode.trim().toUpperCase(),
+        amount
+      });
+
+      if (!validationResult.success) {
+        const firstError = validationResult.error.errors[0];
+        throw new Error(firstError.message);
+      }
+
+      // Normalize phone number to +254 format
+      let normalizedPhone = phoneNumber.trim();
+      if (normalizedPhone.startsWith('0')) {
+        normalizedPhone = '+254' + normalizedPhone.substring(1);
+      } else if (normalizedPhone.startsWith('254')) {
+        normalizedPhone = '+' + normalizedPhone;
+      } else if (!normalizedPhone.startsWith('+254')) {
+        normalizedPhone = '+254' + normalizedPhone;
+      }
+      
       const { data, error } = await supabase.functions.invoke('payment-verification', {
         body: {
           celebrityId,
-          phoneNumber: phoneNumber.trim(),
-          mpesaCode: mpesaCode.trim().toUpperCase(),
-          amount,
+          phoneNumber: normalizedPhone,
+          mpesaCode: validationResult.data.mpesaCode,
+          amount: validationResult.data.amount,
           paymentType
         }
       });
@@ -114,7 +152,7 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
     } catch (error) {
       console.error('Payment submission error:', error);
       toast({
-        title: "Error",
+        title: "Validation Error",
         description: error instanceof Error ? error.message : "Failed to submit payment verification",
         variant: "destructive",
       });
