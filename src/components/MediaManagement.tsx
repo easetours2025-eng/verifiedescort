@@ -216,51 +216,51 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Media Stats Overview */}
-      <Card className="border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <BarChart3 className="h-5 w-5" />
+      <Card className="border-primary/10">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center space-x-2 text-base">
+            <BarChart3 className="h-4 w-4" />
             <span>Media Overview</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-3 bg-muted/50 rounded-lg">
-              <div className="text-2xl font-bold text-primary">{media.length}</div>
-              <div className="text-sm text-muted-foreground">Total Media</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="text-center p-2 bg-muted/50 rounded-lg">
+              <div className="text-xl font-bold text-primary">{media.length}</div>
+              <div className="text-xs text-muted-foreground">Total</div>
             </div>
-            <div className="text-center p-3 bg-muted/50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{media.filter(m => m.is_public).length}</div>
-              <div className="text-sm text-muted-foreground">Public</div>
+            <div className="text-center p-2 bg-muted/50 rounded-lg">
+              <div className="text-xl font-bold text-green-600">{media.filter(m => m.is_public).length}</div>
+              <div className="text-xs text-muted-foreground">Public</div>
             </div>
-            <div className="text-center p-3 bg-muted/50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">
+            <div className="text-center p-2 bg-muted/50 rounded-lg">
+              <div className="text-xl font-bold text-blue-600">
                 {Object.values(mediaStats).reduce((total, stats) => total + stats.views, 0)}
               </div>
-              <div className="text-sm text-muted-foreground">Total Views</div>
+              <div className="text-xs text-muted-foreground">Views</div>
             </div>
-            <div className="text-center p-3 bg-muted/50 rounded-lg">
-              <div className="text-2xl font-bold text-red-600">
+            <div className="text-center p-2 bg-muted/50 rounded-lg">
+              <div className="text-xl font-bold text-red-600">
                 {Object.values(mediaStats).reduce((total, stats) => total + stats.likes + stats.loves, 0)}
               </div>
-              <div className="text-sm text-muted-foreground">Total Interactions</div>
+              <div className="text-xs text-muted-foreground">Likes</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Media Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {media.map((item) => {
           const stats = mediaStats[item.id] || { views: 0, likes: 0, loves: 0 };
           
           return (
-            <Card key={item.id} className="overflow-hidden">
+            <Card key={item.id} className="overflow-hidden border-primary/10">
               {/* Media Preview */}
               <div 
-                className="relative aspect-video bg-muted cursor-pointer hover:opacity-90 transition-opacity"
+                className="relative aspect-square bg-muted cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={() => handleMediaClick(item)}
               >
                 {item.file_type === 'image' ? (
@@ -278,35 +278,35 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
                       preload="metadata"
                     />
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
-                        <Video className="h-6 w-6 text-white" />
+                      <div className="bg-white/20 backdrop-blur-sm rounded-full p-2">
+                        <Video className="h-5 w-5 text-white" />
                       </div>
                     </div>
                   </>
                 )}
                 
                 {/* Media Type Badge */}
-                <div className="absolute top-2 left-2">
-                  <Badge variant="secondary" className="text-xs">
+                <div className="absolute top-1.5 left-1.5">
+                  <Badge variant="secondary" className="text-xs py-0 px-1.5">
                     {item.file_type === 'image' ? (
-                      <><ImageIcon className="h-3 w-3 mr-1" />Photo</>
+                      <><ImageIcon className="h-2.5 w-2.5 mr-0.5" />Photo</>
                     ) : (
-                      <><Video className="h-3 w-3 mr-1" />Video</>
+                      <><Video className="h-2.5 w-2.5 mr-0.5" />Video</>
                     )}
                   </Badge>
                 </div>
 
                 {/* Action Menu */}
-                <div className="absolute top-2 right-2">
+                <div className="absolute top-1.5 right-1.5">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="secondary" size="sm" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4" />
+                      <Button variant="secondary" size="sm" className="h-7 w-7 p-0">
+                        <MoreVertical className="h-3 w-3" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="z-[100] bg-background">
                       <DropdownMenuItem onClick={() => handleTogglePublic(item.id, item.is_public)}>
-                        <Settings className="h-4 w-4 mr-2" />
+                        <Settings className="h-3 w-3 mr-2" />
                         {item.is_public ? 'Make Private' : 'Make Public'}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -314,7 +314,7 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
                         onClick={() => handleDeleteMedia(item.id)}
                         className="text-destructive focus:text-destructive"
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
+                        <Trash2 className="h-3 w-3 mr-2" />
                         Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -323,57 +323,40 @@ const MediaManagement = ({ profile, media, onMediaUpdate }: MediaManagementProps
               </div>
 
               {/* Media Details */}
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  {/* Title and Status */}
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      {item.title && (
-                        <h4 className="font-medium text-sm truncate">{item.title}</h4>
-                      )}
-                      <div className="flex items-center space-x-2 mt-1">
-                        <Badge variant={item.is_public ? "default" : "secondary"} className="text-xs">
-                          {item.is_public ? "Public" : "Private"}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(item.upload_date).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
+              <CardContent className="p-2">
+                <div className="space-y-2">
                   {/* Stats */}
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="space-y-1">
+                  <div className="grid grid-cols-3 gap-1 text-center">
+                    <div className="space-y-0.5">
                       <div className="flex items-center justify-center space-x-1 text-muted-foreground">
-                        <Eye className="h-3 w-3" />
+                        <Eye className="h-2.5 w-2.5" />
                         <span className="text-xs font-medium">{stats.views}</span>
                       </div>
-                      <div className="text-xs text-muted-foreground">Views</div>
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                       <div className="flex items-center justify-center space-x-1 text-blue-600">
-                        <ThumbsUp className="h-3 w-3" />
+                        <ThumbsUp className="h-2.5 w-2.5" />
                         <span className="text-xs font-medium">{stats.likes}</span>
                       </div>
-                      <div className="text-xs text-muted-foreground">Likes</div>
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                       <div className="flex items-center justify-center space-x-1 text-red-600">
-                        <Heart className="h-3 w-3" />
+                        <Heart className="h-2.5 w-2.5" />
                         <span className="text-xs font-medium">{stats.loves}</span>
                       </div>
-                      <div className="text-xs text-muted-foreground">Loves</div>
                     </div>
                   </div>
 
-                  {/* Visibility Toggle */}
-                  <div className="flex items-center justify-between pt-2 border-t">
-                    <span className="text-sm font-medium">Public Visibility</span>
+                  {/* Status & Toggle */}
+                  <div className="flex items-center justify-between pt-1.5 border-t text-xs">
+                    <Badge variant={item.is_public ? "default" : "secondary"} className="text-xs py-0 px-1.5">
+                      {item.is_public ? "Public" : "Private"}
+                    </Badge>
                     <Switch
                       checked={item.is_public}
                       onCheckedChange={() => handleTogglePublic(item.id, item.is_public)}
                       disabled={loading}
+                      className="scale-75"
                     />
                   </div>
                 </div>

@@ -182,10 +182,10 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Upload className="h-5 w-5" />
+    <Card className="border-primary/10">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center space-x-2 text-base">
+          <Upload className="h-4 w-4" />
           <span>Upload New Media</span>
         </CardTitle>
       </CardHeader>
@@ -197,53 +197,53 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
           const canUpload = canUploadMedia(mediaCount, subscriptionTier, subscriptionDuration);
 
           return (
-            <Alert className={!canUpload ? "border-destructive" : "border-primary"}>
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>
+            <Alert className={`${!canUpload ? "border-destructive" : "border-primary"} py-2`}>
+              <AlertCircle className="h-3 w-3" />
+              <AlertTitle className="text-sm">
                 {features.media_upload_limit === -1 
                   ? 'Unlimited Uploads' 
-                  : `Upload Limit: ${mediaCount} / ${features.media_upload_limit}`}
+                  : `${mediaCount} / ${features.media_upload_limit} Uploads`}
               </AlertTitle>
-              <AlertDescription>
+              <AlertDescription className="text-xs">
                 {!canUpload ? (
-                  'You have reached your upload limit. Please upgrade your subscription to upload more media.'
+                  'Upload limit reached. Upgrade to upload more.'
                 ) : remaining === -1 ? (
-                  `You have unlimited uploads with your current plan. ${mediaCount} media files uploaded.`
+                  `${mediaCount} files uploaded.`
                 ) : (
-                  `You have ${remaining} upload${remaining !== 1 ? 's' : ''} remaining in your current plan.`
+                  `${remaining} upload${remaining !== 1 ? 's' : ''} remaining.`
                 )}
               </AlertDescription>
             </Alert>
           );
         })()}
 
-        <form onSubmit={handleUpload} className="space-y-6 mt-4">
+        <form onSubmit={handleUpload} className="space-y-3 mt-3">
           {/* File Upload */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Select File</label>
             <div className="flex items-center justify-center w-full">
               <label
                 htmlFor="file-upload"
-                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-primary/20 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors"
+                className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-primary/20 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors"
               >
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                <div className="flex flex-col items-center justify-center pt-3 pb-4">
                   {selectedFile ? (
                     <div className="flex items-center space-x-2">
                       {selectedFile.type.startsWith('video/') ? (
-                        <Video className="h-8 w-8 text-primary" />
+                        <Video className="h-6 w-6 text-primary" />
                       ) : (
-                        <ImageIcon className="h-8 w-8 text-primary" />
+                        <ImageIcon className="h-6 w-6 text-primary" />
                       )}
-                      <span className="text-sm font-medium">{selectedFile.name}</span>
+                      <span className="text-xs font-medium truncate max-w-[200px]">{selectedFile.name}</span>
                     </div>
                   ) : (
                     <>
-                      <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                      <p className="text-sm text-muted-foreground">
-                        Click to upload or drag and drop
+                      <Upload className="h-6 w-6 text-muted-foreground mb-1" />
+                      <p className="text-xs text-muted-foreground">
+                        Click to upload
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Images (JPG, PNG, GIF) or Videos (MP4, WebM, OGG)
+                        Images or Videos
                       </p>
                     </>
                   )}
@@ -259,8 +259,8 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
             </div>
           </div>
 
-          {/* Media Details */}
-          <div className="space-y-2">
+          {/* Media Details - Hidden as requested */}
+          <div className="hidden space-y-2">
             <label className="text-sm font-medium flex items-center space-x-2">
               <DollarSign className="h-4 w-4" />
               <span>Price (KSH)</span>
@@ -274,7 +274,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="hidden space-y-2">
             <label className="text-sm font-medium">Description (Optional)</label>
             <Textarea
               value={formData.description}
@@ -285,10 +285,10 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
           </div>
 
           {/* Privacy Settings */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <h4 className="text-sm font-medium">Privacy & Access</h4>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3 text-sm">
               <div className="flex items-center space-x-2">
                 <input
                   type="radio"
@@ -296,9 +296,10 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
                   name="visibility"
                   checked={formData.is_public}
                   onChange={() => setFormData({ ...formData, is_public: true })}
+                  className="h-3 w-3"
                 />
-                <label htmlFor="public" className="flex items-center space-x-2 text-sm">
-                  <Globe className="h-4 w-4" />
+                <label htmlFor="public" className="flex items-center space-x-1.5">
+                  <Globe className="h-3 w-3" />
                   <span>Public</span>
                 </label>
               </div>
@@ -310,9 +311,10 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
                   name="visibility"
                   checked={!formData.is_public}
                   onChange={() => setFormData({ ...formData, is_public: false })}
+                  className="h-3 w-3"
                 />
-                <label htmlFor="private" className="flex items-center space-x-2 text-sm">
-                  <Lock className="h-4 w-4" />
+                <label htmlFor="private" className="flex items-center space-x-1.5">
+                  <Lock className="h-3 w-3" />
                   <span>Private</span>
                 </label>
               </div>
@@ -324,12 +326,13 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
                 id="premium"
                 checked={formData.is_premium}
                 onChange={(e) => setFormData({ ...formData, is_premium: e.target.checked })}
+                className="h-3 w-3"
               />
-              <label htmlFor="premium" className="text-sm">
-                Premium content (requires payment to view)
+              <label htmlFor="premium" className="text-xs">
+                Premium content (requires payment)
               </label>
               {formData.is_premium && (
-                <Badge variant="secondary" className="ml-2">
+                <Badge variant="secondary" className="ml-1 text-xs py-0">
                   Premium
                 </Badge>
               )}
@@ -339,9 +342,10 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ celebrityId, onUpload }) => {
           <Button
             type="submit"
             disabled={uploading || !selectedFile}
-            className="w-full"
+            className="w-full h-9"
+            size="sm"
           >
-            <Upload className="h-4 w-4 mr-2" />
+            <Upload className="h-3 w-3 mr-2" />
             {uploading ? 'Uploading...' : 'Upload Media'}
           </Button>
         </form>

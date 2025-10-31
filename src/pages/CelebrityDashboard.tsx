@@ -894,7 +894,7 @@ const MediaTab = ({ profile, media, onUpload, onDelete }: {
   onDelete: (id: string) => void;
 }) => {
   return (
-    <div className="space-y-3 sm:space-y-6 max-w-full overflow-x-hidden">
+    <div className="space-y-3 max-w-full overflow-x-hidden">
       {/* Media Management */}
       <div className="max-w-full overflow-x-hidden">
         <MediaManagement 
