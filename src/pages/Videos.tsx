@@ -9,6 +9,7 @@ import { Video, ArrowLeft, Play, Eye, Calendar, Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import VideoCard from '@/components/VideoCard';
 import VideoModal from '@/components/VideoModal';
+import NavigationHeader from '@/components/NavigationHeader';
 
 console.log("Videos.tsx file is being processed");
 
@@ -382,15 +383,13 @@ const Videos = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
-      {/* Header */}
-      <header className="border-b border-primary/20 backdrop-blur-sm bg-background/80 sticky top-0 z-50">
+      <NavigationHeader />
+      
+      {/* Header - sticky below NavigationHeader */}
+      <header className="border-b border-primary/20 backdrop-blur-sm bg-background/80 sticky top-16 z-40 mt-16">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-3">
-              <Button variant="ghost" onClick={() => navigate('/')} className="p-2 sm:px-4">
-                <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Back</span>
-              </Button>
               <div className="relative">
                 <Video className="h-6 w-6 sm:h-8 sm:w-8 text-primary animate-pulse" />
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, HelpCircle, Shield, Star, ArrowLeft } from "lucide-react";
+import NavigationHeader from "@/components/NavigationHeader";
 
 // FAQ Page Component
 interface FAQItem {
@@ -70,15 +71,9 @@ export default function FAQ() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/')}
-          className="mb-6 flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Home
-        </Button>
+      <NavigationHeader />
+      
+      <div className="container mx-auto px-4 py-8 max-w-4xl mt-16">
         
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">

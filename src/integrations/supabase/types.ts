@@ -949,6 +949,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_unverify_expired_celebrities: { Args: never; Returns: undefined }
       can_access_celebrity_sensitive_data: {
         Args: { profile_user_id: string }
         Returns: boolean
