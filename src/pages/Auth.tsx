@@ -84,13 +84,14 @@ const Auth = () => {
     setLoading(true);
     
     try {
-      // Create user account
+      // Create user account with metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             stage_name: stageName,
+            phone_number: phoneNumber,
           },
         },
       });
@@ -98,17 +99,14 @@ const Auth = () => {
       if (authError) throw authError;
 
       if (authData.user) {
-        // Create celebrity profile
+        // Update the auto-created profile with additional details
         const { error: profileError } = await supabase
           .from('celebrity_profiles')
-          .insert({
-            user_id: authData.user.id,
-            stage_name: stageName,
+          .update({
             phone_number: phoneNumber,
-            email: email,
             age: age,
-            is_verified: false,
-          });
+          })
+          .eq('user_id', authData.user.id);
 
         if (profileError) throw profileError;
 
