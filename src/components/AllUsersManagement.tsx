@@ -75,13 +75,12 @@ const AllUsersManagement = () => {
     try {
       setLoading(true);
       
-      // Get admin email from localStorage for authentication
-      const adminSession = localStorage.getItem('admin_session');
-      if (!adminSession) {
-        throw new Error("Admin session not found");
+      // Get admin email from Supabase auth session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user?.email) {
+        throw new Error("Admin session expired. Please sign in again.");
       }
-
-      const session = JSON.parse(adminSession);
       
       // Call admin-data edge function to get all users
       const response = await fetch(`https://kpjqcrhoablsllkgonbl.supabase.co/functions/v1/admin-data`, {
@@ -92,7 +91,7 @@ const AllUsersManagement = () => {
         },
         body: JSON.stringify({
           action: 'get_all_users',
-          adminEmail: session.email
+          adminEmail: session.user.email
         })
       });
 
@@ -116,12 +115,10 @@ const AllUsersManagement = () => {
 
   const deleteUser = async (userId: string, email: string) => {
     try {
-      const adminSession = localStorage.getItem('admin_session');
-      if (!adminSession) {
-        throw new Error("Admin session not found");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.email) {
+        throw new Error("Admin session expired. Please sign in again.");
       }
-
-      const session = JSON.parse(adminSession);
       
       const response = await fetch(`https://kpjqcrhoablsllkgonbl.supabase.co/functions/v1/admin-data`, {
         method: 'POST',
@@ -132,7 +129,7 @@ const AllUsersManagement = () => {
         body: JSON.stringify({
           action: 'delete_user',
           userId,
-          adminEmail: session.email
+          adminEmail: session.user.email
         })
       });
 
@@ -159,12 +156,10 @@ const AllUsersManagement = () => {
 
   const toggleUserVerification = async (userId: string, isVerified: boolean) => {
     try {
-      const adminSession = localStorage.getItem('admin_session');
-      if (!adminSession) {
-        throw new Error("Admin session not found");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.email) {
+        throw new Error("Admin session expired. Please sign in again.");
       }
-
-      const session = JSON.parse(adminSession);
       
       const response = await fetch(`https://kpjqcrhoablsllkgonbl.supabase.co/functions/v1/admin-data`, {
         method: 'POST',
@@ -176,7 +171,7 @@ const AllUsersManagement = () => {
           action: 'toggle_user_verification',
           userId,
           isVerified,
-          adminEmail: session.email
+          adminEmail: session.user.email
         })
       });
 

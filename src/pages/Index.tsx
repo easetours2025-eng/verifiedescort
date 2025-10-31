@@ -84,17 +84,35 @@ const Index = () => {
 
   const fetchCountries = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: countriesData, error } = await supabase
         .from('available_countries')
-        .select('country_name, is_east_africa')
-        .order('country_name');
+        .select('country_name, is_east_africa');
 
       if (error) throw error;
       
-      setAvailableCountries(data?.map(c => ({ 
-        name: c.country_name, 
-        isEastAfrica: c.is_east_africa 
-      })) || []);
+      // Get celebrity counts per country
+      const { data: celebrityData } = await supabase
+        .from('celebrity_profiles')
+        .select('country');
+      
+      // Count celebrities per country
+      const countryCounts = (celebrityData || []).reduce((acc: Record<string, number>, celeb) => {
+        if (celeb.country) {
+          acc[celeb.country] = (acc[celeb.country] || 0) + 1;
+        }
+        return acc;
+      }, {});
+      
+      // Sort countries by celebrity count (descending)
+      const sortedCountries = (countriesData || [])
+        .map(c => ({ 
+          name: c.country_name, 
+          isEastAfrica: c.is_east_africa,
+          count: countryCounts[c.country_name] || 0
+        }))
+        .sort((a, b) => b.count - a.count);
+      
+      setAvailableCountries(sortedCountries);
     } catch (error) {
       console.error('Error fetching countries:', error);
     }
