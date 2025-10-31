@@ -17,7 +17,8 @@ import {
   Calendar,
   Mail,
   Phone,
-  RefreshCw
+  RefreshCw,
+  CreditCard
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -40,6 +41,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import ImageModal from '@/components/ImageModal';
 import CelebrityProfileEditor from '@/components/CelebrityProfileEditor';
+import { NewSubscriptionModal } from '@/components/NewSubscriptionModal';
 
 interface User {
   id: string;
@@ -54,6 +56,8 @@ interface User {
   is_available?: boolean;
   user_id?: string;
   profile_picture_path?: string;
+  subscription_tier?: string;
+  subscription_end?: string;
 }
 
 const AllUsersManagement = () => {
@@ -63,6 +67,7 @@ const AllUsersManagement = () => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'verified' | 'pending'>('all');
   const [selectedImage, setSelectedImage] = useState<{ url: string; title: string } | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [subscriptionUserId, setSubscriptionUserId] = useState<string | null>(null);
   const { toast } = useToast();
 
   console.log('AllUsersManagement: Responsive version loaded');
@@ -156,6 +161,15 @@ const AllUsersManagement = () => {
 
   const toggleUserVerification = async (userId: string, isVerified: boolean) => {
     try {
+      // Optimistically update the UI
+      setUsers(prevUsers => 
+        prevUsers.map(u => 
+          u.user_id === userId || u.id === userId 
+            ? { ...u, is_verified: isVerified } 
+            : u
+        )
+      );
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user?.email) {
         throw new Error("Admin session expired. Please sign in again.");
@@ -178,6 +192,14 @@ const AllUsersManagement = () => {
       const result = await response.json();
       
       if (!result.success) {
+        // Revert optimistic update on error
+        setUsers(prevUsers => 
+          prevUsers.map(u => 
+            u.user_id === userId || u.id === userId 
+              ? { ...u, is_verified: !isVerified } 
+              : u
+          )
+        );
         throw new Error(result.message);
       }
 
@@ -185,8 +207,6 @@ const AllUsersManagement = () => {
         title: isVerified ? "User Verified" : "User Unverified",
         description: `User verification status updated successfully.`,
       });
-
-      fetchUsers();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -220,6 +240,28 @@ const AllUsersManagement = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const getSubscriptionLabel = (tier?: string) => {
+    if (!tier) return 'No Subscription';
+    const labels: Record<string, string> = {
+      vip_elite: 'VIP Elite',
+      prime_plus: 'Prime Plus',
+      basic_pro: 'Basic Pro',
+      starter: 'Starter',
+    };
+    return labels[tier] || tier;
+  };
+
+  const getSubscriptionVariant = (tier?: string): "default" | "secondary" | "destructive" | "outline" => {
+    if (!tier) return 'secondary';
+    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+      vip_elite: 'default',
+      prime_plus: 'default',
+      basic_pro: 'outline',
+      starter: 'outline',
+    };
+    return variants[tier] || 'secondary';
   };
 
   const getProfileImageUrl = (profilePicturePath?: string) => {
@@ -367,10 +409,14 @@ const AllUsersManagement = () => {
                   </div>
 
                   <div className="flex items-center justify-between mt-3 pt-3 border-t">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Badge variant={user.is_verified ? "default" : "secondary"} className="text-xs">
                         {user.is_verified ? <UserCheck className="h-3 w-3 mr-1" /> : <UserX className="h-3 w-3 mr-1" />}
                         {user.is_verified ? "Verified" : "Pending"}
+                      </Badge>
+                      <Badge variant={getSubscriptionVariant(user.subscription_tier)} className="text-xs">
+                        <CreditCard className="h-3 w-3 mr-1" />
+                        {getSubscriptionLabel(user.subscription_tier)}
                       </Badge>
                       <Switch
                         checked={user.is_verified || false}
@@ -380,6 +426,14 @@ const AllUsersManagement = () => {
                       />
                     </div>
                     <div className="flex items-center gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setSubscriptionUserId(user.id)}
+                        title="Manage subscription"
+                      >
+                        <CreditCard className="h-4 w-4 text-blue-500" />
+                      </Button>
                       <Button 
                         variant="ghost" 
                         size="sm"
@@ -566,6 +620,21 @@ const AllUsersManagement = () => {
             onSave={() => {
               fetchUsers();
               setEditingUserId(null);
+            }}
+          />
+        )}
+
+        {/* Subscription Management Modal */}
+        {subscriptionUserId && (
+          <NewSubscriptionModal
+            open={!!subscriptionUserId}
+            onOpenChange={(open) => {
+              if (!open) setSubscriptionUserId(null);
+            }}
+            celebrityId={subscriptionUserId}
+            onSubmit={async () => {
+              fetchUsers();
+              setSubscriptionUserId(null);
             }}
           />
         )}

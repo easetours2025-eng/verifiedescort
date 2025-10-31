@@ -88,9 +88,20 @@ Deno.serve(async (req) => {
         throw new Error("Failed to fetch celebrity profiles");
       }
 
-      // Merge auth users with their celebrity profiles
+      // Fetch active subscriptions
+      const { data: subscriptions, error: subscriptionError } = await supabaseServiceRole
+        .from('celebrity_subscriptions')
+        .select('*')
+        .eq('is_active', true);
+
+      if (subscriptionError) {
+        console.error("Error fetching subscriptions:", subscriptionError);
+      }
+
+      // Merge auth users with their celebrity profiles and subscriptions
       const users = authUsers.users.map(authUser => {
         const profile = celebrityProfiles?.find(p => p.user_id === authUser.id);
+        const subscription = subscriptions?.find(s => s.celebrity_id === profile?.id);
         return {
           id: authUser.id,
           email: authUser.email,
@@ -105,6 +116,9 @@ Deno.serve(async (req) => {
           is_verified: profile?.is_verified,
           is_available: profile?.is_available,
           profile_picture_path: profile?.profile_picture_path,
+          // Subscription data
+          subscription_tier: subscription?.subscription_tier,
+          subscription_end: subscription?.subscription_end,
         };
       });
 
@@ -187,6 +201,42 @@ Deno.serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           message: `User ${isVerified ? 'verified' : 'unverified'} successfully`,
+          data: updateData
+        }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200 
+        }
+      );
+    }
+
+    if (action === "update_celebrity_profile") {
+      const { profileId, profileData } = requestBody;
+      
+      if (!profileId || !profileData) {
+        throw new Error("Profile ID and profile data are required");
+      }
+
+      console.log('Updating celebrity profile:', { profileId, profileData });
+
+      // Update celebrity profile
+      const { data: updateData, error: updateError } = await supabaseServiceRole
+        .from('celebrity_profiles')
+        .update(profileData)
+        .eq('id', profileId)
+        .select();
+
+      if (updateError) {
+        console.error("Error updating celebrity profile:", updateError);
+        throw new Error(`Failed to update celebrity profile: ${updateError.message}`);
+      }
+
+      console.log('Profile update result:', updateData);
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Profile updated successfully',
           data: updateData
         }),
         { 

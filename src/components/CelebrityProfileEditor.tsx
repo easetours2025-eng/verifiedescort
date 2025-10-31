@@ -167,29 +167,49 @@ const CelebrityProfileEditor = ({ open, onOpenChange, celebrityId, onSave }: Cel
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('celebrity_profiles')
-        .update({
-          stage_name: profile.stage_name,
-          real_name: profile.real_name,
-          bio: profile.bio,
-          email: profile.email,
-          phone_number: profile.phone_number,
-          location: profile.location,
-          age: profile.age,
-          date_of_birth: profile.date_of_birth,
-          gender: profile.gender,
-          base_price: profile.base_price,
-          hourly_rate: profile.hourly_rate,
-          social_instagram: profile.social_instagram,
-          social_twitter: profile.social_twitter,
-          social_tiktok: profile.social_tiktok,
-          is_verified: profile.is_verified,
-          is_available: profile.is_available,
-        })
-        .eq('id', celebrityId);
+      // Get admin email
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.email) {
+        throw new Error("Admin session expired. Please sign in again.");
+      }
 
-      if (error) throw error;
+      // Use admin-data edge function to update profile
+      const response = await fetch(`https://kpjqcrhoablsllkgonbl.supabase.co/functions/v1/admin-data`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwanFjcmhvYWJsc2xsa2dvbmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3MTY3NTksImV4cCI6MjA3MTI5Mjc1OX0.Guwh9JOeCCYUsqQfVANA-Kiqwl9yi_jGv92ZARqxl1w`,
+        },
+        body: JSON.stringify({
+          action: 'update_celebrity_profile',
+          profileId: celebrityId,
+          profileData: {
+            stage_name: profile.stage_name,
+            real_name: profile.real_name,
+            bio: profile.bio,
+            email: profile.email,
+            phone_number: profile.phone_number,
+            location: profile.location,
+            age: profile.age,
+            date_of_birth: profile.date_of_birth,
+            gender: profile.gender,
+            base_price: profile.base_price,
+            hourly_rate: profile.hourly_rate,
+            social_instagram: profile.social_instagram,
+            social_twitter: profile.social_twitter,
+            social_tiktok: profile.social_tiktok,
+            is_verified: profile.is_verified,
+            is_available: profile.is_available,
+          },
+          adminEmail: session.user.email
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || "Failed to update profile");
+      }
 
       toast({
         title: "Success",
