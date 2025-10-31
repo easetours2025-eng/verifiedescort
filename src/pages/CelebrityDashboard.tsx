@@ -466,6 +466,9 @@ const CelebrityDashboard = () => {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
+        
+        {/* Footer */}
+        <Footer />
       </div>
 
       <PaymentVerificationModal
@@ -919,8 +922,6 @@ const MediaTab = ({ profile, media, onUpload, onDelete }: {
           onUpload={onUpload}
         />
       </div>
-
-      <Footer />
     </div>
   );
 };
