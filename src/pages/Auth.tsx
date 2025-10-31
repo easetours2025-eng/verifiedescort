@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Star, Crown, Sparkles, Mail, CheckCircle2 } from 'lucide-react';
-import StepByStepRegistration from '@/components/StepByStepRegistration';
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -20,8 +20,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
-  const [showStepByStep, setShowStepByStep] = useState(false);
-  const { login, register, user } = useAuth();
+  const { login, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -83,22 +82,54 @@ const Auth = () => {
     }
 
     setLoading(true);
-    // Show step-by-step registration
-    setShowStepByStep(true);
-    setLoading(false);
-  };
+    
+    try {
+      // Create user account
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            stage_name: stageName,
+          },
+        },
+      });
 
-  if (showStepByStep) {
-    return (
-      <StepByStepRegistration
-        email={email}
-        password={password}
-        stageName={stageName}
-        phoneNumber={phoneNumber}
-        age={age}
-      />
-    );
-  }
+      if (authError) throw authError;
+
+      if (authData.user) {
+        // Create celebrity profile
+        const { error: profileError } = await supabase
+          .from('celebrity_profiles')
+          .insert({
+            user_id: authData.user.id,
+            stage_name: stageName,
+            phone_number: phoneNumber,
+            age: age,
+            is_verified: false,
+            is_featured: false,
+          });
+
+        if (profileError) throw profileError;
+
+        setRegisteredEmail(email);
+        setShowVerificationModal(true);
+        
+        toast({
+          title: "Registration Successful!",
+          description: "Please complete your profile in the dashboard.",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Registration Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/5 flex items-center justify-center p-4">
