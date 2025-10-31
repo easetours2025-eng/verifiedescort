@@ -24,9 +24,13 @@ import { z } from 'zod';
 const paymentSchema = z.object({
   phoneNumber: z.string()
     .trim()
-    .regex(/^(\+254|254|0)?[17]\d{8}$/, 'Invalid Kenyan phone number. Use format: 254XXXXXXXXX or 0XXXXXXXXX'),
+    .transform(val => val.replace(/[\s\-()]/g, '')) // Remove spaces, dashes, parentheses
+    .refine(val => /^(\+254|254|0)?[17]\d{8}$/.test(val), {
+      message: 'Invalid Kenyan phone number. Use format: 0712345678 or 254712345678'
+    }),
   mpesaCode: z.string()
     .trim()
+    .toUpperCase()
     .min(10, 'M-Pesa code must be at least 10 characters')
     .max(20, 'M-Pesa code must not exceed 20 characters')
     .regex(/^[A-Z0-9]+$/, 'M-Pesa code must contain only uppercase letters and numbers'),
@@ -112,7 +116,10 @@ const PaymentVerificationModal = ({ open, onOpenChange, celebrityId }: PaymentVe
       }
 
       // Normalize phone number to +254 format
-      let normalizedPhone = phoneNumber.trim();
+      // First, remove all spaces, dashes, and other non-digit characters except +
+      let normalizedPhone = phoneNumber.trim().replace(/[\s\-()]/g, '');
+      
+      // Then normalize to +254 format
       if (normalizedPhone.startsWith('0')) {
         normalizedPhone = '+254' + normalizedPhone.substring(1);
       } else if (normalizedPhone.startsWith('254')) {
