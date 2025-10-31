@@ -354,7 +354,7 @@ const CelebrityDashboard = () => {
           />
         </div>
 
-        <Accordion type="multiple" defaultValue={["profile"]} className="space-y-3 max-w-full overflow-x-hidden">
+        <Accordion type="single" collapsible defaultValue="profile" className="space-y-3 max-w-full overflow-x-hidden">
           {/* Profile Section */}
           <AccordionItem value="profile" className="border rounded-lg bg-card">
             <AccordionTrigger className="px-4 hover:no-underline">
