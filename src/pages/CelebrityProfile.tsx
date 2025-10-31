@@ -529,57 +529,10 @@ const CelebrityProfile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
-      {/* Header */}
-      <header className="border-b border-primary/20 backdrop-blur-sm bg-background/80 sticky top-0 z-50">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" onClick={() => navigate(-1)} className="p-2 sm:px-4">
-              <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Back</span>
-            </Button>
-            
-            {/* Videos and Join Celebrity buttons */}
-            <div className="flex items-center space-x-1 sm:space-x-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => navigate('/faq')}
-                className="border-primary/20 hover:bg-primary/10 flex items-center"
-              >
-                <span className="hidden sm:inline">FAQ</span>
-                <span className="sm:hidden">?</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => navigate('/videos')}
-                className="border-primary/20 hover:bg-primary/10 flex items-center"
-              >
-                <Video className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Videos</span>
-              </Button>
-              <Button 
-                onClick={() => navigate('/auth')}
-                size="sm"
-                className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-celebrity text-xs sm:text-sm"
-              >
-                Join as Celebrity
-              </Button>
-              
-              <Button variant="ghost" size="sm" className="p-2">
-                <Heart className="h-4 w-4" />
-                <span className="sr-only">Favorite</span>
-              </Button>
-              <Button variant="ghost" size="sm" className="p-2">
-                <Share2 className="h-4 w-4" />
-                <span className="sr-only">Share</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-6 md:py-8">
+      {/* Navigation Header */}
+      <NavigationHeader sticky={true} showBackButton={true} />
+      
+      <div className="container mx-auto px-4 py-6 md:py-8 pt-20">
         <div className="space-y-6 md:space-y-8">
           {/* Celebrity Profile and Info */}
           <Card className="p-4 md:p-6">

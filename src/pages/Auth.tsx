@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Star, Crown, Sparkles, Mail, CheckCircle2 } from 'lucide-react';
+import StepByStepRegistration from '@/components/StepByStepRegistration';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -19,13 +20,14 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
+  const [showStepByStep, setShowStepByStep] = useState(false);
   const { login, register, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [user, navigate]);
 
@@ -81,26 +83,22 @@ const Auth = () => {
     }
 
     setLoading(true);
-    const { error } = await register(email, password, stageName, phoneNumber);
-    
-    if (error) {
-      toast({
-        title: "Registration Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      setRegisteredEmail(email);
-      setShowVerificationModal(true);
-      // Clear form after successful registration
-      setEmail('');
-      setPassword('');
-      setStageName('');
-      setPhoneNumber('');
-      setAge(18);
-    }
+    // Show step-by-step registration
+    setShowStepByStep(true);
     setLoading(false);
   };
+
+  if (showStepByStep) {
+    return (
+      <StepByStepRegistration
+        email={email}
+        password={password}
+        stageName={stageName}
+        phoneNumber={phoneNumber}
+        age={age}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/5 flex items-center justify-center p-4">
@@ -296,11 +294,11 @@ const Auth = () => {
               <Button 
                 onClick={() => {
                   setShowVerificationModal(false);
-                  navigate('/');
+                  navigate('/dashboard');
                 }}
                 className="flex-1 bg-gradient-to-r from-green-600 to-green-700"
               >
-                Go to Homepage
+                Go to Dashboard
               </Button>
             </div>
           </DialogContent>

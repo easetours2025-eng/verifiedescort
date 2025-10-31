@@ -5,9 +5,10 @@ import { Crown, ArrowLeft } from 'lucide-react';
 
 interface NavigationHeaderProps {
   showBackButton?: boolean;
+  sticky?: boolean;
 }
 
-const NavigationHeader = ({ showBackButton = true }: NavigationHeaderProps) => {
+const NavigationHeader = ({ showBackButton = true, sticky = false }: NavigationHeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const isHomePage = location.pathname === '/';
@@ -25,7 +26,7 @@ const NavigationHeader = ({ showBackButton = true }: NavigationHeaderProps) => {
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border shadow-sm">
+    <div className={`${sticky ? 'sticky' : 'fixed'} top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border shadow-sm`}>
       <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
         {/* Logo */}
         <button
@@ -36,12 +37,9 @@ const NavigationHeader = ({ showBackButton = true }: NavigationHeaderProps) => {
           <div className="bg-gradient-to-r from-primary to-accent p-1.5 sm:p-2 rounded-lg group-hover:scale-105 transition-transform shadow-sm">
             <Crown className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
           </div>
-          <span className="font-bold text-base sm:text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hidden sm:inline">
-            Royal Escorts
-          </span>
         </button>
 
-        {/* Back Button */}
+        {/* Back Button - Right Side */}
         {showBackButton && !isHomePage && (
           <Button
             variant="ghost"
