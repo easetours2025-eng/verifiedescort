@@ -105,9 +105,9 @@ const Auth = () => {
             user_id: authData.user.id,
             stage_name: stageName,
             phone_number: phoneNumber,
+            email: email,
             age: age,
             is_verified: false,
-            is_featured: false,
           });
 
         if (profileError) throw profileError;
