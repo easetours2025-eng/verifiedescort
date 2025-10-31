@@ -98,15 +98,27 @@ const CelebrityProfileEditor = ({ open, onOpenChange, celebrityId, onSave }: Cel
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      // First try to fetch by celebrity profile id
+      let { data, error } = await supabase
         .from('celebrity_profiles')
         .select('*')
         .eq('id', celebrityId)
         .maybeSingle();
 
+      // If not found by id, try by user_id (in case celebrityId is actually a user_id)
+      if (!data && !error) {
+        const result = await supabase
+          .from('celebrity_profiles')
+          .select('*')
+          .eq('user_id', celebrityId)
+          .maybeSingle();
+        data = result.data;
+        error = result.error;
+      }
+
       if (error) throw error;
       if (!data) {
-        throw new Error('Profile not found');
+        throw new Error('Profile not found. Please ensure the user has a celebrity profile.');
       }
       setProfile(data);
     } catch (error: any) {
