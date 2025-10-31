@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import VideoCard from '@/components/VideoCard';
 import VideoModal from '@/components/VideoModal';
 import NavigationHeader from '@/components/NavigationHeader';
+import Footer from '@/components/Footer';
 
 console.log("Videos.tsx file is being processed");
 
@@ -553,6 +554,8 @@ const Videos = () => {
           onClose={handleCloseModal}
         />
       )}
+
+      <Footer />
     </div>
   );
 };

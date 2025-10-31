@@ -20,6 +20,7 @@ import SubscriptionTab from '@/components/SubscriptionTab';
 import { GenderSelect } from '@/components/GenderSelect';
 import { CountrySelect } from '@/components/CountrySelect';
 import NavigationHeader from '@/components/NavigationHeader';
+import Footer from '@/components/Footer';
 import { 
   User, 
   Settings, 
@@ -913,6 +914,8 @@ const MediaTab = ({ profile, media, onUpload, onDelete }: {
           onUpload={onUpload}
         />
       </div>
+
+      <Footer />
     </div>
   );
 };

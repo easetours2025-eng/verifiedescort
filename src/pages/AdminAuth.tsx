@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import Footer from '@/components/Footer';
 
 const AdminAuth = () => {
   const [email, setEmail] = useState('');
@@ -136,6 +137,7 @@ const AdminAuth = () => {
             </Button>
           </div>
         </div>
+        <Footer />
     </div>
   );
 };

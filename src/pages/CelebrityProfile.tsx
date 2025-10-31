@@ -22,6 +22,7 @@ import {
 } from '@/lib/celebrity-utils';
 import NavigationHeader from '@/components/NavigationHeader';
 import PayPalPayment from '@/components/PayPalPayment';
+import Footer from '@/components/Footer';
 import { 
   ArrowLeft,
   Star, 
@@ -96,6 +97,7 @@ const CelebrityProfile = () => {
 
   useEffect(() => {
     if (id) {
+      window.scrollTo(0, 0);
       fetchProfile();
       fetchCelebrityMedia();
       fetchServices();
@@ -948,6 +950,8 @@ const CelebrityProfile = () => {
           onClose={handleCloseVideoModal}
         />
       )}
+
+      <Footer />
     </div>
   );
 };

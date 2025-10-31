@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, HelpCircle, Shield, Star, ArrowLeft } from "lucide-react";
 import NavigationHeader from "@/components/NavigationHeader";
+import Footer from "@/components/Footer";
 
 // FAQ Page Component
 interface FAQItem {
@@ -167,6 +168,8 @@ export default function FAQ() {
           </CardContent>
         </Card>
       </div>
+
+      <Footer />
     </div>
   );
 }

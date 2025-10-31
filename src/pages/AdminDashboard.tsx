@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import AdminSidebar from '@/components/AdminSidebar';
 import AdminGlobalSearch from '@/components/AdminGlobalSearch';
 import StatsCard from '@/components/StatsCard';
+import Footer from '@/components/Footer';
 import ChartCard from '@/components/ChartCard';
 import TimelineCard from '@/components/TimelineCard';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -916,6 +917,7 @@ const AdminDashboard = () => {
           )}
         </main>
       </div>
+      <Footer />
     </div>
   );
 };

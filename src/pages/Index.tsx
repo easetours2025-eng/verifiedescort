@@ -21,6 +21,7 @@ import {
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
 
 import NavigationHeader from '@/components/NavigationHeader';
+import Footer from '@/components/Footer';
 
 const Index = () => {
   const [celebrities, setCelebrities] = useState<PublicCelebrityProfile[]>([]);
@@ -814,10 +815,12 @@ const Index = () => {
               )}
             </>
           )}
-        </div>
-      </section>
-    </div>
-  );
-};
+          </div>
+        </section>
 
-export default Index;
+        <Footer />
+      </div>
+    );
+  };
+
+  export default Index;
