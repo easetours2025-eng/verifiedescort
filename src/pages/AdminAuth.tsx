@@ -66,68 +66,69 @@ const AdminAuth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/5 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center space-y-4">
-          <div className="flex justify-center">
-            <Shield className="h-12 w-12 text-primary" />
-          </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Admin Portal
-          </h1>
-          <p className="text-muted-foreground">
-            Enter your admin credentials to access the dashboard
-          </p>
-        </div>
-
-        <Card className="shadow-xl border-primary/20">
-          <CardHeader className="space-y-1">
-            <div className="flex items-center justify-center space-x-2">
-              <ShieldCheck className="h-5 w-5 text-accent" />
-              <CardTitle className="text-2xl text-center">
-                Admin Sign In
-              </CardTitle>
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/5 flex flex-col">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center space-y-4">
+            <div className="flex justify-center">
+              <Shield className="h-12 w-12 text-primary" />
             </div>
-            <CardDescription className="text-center">
-              Enter your admin credentials to continue
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSignIn} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="admin-email">Email</Label>
-                <Input
-                  id="admin-email"
-                  type="email"
-                  placeholder="Enter admin email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Admin Portal
+            </h1>
+            <p className="text-muted-foreground">
+              Enter your admin credentials to access the dashboard
+            </p>
+          </div>
+
+          <Card className="shadow-xl border-primary/20">
+            <CardHeader className="space-y-1">
+              <div className="flex items-center justify-center space-x-2">
+                <ShieldCheck className="h-5 w-5 text-accent" />
+                <CardTitle className="text-2xl text-center">
+                  Admin Sign In
+                </CardTitle>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="admin-password">Password</Label>
-                <Input
-                  id="admin-password"
-                  type="password"
-                  placeholder="Enter admin password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-primary to-primary-glow"
-                disabled={loading}
-              >
-                {loading ? "Signing In..." : "Sign In"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-        
-        <div className="text-center">
+              <CardDescription className="text-center">
+                Enter your admin credentials to continue
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="admin-email">Email</Label>
+                  <Input
+                    id="admin-email"
+                    type="email"
+                    placeholder="Enter admin email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="admin-password">Password</Label>
+                  <Input
+                    id="admin-password"
+                    type="password"
+                    placeholder="Enter admin password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-primary to-primary-glow"
+                  disabled={loading}
+                >
+                  {loading ? "Signing In..." : "Sign In"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+          
+          <div className="text-center">
             <Button 
               variant="ghost" 
               onClick={() => navigate('/')}
@@ -137,7 +138,8 @@ const AdminAuth = () => {
             </Button>
           </div>
         </div>
-        <Footer />
+      </div>
+      <Footer />
     </div>
   );
 };
