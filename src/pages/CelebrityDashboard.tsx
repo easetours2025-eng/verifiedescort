@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -354,113 +354,118 @@ const CelebrityDashboard = () => {
           />
         </div>
 
-        <Tabs defaultValue="profile" className="space-y-3 sm:space-y-6 max-w-full overflow-x-hidden">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-0.5 sm:gap-1 p-1 sm:p-1 h-auto bg-muted rounded-lg overflow-hidden">
-            <TabsTrigger 
-              value="profile" 
-              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5 px-1 sm:px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm"
-            >
-              <User className="h-4 w-4 sm:h-4 sm:w-4" />
-              <span className="leading-tight">Profile</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="subscription" 
-              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5 px-1 sm:px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm"
-            >
-              <CreditCard className="h-4 w-4 sm:h-4 sm:w-4" />
-              <span className="leading-tight">Sub</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="media" 
-              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5 px-1 sm:px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm"
-            >
-              <Upload className="h-4 w-4 sm:h-4 sm:w-4" />
-              <span className="leading-tight">Media</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="services" 
-              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5 px-1 sm:px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm"
-            >
-              <Briefcase className="h-4 w-4 sm:h-4 sm:w-4" />
-              <span className="leading-tight">Services</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="profile" className="max-w-full overflow-x-hidden">
-            <div className="space-y-4">
-              {/* Profile Stats Card */}
-              <Card className="border-primary/20">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Eye className="h-5 w-5 text-primary" />
-                    Profile Statistics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground">Total Profile Views</p>
-                      <p className="text-3xl font-bold text-primary">{profileViews.toLocaleString()}</p>
+        <Accordion type="multiple" defaultValue={["profile"]} className="space-y-3 max-w-full overflow-x-hidden">
+          {/* Profile Section */}
+          <AccordionItem value="profile" className="border rounded-lg bg-card">
+            <AccordionTrigger className="px-4 hover:no-underline">
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                <span className="font-semibold">Profile</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4">
+              <div className="space-y-4">
+                {/* Profile Stats Card */}
+                <Card className="border-primary/20">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Eye className="h-5 w-5 text-primary" />
+                      Profile Statistics
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <p className="text-sm text-muted-foreground">Total Profile Views</p>
+                        <p className="text-3xl font-bold text-primary">{profileViews.toLocaleString()}</p>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <ProfileTab profile={profile} onUpdate={handleProfileUpdate} saving={saving} />
-            </div>
-          </TabsContent>
+                  </CardContent>
+                </Card>
+                
+                <ProfileTab profile={profile} onUpdate={handleProfileUpdate} saving={saving} />
+              </div>
+            </AccordionContent>
+          </AccordionItem>
 
-          <TabsContent value="subscription" className="max-w-full overflow-x-hidden">
-            <div className="space-y-4 sm:space-y-6 max-w-full overflow-x-hidden">
-              <SubscriptionTab 
-                profile={profile} 
-                subscriptionStatus={subscriptionStatus}
-                onOpenPaymentModal={() => setShowPaymentModal(true)}
+          {/* Services Section */}
+          <AccordionItem value="services" className="border rounded-lg bg-card">
+            <AccordionTrigger className="px-4 hover:no-underline">
+              <div className="flex items-center gap-2">
+                <Briefcase className="h-5 w-5 text-primary" />
+                <span className="font-semibold">Services</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4">
+              <CelebrityServices
+                celebrityId={profile?.id || ''}
+                services={services}
+                onServicesUpdate={fetchServices}
+                isEditable={true}
               />
-              
-              {/* Upgrade Option for subscribers */}
-              {subscriptionStatus?.is_active && subscriptionStatus.subscription_tier && subscriptionStatus.amount_paid && subscriptionStatus.subscription_start && subscriptionStatus.duration_type && (
-                <SubscriptionUpgrade
-                  celebrityId={profile.id}
-                  currentSubscription={{
-                    subscription_tier: subscriptionStatus.subscription_tier,
-                    duration_type: subscriptionStatus.duration_type,
-                    amount_paid: subscriptionStatus.amount_paid,
-                    subscription_end: subscriptionStatus.subscription_end || '',
-                    subscription_start: subscriptionStatus.subscription_start
-                  }}
-                  creditBalance={profile.credit_balance || 0}
-                  onUpgradeSubmit={() => {
-                    fetchSubscriptionStatus();
-                    fetchProfile();
-                    toast({
-                      title: "Upgrade Submitted",
-                      description: "Your upgrade request is being processed",
-                    });
-                  }}
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Media Section */}
+          <AccordionItem value="media" className="border rounded-lg bg-card">
+            <AccordionTrigger className="px-4 hover:no-underline">
+              <div className="flex items-center gap-2">
+                <Upload className="h-5 w-5 text-primary" />
+                <span className="font-semibold">Media</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4">
+              <MediaTab 
+                profile={profile} 
+                media={media} 
+                onUpload={handleMediaUpload}
+                onDelete={deleteMedia}
+              />
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Subscription Section */}
+          <AccordionItem value="subscription" className="border rounded-lg bg-card">
+            <AccordionTrigger className="px-4 hover:no-underline">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-primary" />
+                <span className="font-semibold">Subscription</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4">
+              <div className="space-y-4 sm:space-y-6 max-w-full overflow-x-hidden">
+                <SubscriptionTab 
+                  profile={profile} 
+                  subscriptionStatus={subscriptionStatus}
+                  onOpenPaymentModal={() => setShowPaymentModal(true)}
                 />
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="media" className="max-w-full overflow-x-hidden">
-            <MediaTab 
-              profile={profile} 
-              media={media} 
-              onUpload={handleMediaUpload}
-              onDelete={deleteMedia}
-            />
-          </TabsContent>
-
-          <TabsContent value="services" className="max-w-full overflow-x-hidden">
-            <CelebrityServices
-              celebrityId={profile?.id || ''}
-              services={services}
-              onServicesUpdate={fetchServices}
-              isEditable={true}
-            />
-          </TabsContent>
-        </Tabs>
+                
+                {/* Upgrade Option for subscribers */}
+                {subscriptionStatus?.is_active && subscriptionStatus.subscription_tier && subscriptionStatus.amount_paid && subscriptionStatus.subscription_start && subscriptionStatus.duration_type && (
+                  <SubscriptionUpgrade
+                    celebrityId={profile.id}
+                    currentSubscription={{
+                      subscription_tier: subscriptionStatus.subscription_tier,
+                      duration_type: subscriptionStatus.duration_type,
+                      amount_paid: subscriptionStatus.amount_paid,
+                      subscription_end: subscriptionStatus.subscription_end || '',
+                      subscription_start: subscriptionStatus.subscription_start
+                    }}
+                    creditBalance={profile.credit_balance || 0}
+                    onUpgradeSubmit={() => {
+                      fetchSubscriptionStatus();
+                      fetchProfile();
+                      toast({
+                        title: "Upgrade Submitted",
+                        description: "Your upgrade request is being processed",
+                      });
+                    }}
+                  />
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
 
       <PaymentVerificationModal
