@@ -102,9 +102,12 @@ const CelebrityProfileEditor = ({ open, onOpenChange, celebrityId, onSave }: Cel
         .from('celebrity_profiles')
         .select('*')
         .eq('id', celebrityId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('Profile not found');
+      }
       setProfile(data);
     } catch (error: any) {
       toast({
