@@ -1,28 +1,28 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Crown, ArrowLeft } from 'lucide-react';
+import { Crown, Video, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface NavigationHeaderProps {
   showBackButton?: boolean;
   sticky?: boolean;
+  showNavigation?: boolean;
 }
 
-const NavigationHeader = ({ showBackButton = true, sticky = false }: NavigationHeaderProps) => {
+const NavigationHeader = ({ showBackButton = true, sticky = false, showNavigation = false }: NavigationHeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const isHomePage = location.pathname === '/';
+  const { user, signOut } = useAuth();
 
   const goHome = () => {
     navigate('/');
   };
 
-  const goBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate('/');
-    }
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
   };
 
   return (
@@ -39,16 +39,68 @@ const NavigationHeader = ({ showBackButton = true, sticky = false }: NavigationH
           </div>
         </button>
 
-        {/* Back Button - Right Side */}
-        {showBackButton && !isHomePage && (
+        {/* Navigation Buttons */}
+        {showNavigation && (
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => navigate('/faq')}
+              className="hover:bg-accent/10"
+            >
+              FAQ
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => navigate('/videos')}
+              className="hover:bg-accent/10 flex items-center gap-1.5"
+            >
+              <Video className="h-4 w-4" />
+              <span className="hidden sm:inline">Videos</span>
+            </Button>
+            {user && (
+              <>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => navigate('/dashboard')}
+                  className="hover:bg-accent/10"
+                >
+                  Dashboard
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleSignOut}
+                  className="hover:bg-accent/10 flex items-center gap-1.5"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">Sign Out</span>
+                </Button>
+              </>
+            )}
+            {!user && (
+              <Button 
+                onClick={() => navigate('/auth')}
+                size="sm"
+                className="bg-gradient-to-r from-primary to-primary-glow"
+              >
+                Join
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Back Button - Only shown when showBackButton is true and not on homepage */}
+        {showBackButton && !isHomePage && !showNavigation && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={goBack}
+            onClick={() => navigate(-1)}
             className="flex items-center gap-1.5 hover:bg-accent/10"
             aria-label="Go back"
           >
-            <ArrowLeft className="h-4 w-4" />
             <span className="hidden sm:inline text-sm">Back</span>
           </Button>
         )}

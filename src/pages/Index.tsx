@@ -3,13 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import CelebrityCard from '@/components/CelebrityCard';
-import { Crown, Sparkles, Search, Filter, Star, Users, Trophy, Heart, Video, ChevronDown, Menu, X, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Crown, Sparkles, Search, Filter, Star, Users, Trophy, Heart, ChevronDown, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { 
@@ -37,13 +36,11 @@ const Index = () => {
   const [minAge, setMinAge] = useState<number>(18);
   const [maxAge, setMaxAge] = useState<number>(65);
   const [genderFilter, setGenderFilter] = useState<string>('all');
-  const [userPaymentStatus, setUserPaymentStatus] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [deviceType, setDeviceType] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -78,9 +75,6 @@ const Index = () => {
   useEffect(() => {
     fetchCelebrities();
     fetchCountries();
-    if (user) {
-      checkUserPaymentStatus();
-    }
   }, [user]);
 
   const fetchCountries = async () => {
@@ -116,25 +110,6 @@ const Index = () => {
       setAvailableCountries(sortedCountries);
     } catch (error) {
       console.error('Error fetching countries:', error);
-    }
-  };
-
-  const checkUserPaymentStatus = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('payment_verification')
-        .select('*')
-        .eq('phone_number', user.email) // Assuming email is used as phone number for now
-        .eq('is_verified', true)
-        .order('created_at', { ascending: false })
-        .limit(1);
-      
-      if (error) throw error;
-      setUserPaymentStatus(data?.[0] || null);
-    } catch (error) {
-      console.error('Error checking payment status:', error);
     }
   };
 
@@ -331,197 +306,12 @@ const Index = () => {
     navigate(`/celebrity/${id}`);
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-    setMobileMenuOpen(false);
-    toast({
-      title: "Signed out",
-      description: "You have been successfully signed out.",
-    });
-  };
-
-  // Close mobile menu on escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMobileMenuOpen(false);
-    };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, []);
-
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [mobileMenuOpen]);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
-      <NavigationHeader showBackButton={false} />
-      {/* Header */}
-      <header className="border-b border-primary/20 backdrop-blur-sm bg-background/80 sticky top-16 z-40 mt-16">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <div className="flex items-center justify-between">
-            
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-4">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => navigate('/faq')}
-                className="border-primary/20 hover:bg-primary/10"
-              >
-                FAQ
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => navigate('/videos')}
-                className="border-primary/20 hover:bg-primary/10 flex items-center"
-              >
-                <Video className="h-4 w-4 mr-2" />
-                Videos
-              </Button>
-              {user ? (
-                <>
-                  {userPaymentStatus && (
-                    <Badge variant="default" className="bg-green-500 text-white">
-                      Verified: {userPaymentStatus.phone_number}
-                    </Badge>
-                  )}
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => navigate('/dashboard')}
-                    className="border-primary/20 hover:bg-primary/10"
-                  >
-                    Dashboard
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                    Sign Out
-                  </Button>
-                </>
-              ) : (
-                <Button 
-                  onClick={() => navigate('/auth')}
-                  size="sm"
-                  className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-celebrity"
-                >
-                     Join as a Model
-                </Button>
-              )}
-            </div>
-
-            {/* Mobile Hamburger */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="lg:hidden"
-              onClick={() => setMobileMenuOpen(true)}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/50 z-50 animate-in fade-in duration-200"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-          
-          {/* Menu Panel */}
-          <div className="fixed right-0 top-0 h-fit bg-background border-l border-primary/20 shadow-xl z-50 animate-in slide-in-from-right duration-300 w-64">
-            <div className="flex flex-col p-4">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-semibold">Menu</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-
-              <div className="flex flex-col space-y-3">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-primary/20"
-                  onClick={() => {
-                    navigate('/faq');
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  FAQ
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-primary/20"
-                  onClick={() => {
-                    navigate('/videos');
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  <Video className="h-4 w-4 mr-2" />
-                  Videos
-                </Button>
-                
-                {user ? (
-                  <>
-                    {userPaymentStatus && (
-                      <Badge variant="default" className="bg-green-500 text-white w-full justify-center py-2">
-                        Verified: {userPaymentStatus.phone_number}
-                      </Badge>
-                    )}
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start border-primary/20"
-                      onClick={() => {
-                        navigate('/dashboard');
-                        setMobileMenuOpen(false);
-                      }}
-                    >
-                      Dashboard
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-start"
-                      onClick={handleSignOut}
-                    >
-                      Sign Out
-                    </Button>
-                  </>
-                ) : (
-                  <Button 
-                    className="w-full bg-gradient-to-r from-primary to-primary-glow"
-                    onClick={() => {
-                      navigate('/auth');
-                      setMobileMenuOpen(false);
-                    }}
-                  >
-                    Join as a Model
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
+      <NavigationHeader showBackButton={false} showNavigation={true} />
 
       {/* Search and Filter */}
-      <section className="py-4 sm:pb-8">
+      <section className="py-4 sm:pb-8 pt-20">
         <div className="container mx-auto px-3 sm:px-4">
           <Card className="shadow-lg border-primary/20">
             <CardHeader className="pb-3 sm:pb-6">
