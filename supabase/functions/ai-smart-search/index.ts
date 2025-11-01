@@ -69,6 +69,8 @@ serve(async (req) => {
 
 CRITICAL: You MUST use the EXACT celebrity IDs from the provided list. DO NOT make up or modify any IDs. Only return IDs that exist in the celebrities array.
 
+IMPORTANT: Return ONLY raw JSON without any markdown formatting, code blocks, or backticks. Do not wrap your response in \`\`\`json or any other formatting.
+
 Return a JSON array of celebrity IDs with match reasons. Be concise and helpful.`
           },
           {
@@ -106,8 +108,11 @@ Example valid celebrityId format: "c921902c-e410-429c-8535-2b0e90560dca" (must b
     }
 
     const aiResponse = await response.json();
-    const aiContent = aiResponse.choices[0].message.content;
+    let aiContent = aiResponse.choices[0].message.content;
     console.log('AI response:', aiContent);
+
+    // Strip markdown code blocks if present
+    aiContent = aiContent.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
 
     // Parse the AI response
     let recommendations;
