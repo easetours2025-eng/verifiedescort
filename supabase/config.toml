@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.ai-bio-generator]
 verify_jwt = false
+
+[functions.activate-promotional-offer]
+verify_jwt = true

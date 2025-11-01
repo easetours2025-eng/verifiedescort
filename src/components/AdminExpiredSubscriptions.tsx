@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { AlertCircle, MessageCircle, Clock } from 'lucide-react';
+import { AlertCircle, MessageCircle, Clock, Gift, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -30,10 +30,13 @@ interface ExpiredSubscription {
 const AdminExpiredSubscriptions = () => {
   const [expiredSubscriptions, setExpiredSubscriptions] = useState<ExpiredSubscription[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalOfferRevenue, setTotalOfferRevenue] = useState(0);
+  const [activatingOffer, setActivatingOffer] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchExpiredSubscriptions();
+    fetchOfferRevenue();
     setupRealtimeSubscription();
   }, []);
 
@@ -81,6 +84,63 @@ const AdminExpiredSubscriptions = () => {
     return () => {
       supabase.removeChannel(channel);
     };
+  };
+
+  const fetchOfferRevenue = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('payment_verification')
+        .select('amount')
+        .eq('payment_type', 'promotional_offer')
+        .eq('is_verified', true);
+
+      if (error) throw error;
+
+      const total = data?.reduce((sum, payment) => sum + (payment.amount || 0), 0) || 0;
+      setTotalOfferRevenue(total);
+    } catch (error) {
+      console.error('Error fetching offer revenue:', error);
+    }
+  };
+
+  const handleActivateOffer = async (subscription: ExpiredSubscription) => {
+    setActivatingOffer(subscription.id);
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      const { data, error } = await supabase.functions.invoke('activate-promotional-offer', {
+        body: {
+          celebrityId: subscription.id,
+          offerAmount: 500, // KES 500 promotional offer
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Offer Activated! 🎁",
+        description: `${subscription.stage_name} now has 1-week VIP Elite access`,
+      });
+
+      // Refresh data
+      await fetchExpiredSubscriptions();
+      await fetchOfferRevenue();
+
+    } catch (error) {
+      console.error('Error activating offer:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to activate promotional offer",
+        variant: "destructive",
+      });
+    } finally {
+      setActivatingOffer(null);
+    }
   };
 
   const handleWhatsAppContact = (subscription: ExpiredSubscription) => {
@@ -137,7 +197,7 @@ const AdminExpiredSubscriptions = () => {
   return (
     <div className="space-y-6">
       {/* Header Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Expired</CardTitle>
@@ -174,6 +234,17 @@ const AdminExpiredSubscriptions = () => {
             <p className="text-xs text-muted-foreground">Expired over 30 days</p>
           </CardContent>
         </Card>
+
+        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Promotional Offers</CardTitle>
+            <Gift className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">KES {totalOfferRevenue.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Total offer revenue (excluded from main revenue)</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Expired Subscriptions Table */}
@@ -200,7 +271,7 @@ const AdminExpiredSubscriptions = () => {
                   <TableHead>Subscription Tier</TableHead>
                   <TableHead>Expired Date</TableHead>
                   <TableHead>Days Expired</TableHead>
-                  <TableHead>Action</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -241,15 +312,36 @@ const AdminExpiredSubscriptions = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="bg-green-50 hover:bg-green-100 border-green-200"
-                        onClick={() => handleWhatsAppContact(subscription)}
-                      >
-                        <MessageCircle className="w-4 h-4 mr-2 text-green-600" />
-                        WhatsApp
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-purple-50 hover:bg-purple-100 border-purple-200"
+                          onClick={() => handleActivateOffer(subscription)}
+                          disabled={activatingOffer === subscription.id}
+                        >
+                          {activatingOffer === subscription.id ? (
+                            <>
+                              <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-purple-600 border-t-transparent" />
+                              Activating...
+                            </>
+                          ) : (
+                            <>
+                              <Gift className="w-4 h-4 mr-2 text-purple-600" />
+                              Offer
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-green-50 hover:bg-green-100 border-green-200"
+                          onClick={() => handleWhatsAppContact(subscription)}
+                        >
+                          <MessageCircle className="w-4 h-4 mr-2 text-green-600" />
+                          WhatsApp
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
