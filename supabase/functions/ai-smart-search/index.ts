@@ -65,7 +65,11 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a smart celebrity recommendation assistant. Analyze the user's query and match them with the most suitable celebrities from the provided list. Consider location, price range, gender preferences, age, and any specific requirements mentioned. Return a JSON array of celebrity IDs with match reasons. Be concise and helpful.`
+            content: `You are a smart celebrity recommendation assistant. Analyze the user's query and match them with the most suitable celebrities from the provided list. Consider location, price range, gender preferences, age, and any specific requirements mentioned.
+
+CRITICAL: You MUST use the EXACT celebrity IDs from the provided list. DO NOT make up or modify any IDs. Only return IDs that exist in the celebrities array.
+
+Return a JSON array of celebrity IDs with match reasons. Be concise and helpful.`
           },
           {
             role: 'user',
@@ -73,17 +77,21 @@ serve(async (req) => {
             
 Available celebrities: ${JSON.stringify(celebrities)}
 
+IMPORTANT: Use ONLY the exact "id" values from the celebrities array above. Do not create or modify any IDs.
+
 Return a JSON response in this exact format:
 {
   "recommendations": [
     {
-      "celebrityId": "uuid",
+      "celebrityId": "exact-uuid-from-celebrities-array",
       "matchScore": 0-100,
       "reason": "brief explanation why this celebrity matches"
     }
   ],
   "searchSummary": "brief summary of what the user is looking for"
-}`
+}
+
+Example valid celebrityId format: "c921902c-e410-429c-8535-2b0e90560dca" (must be an exact UUID from the list)`
           }
         ],
         temperature: 0.7,
