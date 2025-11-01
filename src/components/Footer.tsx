@@ -13,10 +13,10 @@ const Footer = () => {
           <span>Support:</span>
           <button
             onClick={handleWhatsAppClick}
-            className="flex items-center gap-1 text-primary hover:underline transition-colors"
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+            aria-label="Contact support on WhatsApp"
           >
-            <MessageCircle className="w-4 h-4" />
-            <span>+254 102544817</span>
+            <MessageCircle className="w-5 h-5" />
           </button>
         </div>
       </div>
