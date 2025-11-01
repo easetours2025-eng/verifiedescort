@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
@@ -124,15 +124,16 @@ const AISmartSearch: React.FC = () => {
         </p>
 
         <form onSubmit={handleSearch} className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Input
+          <div className="flex flex-col gap-3">
+            <Textarea
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Describe your pretty model"
-              className="flex-1 min-w-0"
+              placeholder="Describe your pretty model (e.g., I need a girl from Nakuru, looking for someone around 25 years old)"
+              className="min-h-[100px] resize-none"
               disabled={isSearching}
+              rows={3}
             />
-            <Button type="submit" disabled={isSearching} className="w-full sm:w-auto shrink-0">
+            <Button type="submit" disabled={isSearching} className="w-full">
               {isSearching ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : (
