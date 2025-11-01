@@ -208,14 +208,9 @@ const AISmartSearch: React.FC = () => {
                       {celeb.bio}
                     </p>
 
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium">
-                        From ${celeb.base_price}
-                      </p>
-                      <p className="text-xs text-muted-foreground italic">
-                        {recommendation.reason}
-                      </p>
-                    </div>
+                    <p className="text-xs text-muted-foreground italic">
+                      {recommendation.reason}
+                    </p>
                   </div>
                 </div>
               </Card>
