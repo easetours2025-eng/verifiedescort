@@ -120,6 +120,15 @@ const SubscriptionUpgrade = ({
       return;
     }
 
+    // Convert local phone format to international format
+    const formatPhoneNumber = (phone: string): string => {
+      const cleaned = phone.trim().replace(/\s+/g, '');
+      if (cleaned.startsWith('0')) return '+254' + cleaned.substring(1);
+      if (cleaned.startsWith('254')) return '+' + cleaned;
+      if (cleaned.startsWith('+')) return cleaned;
+      return '+254' + cleaned;
+    };
+
     setSubmitting(true);
     try {
       // For credit-covered upgrades, create a payment record with zero amount
@@ -133,7 +142,7 @@ const SubscriptionUpgrade = ({
         duration: selectedPackage.duration_type,
       } : {
         celebrityId,
-        phoneNumber,
+        phoneNumber: formatPhoneNumber(phoneNumber),
         mpesaCode,
         amount: upgradeInfo.upgradeCost,
         expectedAmount: upgradeInfo.upgradeCost,

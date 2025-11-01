@@ -634,10 +634,19 @@ const AllUsersManagement = () => {
             celebrityId={subscriptionUserId}
             onSubmit={async (tier: string, duration: string, mpesaCode: string, phoneNumber: string, expectedAmount: number) => {
               try {
+                // Convert local phone format to international format
+                const formatPhoneNumber = (phone: string): string => {
+                  const cleaned = phone.trim().replace(/\s+/g, '');
+                  if (cleaned.startsWith('0')) return '+254' + cleaned.substring(1);
+                  if (cleaned.startsWith('254')) return '+' + cleaned;
+                  if (cleaned.startsWith('+')) return cleaned;
+                  return '+254' + cleaned;
+                };
+
                 const { data, error } = await supabase.functions.invoke('payment-verification', {
                   body: {
                     celebrityId: subscriptionUserId,
-                    phoneNumber: phoneNumber.trim(),
+                    phoneNumber: formatPhoneNumber(phoneNumber),
                     mpesaCode: mpesaCode.trim().toUpperCase(),
                     amount: expectedAmount,
                     expectedAmount: expectedAmount,

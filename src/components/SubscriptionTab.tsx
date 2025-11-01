@@ -306,12 +306,33 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
       return;
     }
 
+    // Convert local phone format to international format
+    const formatPhoneNumber = (phone: string): string => {
+      const cleaned = phone.trim().replace(/\s+/g, '');
+      // If starts with 0, replace with +254
+      if (cleaned.startsWith('0')) {
+        return '+254' + cleaned.substring(1);
+      }
+      // If starts with 254, add +
+      if (cleaned.startsWith('254')) {
+        return '+' + cleaned;
+      }
+      // If already has +, return as is
+      if (cleaned.startsWith('+')) {
+        return cleaned;
+      }
+      // Otherwise assume local format and add +254
+      return '+254' + cleaned;
+    };
+
+    const formattedPhone = formatPhoneNumber(phoneNumber);
+
     setSubmitting(true);
     try {
       const { data, error } = await supabase.functions.invoke('payment-verification', {
         body: {
           celebrityId: profile.id,
-          phoneNumber: phoneNumber.trim(),
+          phoneNumber: formattedPhone,
           mpesaCode: mpesaCode.trim().toUpperCase(),
           amount: selectedPackage.price,
           expectedAmount: selectedPackage.price,
@@ -380,10 +401,19 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
         ? (tier === 'premium' ? 1750 : 1500)
         : (tier === 'premium' ? 2500 : 2000);
 
+      // Convert local phone format to international format
+      const formatPhoneNumber = (phone: string): string => {
+        const cleaned = phone.trim().replace(/\s+/g, '');
+        if (cleaned.startsWith('0')) return '+254' + cleaned.substring(1);
+        if (cleaned.startsWith('254')) return '+' + cleaned;
+        if (cleaned.startsWith('+')) return cleaned;
+        return '+254' + cleaned;
+      };
+
       const { data, error } = await supabase.functions.invoke('payment-verification', {
         body: {
           celebrityId: profile.id,
-          phoneNumber: phoneNumber.trim(),
+          phoneNumber: formatPhoneNumber(phoneNumber),
           mpesaCode: mpesaCode.trim().toUpperCase(),
           amount: offerAmount,
           expectedAmount: offerAmount,
