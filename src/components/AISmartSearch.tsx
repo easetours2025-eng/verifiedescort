@@ -124,19 +124,19 @@ const AISmartSearch: React.FC = () => {
         </p>
 
         <form onSubmit={handleSearch} className="space-y-4">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Describe your pretty model"
-              className="flex-1"
+              className="flex-1 min-w-0"
               disabled={isSearching}
             />
-            <Button type="submit" disabled={isSearching}>
+            <Button type="submit" disabled={isSearching} className="w-full sm:w-auto shrink-0">
               {isSearching ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : (
-                <Search className="h-4 w-4" />
+                <Search className="h-4 w-4 mr-2" />
               )}
               {isSearching ? 'Searching...' : 'Search'}
             </Button>
