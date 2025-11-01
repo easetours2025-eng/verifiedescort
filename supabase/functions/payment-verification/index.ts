@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: `Invalid M-Pesa code format. Must be 10-20 uppercase alphanumeric characters. Received: ${trimmedCode}` 
+          message: `Invalid M-Pesa code. Your code "${trimmedCode}" has ${trimmedCode.length} characters, but M-Pesa codes must be 10-20 characters long. Example: SLK7XMNO12` 
         }),
         { 
           headers: { ...corsHeaders, "Content-Type": "application/json" },
