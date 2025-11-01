@@ -26,7 +26,10 @@ interface Celebrity {
   location: string;
   base_price: number;
   is_verified: boolean;
-  profile_picture_path: string;
+  profile_picture_path: string | null;
+  gender: string[];
+  age: number;
+  hourly_rate: number;
 }
 
 const AISmartSearch: React.FC = () => {
@@ -69,7 +72,7 @@ const AISmartSearch: React.FC = () => {
         
         const { data: celebData, error: celebError } = await supabase
           .from('celebrity_profiles')
-          .select('id, stage_name, bio, location, base_price, is_verified, profile_picture_path')
+          .select('id, stage_name, bio, location, base_price, is_verified, profile_picture_path, gender, age, hourly_rate')
           .in('id', celebrityIds);
 
         if (celebError) throw celebError;
