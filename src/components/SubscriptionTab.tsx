@@ -301,24 +301,30 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
       return;
     }
 
+    if (!profile?.id) {
+      sonnerToast.error("Profile not loaded. Please refresh the page.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       const { data, error } = await supabase.functions.invoke('payment-verification', {
         body: {
-          celebrityId: profile?.id,
+          celebrityId: profile.id,
           phoneNumber: phoneNumber.trim(),
-          mpesaCode: mpesaCode.trim(),
+          mpesaCode: mpesaCode.trim().toUpperCase(),
           amount: selectedPackage.price,
           expectedAmount: selectedPackage.price,
           tier: selectedPackage.tier_name,
           duration: selectedPackage.duration_type,
+          paymentType: 'subscription'
         }
       });
 
       if (error) throw error;
 
-      if (!data.success) {
-        throw new Error(data.message || 'Failed to submit payment verification');
+      if (!data?.success) {
+        throw new Error(data?.message || 'Failed to submit payment verification');
       }
 
       setMpesaCode("");
@@ -353,6 +359,15 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
   };
 
   const handleTierSubmission = async (tier: 'basic' | 'premium', mpesaCode: string, phoneNumber: string, isOffer: boolean = false) => {
+    if (!profile?.id) {
+      toast({
+        title: "Error",
+        description: "Profile not loaded. Please refresh the page.",
+        variant: "destructive"
+      });
+      throw new Error("Profile not loaded");
+    }
+
     try {
       // Calculate offer pricing
       const offerAmount = isOffer 
@@ -361,18 +376,21 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
 
       const { data, error } = await supabase.functions.invoke('payment-verification', {
         body: {
-          celebrityId: profile?.id,
-          phoneNumber,
-          mpesaCode,
+          celebrityId: profile.id,
+          phoneNumber: phoneNumber.trim(),
+          mpesaCode: mpesaCode.trim().toUpperCase(),
           amount: offerAmount,
-          tier
+          expectedAmount: offerAmount,
+          tier,
+          duration: '1_month',
+          paymentType: 'subscription'
         }
       });
 
       if (error) throw error;
 
-      if (!data.success) {
-        throw new Error(data.message || 'Failed to submit payment verification');
+      if (!data?.success) {
+        throw new Error(data?.message || 'Failed to submit payment verification');
       }
 
       toast({
