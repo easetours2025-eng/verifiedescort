@@ -173,12 +173,19 @@ const AISmartSearch: React.FC = () => {
                         src={`https://kpjqcrhoablsllkgonbl.supabase.co/storage/v1/object/public/celebrity-photos/${celeb.profile_picture_path}`}
                         alt={celeb.stage_name}
                         className="w-24 h-24 rounded-lg object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
                       />
-                    ) : (
-                      <div className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center">
-                        <span className="text-2xl">{celeb.stage_name[0]}</span>
-                      </div>
-                    )}
+                    ) : null}
+                    <div 
+                      className="w-24 h-24 rounded-lg bg-muted items-center justify-center"
+                      style={{ display: celeb.profile_picture_path ? 'none' : 'flex' }}
+                    >
+                      <span className="text-2xl">{celeb.stage_name[0]}</span>
+                    </div>
                     {celeb.is_verified && (
                       <div className="absolute -top-1 -right-1 bg-primary rounded-full p-1">
                         <Sparkles className="h-3 w-3 text-primary-foreground" />
