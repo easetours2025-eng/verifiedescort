@@ -308,24 +308,41 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
 
     // Convert local phone format to international format
     const formatPhoneNumber = (phone: string): string => {
-      const cleaned = phone.trim().replace(/\s+/g, '');
-      // If starts with 0, replace with +254
-      if (cleaned.startsWith('0')) {
-        return '+254' + cleaned.substring(1);
+      const cleaned = phone.trim().replace(/\s+/g, '').replace(/[^0-9+]/g, '');
+      
+      let digitsOnly = cleaned.replace(/[^0-9]/g, '');
+      
+      // If starts with 254, remove it to process consistently
+      if (digitsOnly.startsWith('254')) {
+        digitsOnly = '0' + digitsOnly.substring(3);
       }
-      // If starts with 254, add +
-      if (cleaned.startsWith('254')) {
-        return '+' + cleaned;
+      
+      // Should start with 0 and have exactly 10 digits
+      if (!digitsOnly.startsWith('0')) {
+        throw new Error('Phone number must start with 0 (e.g., 0712345678)');
       }
-      // If already has +, return as is
-      if (cleaned.startsWith('+')) {
-        return cleaned;
+      
+      if (digitsOnly.length !== 10) {
+        throw new Error(`Phone number must be exactly 10 digits. You entered ${digitsOnly.length} digits.`);
       }
-      // Otherwise assume local format and add +254
-      return '+254' + cleaned;
+      
+      // Check if second digit is valid (7 or 1 for Kenyan mobile numbers)
+      const secondDigit = digitsOnly[1];
+      if (secondDigit !== '7' && secondDigit !== '1') {
+        throw new Error('Phone number must start with 07 or 01 (e.g., 0712345678)');
+      }
+      
+      // Convert to international format
+      return '+254' + digitsOnly.substring(1);
     };
 
-    const formattedPhone = formatPhoneNumber(phoneNumber);
+    let formattedPhone: string;
+    try {
+      formattedPhone = formatPhoneNumber(phoneNumber);
+    } catch (error) {
+      sonnerToast.error(error instanceof Error ? error.message : 'Invalid phone number format');
+      return;
+    }
 
     setSubmitting(true);
     try {
