@@ -125,7 +125,7 @@ const AISmartSearch: React.FC = () => {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="e.g., 'Looking for a musician in Nairobi under $50 per hour'"
+              placeholder="Describe your pretty model"
               className="flex-1"
               disabled={isSearching}
             />
