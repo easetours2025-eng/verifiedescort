@@ -21,6 +21,7 @@ import { GenderSelect } from '@/components/GenderSelect';
 import { CountrySelect } from '@/components/CountrySelect';
 import NavigationHeader from '@/components/NavigationHeader';
 import Footer from '@/components/Footer';
+import AIBioGenerator from '@/components/AIBioGenerator';
 import { 
   User, 
   Settings, 
@@ -784,8 +785,15 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
               className="text-sm sm:text-base resize-none min-h-[80px] w-full"
             />
             <p className="text-xs sm:text-xs text-muted-foreground break-words">
-              Write an engaging bio.
+              Write an engaging bio or use AI to generate one below.
             </p>
+          </div>
+
+          {/* AI Bio Generator */}
+          <div className="max-w-full">
+            <AIBioGenerator 
+              onBioGenerated={(bio) => setFormData({ ...formData, bio })}
+            />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">

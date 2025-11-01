@@ -21,6 +21,7 @@ import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/p
 
 import NavigationHeader from '@/components/NavigationHeader';
 import Footer from '@/components/Footer';
+import AISmartSearch from '@/components/AISmartSearch';
 
 const Index = () => {
   const [celebrities, setCelebrities] = useState<PublicCelebrityProfile[]>([]);
@@ -311,8 +312,15 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
       <NavigationHeader showBackButton={false} showNavigation={true} />
 
-      {/* Search and Filter */}
+      {/* AI Smart Search Section */}
       <section className="py-4 sm:pb-8 pt-20">
+        <div className="container mx-auto px-3 sm:px-4">
+          <AISmartSearch />
+        </div>
+      </section>
+
+      {/* Search and Filter */}
+      <section className="py-4 sm:pb-4">
         <div className="container mx-auto px-3 sm:px-4">
           <Card className="shadow-lg border-primary/20">
             <CardHeader className="pb-3 sm:pb-6">

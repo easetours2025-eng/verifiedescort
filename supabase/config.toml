@@ -17,3 +17,9 @@ verify_jwt = true
 
 [functions.seed-test-payments]
 verify_jwt = false
+
+[functions.ai-smart-search]
+verify_jwt = false
+
+[functions.ai-bio-generator]
+verify_jwt = false
