@@ -632,9 +632,50 @@ const AllUsersManagement = () => {
               if (!open) setSubscriptionUserId(null);
             }}
             celebrityId={subscriptionUserId}
-            onSubmit={async () => {
-              fetchUsers();
-              setSubscriptionUserId(null);
+            onSubmit={async (tier: string, duration: string, mpesaCode: string, phoneNumber: string, expectedAmount: number) => {
+              try {
+                const { data, error } = await supabase.functions.invoke('payment-verification', {
+                  body: {
+                    celebrityId: subscriptionUserId,
+                    phoneNumber: phoneNumber.trim(),
+                    mpesaCode: mpesaCode.trim().toUpperCase(),
+                    amount: expectedAmount,
+                    expectedAmount: expectedAmount,
+                    tier: tier,
+                    duration: duration,
+                    paymentType: 'subscription'
+                  }
+                });
+
+                if (error) throw error;
+
+                if (!data.success) {
+                  throw new Error(data.message || 'Failed to submit payment verification');
+                }
+
+                if (data.warning) {
+                  toast({
+                    title: data.payment_status === 'underpaid' ? "Payment Insufficient" : "Payment Received",
+                    description: data.warning,
+                    variant: data.payment_status === 'underpaid' ? 'destructive' : 'default',
+                  });
+                } else {
+                  toast({
+                    title: "Payment Verification Submitted",
+                    description: `The ${tier} plan payment verification has been submitted successfully.`,
+                  });
+                }
+
+                fetchUsers();
+              } catch (error: any) {
+                console.error('Payment submission error:', error);
+                toast({
+                  title: "Payment Submission Failed",
+                  description: error.message || "Failed to submit payment verification",
+                  variant: "destructive"
+                });
+                throw error;
+              }
             }}
           />
         )}
