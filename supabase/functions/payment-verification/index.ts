@@ -15,10 +15,14 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { celebrityId, phoneNumber, mpesaCode, amount, tier, duration, expectedAmount, paymentType } = await req.json();
+    const requestBody = await req.json();
+    console.log('Request body received:', JSON.stringify(requestBody));
+    
+    const { celebrityId, phoneNumber, mpesaCode, amount, tier, duration, expectedAmount, paymentType } = requestBody;
 
     // Validate required fields
     if (!celebrityId || !phoneNumber || !mpesaCode) {
+      console.error('Missing required fields:', { celebrityId: !!celebrityId, phoneNumber: !!phoneNumber, mpesaCode: !!mpesaCode });
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -33,11 +37,13 @@ Deno.serve(async (req) => {
 
     // Validate phone number format (Kenyan format)
     const phoneRegex = /^\+254[17]\d{8}$/;
-    if (!phoneRegex.test(phoneNumber.trim())) {
+    const trimmedPhone = phoneNumber.trim();
+    if (!phoneRegex.test(trimmedPhone)) {
+      console.error('Invalid phone number format:', trimmedPhone);
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: "Invalid phone number format. Must be in format: +254XXXXXXXXX" 
+          message: `Invalid phone number format. Must be in format: +254XXXXXXXXX. Received: ${trimmedPhone}` 
         }),
         { 
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -48,11 +54,13 @@ Deno.serve(async (req) => {
 
     // Validate M-Pesa code format
     const mpesaRegex = /^[A-Z0-9]{10,20}$/;
-    if (!mpesaRegex.test(mpesaCode.trim().toUpperCase())) {
+    const trimmedCode = mpesaCode.trim().toUpperCase();
+    if (!mpesaRegex.test(trimmedCode)) {
+      console.error('Invalid M-Pesa code format:', trimmedCode, 'Length:', trimmedCode.length);
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: "Invalid M-Pesa code format. Must be 10-20 uppercase alphanumeric characters" 
+          message: `Invalid M-Pesa code format. Must be 10-20 uppercase alphanumeric characters. Received: ${trimmedCode}` 
         }),
         { 
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -103,11 +111,13 @@ Deno.serve(async (req) => {
     }
 
     console.log('Creating payment verification for celebrity:', celebrityId);
+    console.log('Payment details:', { tier, duration, amount, expectedAmount, paymentType });
 
     // Fetch expected price from subscription_packages if tier and duration provided
     let packagePrice = expectedAmount || 0;
     if (tier && duration && !expectedAmount) {
-      const { data: packageData } = await supabaseServiceRole
+      console.log('Fetching package price for:', { tier, duration });
+      const { data: packageData, error: packageError } = await supabaseServiceRole
         .from('subscription_packages')
         .select('price')
         .eq('tier_name', tier)
@@ -115,10 +125,16 @@ Deno.serve(async (req) => {
         .eq('is_active', true)
         .single();
       
+      if (packageError) {
+        console.error('Error fetching package:', packageError);
+      }
+      
       packagePrice = packageData?.price || 0;
+      console.log('Package price fetched:', packagePrice);
     }
 
     // Insert payment verification record (trigger will auto-calculate status)
+    console.log('Inserting payment verification record...');
     const { data: paymentData, error: paymentError } = await supabaseServiceRole
       .from('payment_verification')
       .insert({
@@ -138,7 +154,18 @@ Deno.serve(async (req) => {
 
     if (paymentError) {
       console.error('Error creating payment verification:', paymentError);
-      throw new Error('Failed to submit payment verification');
+      console.error('Error details:', JSON.stringify(paymentError, null, 2));
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: paymentError.message || 'Failed to submit payment verification',
+          error: paymentError
+        }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400 
+        }
+      );
     }
 
     console.log('Payment verification created successfully:', paymentData.id);
@@ -204,9 +231,11 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Error in payment verification function:', error)
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return new Response(JSON.stringify({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+      message: error instanceof Error ? error.message : 'Unknown error occurred',
+      error: error instanceof Error ? { name: error.name, message: error.message } : String(error)
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500

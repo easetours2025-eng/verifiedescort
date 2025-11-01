@@ -321,9 +321,15 @@ const SubscriptionTab = ({ profile, subscriptionStatus, onOpenPaymentModal }: Su
         }
       });
 
-      if (error) throw error;
+      console.log('Payment verification response:', { data, error });
+
+      if (error) {
+        console.error('Payment submission error:', error);
+        throw new Error(error.message || 'Failed to submit payment verification');
+      }
 
       if (!data?.success) {
+        console.error('Payment verification failed:', data);
         throw new Error(data?.message || 'Failed to submit payment verification');
       }
 
