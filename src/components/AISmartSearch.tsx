@@ -215,9 +215,12 @@ const AISmartSearch: React.FC = () => {
       )}
 
       {results && celebrities.length === 0 && !isSearching && (
-        <Card className="p-6 text-center">
-          <p className="text-muted-foreground">
-            No celebrities found matching your criteria. Try adjusting your search.
+        <Card className="p-6 text-center space-y-2">
+          <p className="text-muted-foreground font-medium">
+            No verified models with active subscriptions match your search at the moment.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Please check back later or try a different search term. Only verified models with active subscriptions are shown in search results.
           </p>
         </Card>
       )}

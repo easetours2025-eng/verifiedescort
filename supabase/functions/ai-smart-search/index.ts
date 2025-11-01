@@ -33,12 +33,18 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get all available celebrities
+    // Get verified celebrities with active subscriptions
     const { data: celebrities, error: dbError } = await supabase
       .from('celebrity_profiles')
-      .select('id, stage_name, bio, location, gender, base_price, hourly_rate, age, is_verified, is_available')
+      .select(`
+        id, stage_name, bio, location, gender, base_price, hourly_rate, age, is_verified, is_available,
+        celebrity_subscriptions!inner(is_active, subscription_end)
+      `)
       .eq('is_available', true)
-      .order('is_verified', { ascending: false });
+      .eq('is_verified', true)
+      .eq('celebrity_subscriptions.is_active', true)
+      .gt('celebrity_subscriptions.subscription_end', new Date().toISOString())
+      .order('stage_name', { ascending: true });
 
     if (dbError) {
       console.error('Database error:', dbError);
