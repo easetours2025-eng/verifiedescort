@@ -170,7 +170,9 @@ const AISmartSearch: React.FC = () => {
                   <div className="relative">
                     {celeb.profile_picture_path ? (
                       <img
-                        src={`https://kpjqcrhoablsllkgonbl.supabase.co/storage/v1/object/public/celebrity-photos/${celeb.profile_picture_path}`}
+                        src={celeb.profile_picture_path.startsWith('http') 
+                          ? celeb.profile_picture_path 
+                          : `https://kpjqcrhoablsllkgonbl.supabase.co/storage/v1/object/public/celebrity-photos/${celeb.profile_picture_path}`}
                         alt={celeb.stage_name}
                         className="w-24 h-24 rounded-lg object-cover"
                         onError={(e) => {
