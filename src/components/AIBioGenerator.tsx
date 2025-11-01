@@ -45,6 +45,15 @@ const AIBioGenerator: React.FC<BioGeneratorProps> = ({ onBioGenerated }) => {
       return;
     }
 
+    if (formData.age && parseInt(formData.age) < 19) {
+      toast({
+        title: "Age requirement not met",
+        description: "You must be 19 years or older",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     
     try {
@@ -143,13 +152,14 @@ const AIBioGenerator: React.FC<BioGeneratorProps> = ({ onBioGenerated }) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="age">Age</Label>
+            <Label htmlFor="age">Age (19+ only)</Label>
             <Input
               id="age"
               type="number"
+              min="19"
               value={formData.age}
               onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-              placeholder="Your age"
+              placeholder="Your age (minimum 19)"
             />
           </div>
 

@@ -33,15 +33,16 @@ Preferred Style: ${style || 'attractive and engaging'}
 
 Requirements:
 - Write in third person
-- Create ONE single paragraph (no line breaks)
-- Keep it between 80-120 words
+- Create EXACTLY TWO lines (two sentences separated by a line break)
+- Each line should be 40-60 words
 - Make it attractive and appealing for ALL genders
 - Be captivating, charismatic, and engaging
 - Focus on personality, presence, and allure
 - Use the preferred style: ${style || 'attractive and engaging'}
 - Be tasteful and sophisticated
+- Age must be 19 or above
 
-Return ONLY the bio text as one continuous paragraph, no additional formatting or labels.`;
+Return ONLY the bio text as two lines, no additional formatting or labels.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
