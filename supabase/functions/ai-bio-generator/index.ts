@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { stageName, realName, location, age, gender, interests, achievements, style } = await req.json();
+    const { stageName, realName, location, age, gender, style } = await req.json();
     
     console.log('Generating bio for:', stageName);
 
@@ -22,26 +22,26 @@ serve(async (req) => {
     }
 
     // Build the prompt based on provided information
-    const prompt = `Create a compelling, professional bio for a celebrity with these details:
+    const prompt = `Create an attractive, engaging bio for a celebrity profile with these details:
 
 Stage Name: ${stageName || 'Not provided'}
 Real Name: ${realName || 'Not provided'}
 Location: ${location || 'Not provided'}
 Age: ${age || 'Not provided'}
 Gender: ${gender || 'Not provided'}
-Interests/Specialties: ${interests || 'Not provided'}
-Achievements: ${achievements || 'Not provided'}
-Preferred Style: ${style || 'professional and engaging'}
+Preferred Style: ${style || 'attractive and engaging'}
 
 Requirements:
 - Write in third person
-- Keep it between 80-150 words
-- Make it engaging and memorable
-- Highlight unique qualities
-- Be authentic and professional
-- Use the preferred style: ${style || 'professional and engaging'}
+- Create ONE single paragraph (no line breaks)
+- Keep it between 80-120 words
+- Make it attractive and appealing for ALL genders
+- Be captivating, charismatic, and engaging
+- Focus on personality, presence, and allure
+- Use the preferred style: ${style || 'attractive and engaging'}
+- Be tasteful and sophisticated
 
-Return ONLY the bio text, no additional formatting or labels.`;
+Return ONLY the bio text as one continuous paragraph, no additional formatting or labels.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

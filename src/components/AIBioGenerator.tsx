@@ -30,9 +30,7 @@ const AIBioGenerator: React.FC<BioGeneratorProps> = ({ onBioGenerated }) => {
     location: '',
     age: '',
     gender: '',
-    interests: '',
-    achievements: '',
-    style: 'professional',
+    style: 'attractive',
   });
   
   const [generatedBio, setGeneratedBio] = useState('');
@@ -108,7 +106,7 @@ const AIBioGenerator: React.FC<BioGeneratorProps> = ({ onBioGenerated }) => {
       </div>
       
       <p className="text-muted-foreground mb-6">
-        Let AI craft a compelling bio for you. Fill in your details and we'll create something amazing!
+        Let AI craft an attractive, engaging bio for you. Fill in your details and we'll create something captivating!
       </p>
 
       <div className="space-y-4 mb-6">
@@ -175,34 +173,13 @@ const AIBioGenerator: React.FC<BioGeneratorProps> = ({ onBioGenerated }) => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="professional">Professional</SelectItem>
-                <SelectItem value="casual">Casual & Friendly</SelectItem>
-                <SelectItem value="creative">Creative & Artistic</SelectItem>
-                <SelectItem value="inspiring">Inspiring & Motivational</SelectItem>
+                <SelectItem value="attractive">Attractive & Engaging</SelectItem>
+                <SelectItem value="charismatic">Charismatic & Bold</SelectItem>
+                <SelectItem value="mysterious">Mysterious & Intriguing</SelectItem>
+                <SelectItem value="confident">Confident & Captivating</SelectItem>
               </SelectContent>
             </Select>
           </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="interests">Interests & Specialties</Label>
-          <Input
-            id="interests"
-            value={formData.interests}
-            onChange={(e) => setFormData({ ...formData, interests: e.target.value })}
-            placeholder="e.g., Music, Acting, Sports, Comedy"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="achievements">Key Achievements</Label>
-          <Textarea
-            id="achievements"
-            value={formData.achievements}
-            onChange={(e) => setFormData({ ...formData, achievements: e.target.value })}
-            placeholder="List your notable achievements, awards, or highlights"
-            rows={3}
-          />
         </div>
       </div>
 
