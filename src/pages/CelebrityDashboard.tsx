@@ -22,6 +22,7 @@ import { CountrySelect } from '@/components/CountrySelect';
 import NavigationHeader from '@/components/NavigationHeader';
 import Footer from '@/components/Footer';
 import AIBioGenerator from '@/components/AIBioGenerator';
+import WelcomeOfferDialog from '@/components/WelcomeOfferDialog';
 import { 
   User, 
   Settings, 
@@ -98,6 +99,7 @@ const CelebrityDashboard = () => {
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [profileViews, setProfileViews] = useState<number>(0);
+  const [showWelcomeOffer, setShowWelcomeOffer] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -159,6 +161,26 @@ const CelebrityDashboard = () => {
       fetchProfileViews();
     }
   }, [profile?.id]);
+
+  // Check if we should show the welcome offer dialog
+  useEffect(() => {
+    if (subscriptionStatus && profile?.id) {
+      // Check if this is a free trial (1 week VIP Elite with KES 1150)
+      const isFreeTrialOffer = 
+        subscriptionStatus.is_active &&
+        subscriptionStatus.subscription_tier === 'vip_elite' &&
+        subscriptionStatus.duration_type === '1_week' &&
+        subscriptionStatus.amount_paid === 1150;
+
+      // Check if we've already shown the dialog in this session
+      const hasSeenOffer = sessionStorage.getItem(`welcome_offer_seen_${profile.id}`);
+
+      if (isFreeTrialOffer && !hasSeenOffer) {
+        setShowWelcomeOffer(true);
+        sessionStorage.setItem(`welcome_offer_seen_${profile.id}`, 'true');
+      }
+    }
+  }, [subscriptionStatus, profile?.id]);
 
   const fetchProfileViews = async () => {
     if (!profile?.id) return;
@@ -476,6 +498,12 @@ const CelebrityDashboard = () => {
         open={showPaymentModal}
         onOpenChange={setShowPaymentModal}
         celebrityId={profile?.id || ''}
+      />
+
+      <WelcomeOfferDialog
+        celebrityId={profile?.id || ''}
+        isOpen={showWelcomeOffer}
+        onClose={() => setShowWelcomeOffer(false)}
       />
     </div>
   );
