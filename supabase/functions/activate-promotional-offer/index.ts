@@ -122,10 +122,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create VIP Elite subscription for 1 week
+    // Create or update VIP Elite subscription for 1 week (UPSERT)
     const { error: subscriptionError } = await supabaseClient
       .from('celebrity_subscriptions')
-      .insert({
+      .upsert({
         celebrity_id: celebrityId,
         subscription_tier: 'vip_elite',
         duration_type: '1_week',
@@ -134,6 +134,8 @@ Deno.serve(async (req) => {
         is_active: true,
         amount_paid: offerAmount,
         last_payment_id: paymentRecord.id,
+      }, {
+        onConflict: 'celebrity_id'
       });
 
     if (subscriptionError) {
