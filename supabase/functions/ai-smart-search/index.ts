@@ -23,9 +23,9 @@ serve(async (req) => {
       );
     }
 
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OPENAI_API_KEY not configured');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
     // Initialize Supabase client
@@ -53,15 +53,15 @@ serve(async (req) => {
 
     console.log(`Found ${celebrities?.length || 0} celebrities`);
 
-    // Use OpenAI to understand the query and match celebrities
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Use Lovable AI to understand the query and match celebrities
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'system',
@@ -101,8 +101,8 @@ Example valid celebrityId format: "c921902c-e410-429c-8535-2b0e90560dca" (must b
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', response.status, errorText);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      console.error('Lovable AI error:', response.status, errorText);
+      throw new Error(`Lovable AI error: ${response.status}`);
     }
 
     const aiResponse = await response.json();
