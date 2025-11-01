@@ -250,8 +250,9 @@ const Index = () => {
                           (celebrity as any).country?.toLowerCase() === countryFilter.toLowerCase();
     
     // Location filter - only applies when specific country is selected
+    // Normalize both locations by trimming whitespace for exact comparison
     const matchesLocation = countryFilter === 'all' || !locationFilter || 
-                           celebrity.location?.toLowerCase().includes(locationFilter.toLowerCase());
+                           celebrity.location?.trim().toLowerCase() === locationFilter.trim().toLowerCase();
     
     const matchesAge = !celebrity.age || (celebrity.age >= minAge && celebrity.age <= maxAge);
     
