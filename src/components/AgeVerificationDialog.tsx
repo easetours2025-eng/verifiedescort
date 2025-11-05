@@ -22,7 +22,7 @@ const AgeVerificationDialog = ({ isOpen, onAgree, onDecline }: AgeVerificationDi
           <div className="flex items-center justify-center gap-2 mb-4">
             <Heart className="h-8 w-8 text-red-500 fill-red-500" />
             <DialogTitle className="text-3xl font-bold text-foreground">
-              Tryst
+              Royal Escorts
             </DialogTitle>
           </div>
           <div className="space-y-4">
@@ -32,7 +32,7 @@ const AgeVerificationDialog = ({ isOpen, onAgree, onDecline }: AgeVerificationDi
             
             <div className="text-sm text-foreground space-y-2">
               <p>
-                By continuing to use Tryst, you agree you're{' '}
+                By continuing to use Royal Escorts, you agree you're{' '}
                 <span className="font-semibold">over the age of 18</span> and have{' '}
                 <span className="font-semibold">read and agreed</span> to our{' '}
                 <a href="#" className="text-primary hover:underline">
