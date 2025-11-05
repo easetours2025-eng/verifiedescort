@@ -22,6 +22,7 @@ import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/p
 import NavigationHeader from '@/components/NavigationHeader';
 import Footer from '@/components/Footer';
 import AISmartSearch from '@/components/AISmartSearch';
+import AgeVerificationDialog from '@/components/AgeVerificationDialog';
 
 const Index = () => {
   const [celebrities, setCelebrities] = useState<PublicCelebrityProfile[]>([]);
@@ -41,6 +42,7 @@ const Index = () => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [deviceType, setDeviceType] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
+  const [showAgeVerification, setShowAgeVerification] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -72,6 +74,14 @@ const Index = () => {
   };
 
   const itemsPerPage = getItemsPerPage();
+
+  // Check age verification on mount
+  useEffect(() => {
+    const hasVerified = localStorage.getItem('age_verified');
+    if (!hasVerified) {
+      setShowAgeVerification(true);
+    }
+  }, []);
 
   useEffect(() => {
     fetchCelebrities();
@@ -308,8 +318,18 @@ const Index = () => {
     navigate(`/celebrity/${id}`);
   };
 
+  const handleAgeVerificationAgree = () => {
+    localStorage.setItem('age_verified', 'true');
+    setShowAgeVerification(false);
+  };
+
+  const handleAgeVerificationDecline = () => {
+    window.location.href = 'https://www.google.com';
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
       <NavigationHeader showBackButton={false} showNavigation={true} />
 
       {/* AI Smart Search Section */}
@@ -619,7 +639,14 @@ const Index = () => {
 
         <Footer />
       </div>
-    );
+
+      <AgeVerificationDialog 
+        isOpen={showAgeVerification}
+        onAgree={handleAgeVerificationAgree}
+        onDecline={handleAgeVerificationDecline}
+      />
+    </>
+  );
   };
 
   export default Index;
