@@ -36,36 +36,42 @@ Deno.serve(async (req) => {
     // Fetch all active, verified celebrities
     const { data: celebrities, error } = await supabase
       .from('celebrity_profiles')
-      .select('id, updated_at')
+      .select('id, stage_name, updated_at')
       .eq('is_available', true)
       .eq('is_verified', true)
       .not('profile_picture_path', 'is', null)
-      .not('phone_number', 'is', null);
+      .not('phone_number', 'is', null)
+      .order('updated_at', { ascending: false });
 
     if (error) throw error;
 
     const baseUrl = 'https://royalescortsworld.com';
+    const now = new Date().toISOString().split('T')[0];
     
     // Generate sitemap XML
     let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>${baseUrl}/</loc>
+    <lastmod>${now}</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>${baseUrl}/auth</loc>
+    <lastmod>${now}</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>${baseUrl}/videos</loc>
+    <lastmod>${now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>${baseUrl}/faq</loc>
+    <lastmod>${now}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>`;
