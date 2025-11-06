@@ -778,6 +778,24 @@ export type Database = {
           },
         ]
       }
+      sitemap_cache: {
+        Row: {
+          created_at: string
+          id: number
+          sitemap_xml: string
+        }
+        Insert: {
+          created_at?: string
+          id: number
+          sitemap_xml: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          sitemap_xml?: string
+        }
+        Relationships: []
+      }
       subscription_packages: {
         Row: {
           created_at: string
@@ -1192,6 +1210,7 @@ export type Database = {
         Returns: boolean
       }
       is_user_admin: { Args: never; Returns: boolean }
+      ping_search_engines: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "celebrity" | "user"

@@ -6,6 +6,8 @@ const corsHeaders = {
   'Content-Type': 'application/xml',
 };
 
+const CACHE_TTL = 3600; // 1 hour cache
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -15,6 +17,21 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Check for cached sitemap
+    const { data: cachedSitemap } = await supabase
+      .from('sitemap_cache')
+      .select('sitemap_xml, created_at')
+      .single();
+
+    // Return cached version if less than 1 hour old
+    if (cachedSitemap && cachedSitemap.sitemap_xml) {
+      const cacheAge = (Date.now() - new Date(cachedSitemap.created_at).getTime()) / 1000;
+      if (cacheAge < CACHE_TTL) {
+        console.log('Returning cached sitemap');
+        return new Response(cachedSitemap.sitemap_xml, { headers: corsHeaders });
+      }
+    }
 
     // Fetch all active, verified celebrities
     const { data: celebrities, error } = await supabase
@@ -69,6 +86,17 @@ Deno.serve(async (req) => {
     });
 
     sitemap += '\n</urlset>';
+
+    // Cache the generated sitemap
+    await supabase
+      .from('sitemap_cache')
+      .upsert({ 
+        id: 1, 
+        sitemap_xml: sitemap,
+        created_at: new Date().toISOString()
+      });
+
+    console.log('Generated and cached new sitemap');
 
     return new Response(sitemap, {
       headers: corsHeaders,
