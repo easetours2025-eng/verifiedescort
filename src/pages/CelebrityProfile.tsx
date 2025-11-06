@@ -31,7 +31,9 @@ import {
 import NavigationHeader from '@/components/NavigationHeader';
 import PayPalPayment from '@/components/PayPalPayment';
 import Footer from '@/components/Footer';
-import { 
+import StarRating from '@/components/StarRating';
+import CelebrityReviews from '@/components/CelebrityReviews';
+import {
   ArrowLeft,
   Star, 
   MapPin, 
@@ -89,6 +91,8 @@ const CelebrityProfile = () => {
   const [likeCounts, setLikeCounts] = useState<Record<string, { likes: number; loves: number }>>({});
   const [userLikes, setUserLikes] = useState<Record<string, string[]>>({});
   const [selectedProfileImage, setSelectedProfileImage] = useState<string | null>(null);
+  const [averageRating, setAverageRating] = useState<number>(0);
+  const [totalReviews, setTotalReviews] = useState<number>(0);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -112,8 +116,27 @@ const CelebrityProfile = () => {
       fetchServices();
       fetchOtherCelebrities();
       recordProfileView();
+      fetchRating();
     }
   }, [id]);
+
+  const fetchRating = async () => {
+    if (!id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .rpc('get_celebrity_rating', { celebrity_profile_id: id });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        setAverageRating(Number(data[0].average_rating) || 0);
+        setTotalReviews(Number(data[0].total_reviews) || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching rating:', error);
+    }
+  };
 
   // Generate JSON-LD structured data for SEO
   useEffect(() => {
@@ -134,6 +157,13 @@ const CelebrityProfile = () => {
           "addressCountry": "KE"
         } : undefined,
         "gender": profile.gender?.[0] || undefined,
+        "aggregateRating": totalReviews > 0 ? {
+          "@type": "AggregateRating",
+          "ratingValue": averageRating.toFixed(1),
+          "reviewCount": totalReviews,
+          "bestRating": "5",
+          "worstRating": "1"
+        } : undefined,
         "sameAs": [
           profile.social_instagram ? `https://instagram.com/${profile.social_instagram.replace('@', '')}` : null,
           profile.social_twitter ? `https://twitter.com/${profile.social_twitter.replace('@', '')}` : null,
@@ -272,7 +302,7 @@ const CelebrityProfile = () => {
         if (breadcrumbScript) breadcrumbScript.remove();
       };
     }
-  }, [profile, services]);
+  }, [profile, services, averageRating, totalReviews]);
 
   const recordProfileView = async () => {
     if (!id) return;
@@ -784,6 +814,20 @@ const CelebrityProfile = () => {
                     </Badge>
                   )}
                 </div>
+                
+                {/* Star Rating Display */}
+                {totalReviews > 0 && (
+                  <div className="mb-3">
+                    <StarRating 
+                      rating={averageRating} 
+                      readonly 
+                      size="md"
+                      showValue
+                      totalReviews={totalReviews}
+                    />
+                  </div>
+                )}
+                
                 <p className="text-muted-foreground mb-3 text-sm md:text-base">{profile.bio}</p>
                 <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-4 text-sm text-muted-foreground mb-4">
                   {profile.location && (
@@ -952,6 +996,14 @@ const CelebrityProfile = () => {
               <p className="text-muted-foreground text-center py-8">No media available</p>
             )}
           </Card>
+
+          {/* Reviews & Ratings */}
+          <CelebrityReviews 
+            celebrityId={id!}
+            averageRating={averageRating}
+            totalReviews={totalReviews}
+            onReviewSubmitted={fetchRating}
+          />
 
           {/* Other Celebrities */}
           <Card className="p-4 md:p-6">

@@ -352,6 +352,47 @@ export type Database = {
           },
         ]
       }
+      celebrity_reviews: {
+        Row: {
+          celebrity_id: string
+          created_at: string | null
+          id: string
+          is_verified: boolean | null
+          rating: number
+          review_text: string | null
+          updated_at: string | null
+          user_ip: string | null
+        }
+        Insert: {
+          celebrity_id: string
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          rating: number
+          review_text?: string | null
+          updated_at?: string | null
+          user_ip?: string | null
+        }
+        Update: {
+          celebrity_id?: string
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          rating?: number
+          review_text?: string | null
+          updated_at?: string | null
+          user_ip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "celebrity_reviews_celebrity_id_fkey"
+            columns: ["celebrity_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       celebrity_services: {
         Row: {
           celebrity_id: string
@@ -1042,6 +1083,13 @@ export type Database = {
           tier_priority: number
           updated_at: string
           user_id: string
+        }[]
+      }
+      get_celebrity_rating: {
+        Args: { celebrity_profile_id: string }
+        Returns: {
+          average_rating: number
+          total_reviews: number
         }[]
       }
       get_media_like_count: { Args: { media_uuid: string }; Returns: number }
