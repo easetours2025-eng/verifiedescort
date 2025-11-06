@@ -14,7 +14,8 @@ import {
   MessageSquare,
   ChevronLeft,
   Phone,
-  Clock
+  Clock,
+  Star
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -42,6 +43,7 @@ const AdminSidebar = ({ activeTab, onTabChange, isOpen = true, onClose, collapse
     { id: 'celebrities', label: 'Celebrities', icon: Users },
     { id: 'payments', label: 'M-Pesa Payments', icon: CreditCard },
     { id: 'paypal', label: 'PayPal Payments', icon: CreditCard },
+    { id: 'reviews', label: 'Reviews', icon: Star },
     { id: 'subscriptions', label: 'Subscriptions', icon: Package },
     { id: 'premium-support', label: 'Premium Support', icon: HeadphonesIcon },
     { id: 'videos', label: 'Videos', icon: Video },
