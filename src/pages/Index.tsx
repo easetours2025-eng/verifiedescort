@@ -117,6 +117,19 @@ const Index = () => {
       }
     };
 
+    const breadcrumbData = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://royalescortsworld.com/"
+        }
+      ]
+    };
+
     // Add organization structured data
     const existingOrgScript = document.getElementById('organization-structured-data');
     if (existingOrgScript) {
@@ -141,12 +154,26 @@ const Index = () => {
     websiteScript.text = JSON.stringify(websiteData);
     document.head.appendChild(websiteScript);
 
+    // Add breadcrumb structured data
+    const existingBreadcrumbScript = document.getElementById('breadcrumb-structured-data');
+    if (existingBreadcrumbScript) {
+      existingBreadcrumbScript.remove();
+    }
+
+    const breadcrumbScript = document.createElement('script');
+    breadcrumbScript.id = 'breadcrumb-structured-data';
+    breadcrumbScript.type = 'application/ld+json';
+    breadcrumbScript.text = JSON.stringify(breadcrumbData);
+    document.head.appendChild(breadcrumbScript);
+
     // Cleanup
     return () => {
       const orgScript = document.getElementById('organization-structured-data');
       const webScript = document.getElementById('website-structured-data');
+      const breadcrumbScript = document.getElementById('breadcrumb-structured-data');
       if (orgScript) orgScript.remove();
       if (webScript) webScript.remove();
+      if (breadcrumbScript) breadcrumbScript.remove();
     };
   }, []);
 

@@ -44,6 +44,25 @@ export default function FAQ() {
         }))
       };
 
+      const breadcrumbData = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://royalescortsworld.com/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "FAQ",
+            "item": "https://royalescortsworld.com/faq"
+          }
+        ]
+      };
+
       // Add FAQ structured data
       const existingScript = document.getElementById('faq-structured-data');
       if (existingScript) {
@@ -55,6 +74,18 @@ export default function FAQ() {
       script.type = 'application/ld+json';
       script.text = JSON.stringify(faqPageData);
       document.head.appendChild(script);
+
+      // Add breadcrumb structured data
+      const existingBreadcrumbScript = document.getElementById('breadcrumb-structured-data');
+      if (existingBreadcrumbScript) {
+        existingBreadcrumbScript.remove();
+      }
+
+      const breadcrumbScript = document.createElement('script');
+      breadcrumbScript.id = 'breadcrumb-structured-data';
+      breadcrumbScript.type = 'application/ld+json';
+      breadcrumbScript.text = JSON.stringify(breadcrumbData);
+      document.head.appendChild(breadcrumbScript);
 
       // Update page title and meta
       document.title = "FAQ - Royal Escorts | Frequently Asked Questions";
@@ -72,7 +103,9 @@ export default function FAQ() {
       // Cleanup
       return () => {
         const script = document.getElementById('faq-structured-data');
+        const breadcrumbScript = document.getElementById('breadcrumb-structured-data');
         if (script) script.remove();
+        if (breadcrumbScript) breadcrumbScript.remove();
       };
     }
   }, [faqs]);

@@ -70,6 +70,25 @@ const Videos = () => {
       "numberOfItems": videos.length + adminVideos.length
     };
 
+    const breadcrumbData = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://royalescortsworld.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Videos",
+          "item": "https://royalescortsworld.com/videos"
+        }
+      ]
+    };
+
     // Add item list structured data
     const existingScript = document.getElementById('videos-structured-data');
     if (existingScript) {
@@ -81,6 +100,18 @@ const Videos = () => {
     script.type = 'application/ld+json';
     script.text = JSON.stringify(itemListData);
     document.head.appendChild(script);
+
+    // Add breadcrumb structured data
+    const existingBreadcrumbScript = document.getElementById('breadcrumb-structured-data');
+    if (existingBreadcrumbScript) {
+      existingBreadcrumbScript.remove();
+    }
+
+    const breadcrumbScript = document.createElement('script');
+    breadcrumbScript.id = 'breadcrumb-structured-data';
+    breadcrumbScript.type = 'application/ld+json';
+    breadcrumbScript.text = JSON.stringify(breadcrumbData);
+    document.head.appendChild(breadcrumbScript);
 
     // Update page title and meta
     document.title = "Celebrity Videos - Royal Escorts | Exclusive Video Content";
@@ -98,7 +129,9 @@ const Videos = () => {
     // Cleanup
     return () => {
       const script = document.getElementById('videos-structured-data');
+      const breadcrumbScript = document.getElementById('breadcrumb-structured-data');
       if (script) script.remove();
+      if (breadcrumbScript) breadcrumbScript.remove();
     };
   }, [videos.length, adminVideos.length]);
 

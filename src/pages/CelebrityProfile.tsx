@@ -218,10 +218,49 @@ const CelebrityProfile = () => {
       }
       ogUrl.setAttribute('content', `https://royalescortsworld.com/celebrity/${profile.id}`);
 
+      // Add breadcrumb structured data
+      const breadcrumbData = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://royalescortsworld.com/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Celebrities",
+            "item": "https://royalescortsworld.com/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": profile.stage_name,
+            "item": `https://royalescortsworld.com/celebrity/${profile.id}`
+          }
+        ]
+      };
+
+      const existingBreadcrumbScript = document.getElementById('breadcrumb-structured-data');
+      if (existingBreadcrumbScript) {
+        existingBreadcrumbScript.remove();
+      }
+
+      const breadcrumbScript = document.createElement('script');
+      breadcrumbScript.id = 'breadcrumb-structured-data';
+      breadcrumbScript.type = 'application/ld+json';
+      breadcrumbScript.text = JSON.stringify(breadcrumbData);
+      document.head.appendChild(breadcrumbScript);
+
       // Cleanup
       return () => {
         const script = document.getElementById('celebrity-structured-data');
+        const breadcrumbScript = document.getElementById('breadcrumb-structured-data');
         if (script) script.remove();
+        if (breadcrumbScript) breadcrumbScript.remove();
       };
     }
   }, [profile, services]);
