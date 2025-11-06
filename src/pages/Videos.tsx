@@ -1,19 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { supabase } from '@/integrations/supabase/client';
-import { Video, ArrowLeft, Play, Eye, Calendar, Heart, Home } from 'lucide-react';
+import { Video, ArrowLeft, Play, Eye, Calendar, Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import VideoCard from '@/components/VideoCard';
 import VideoModal from '@/components/VideoModal';
@@ -470,28 +462,8 @@ const Videos = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
       <NavigationHeader />
       
-      {/* Breadcrumb Navigation */}
-      <div className="container mx-auto px-3 sm:px-4 pt-20 pb-2">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/" className="flex items-center gap-1">
-                  <Home className="h-4 w-4" />
-                  <span className="hidden sm:inline">Home</span>
-                </Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Videos</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-      </div>
-      
       {/* Header - sticky below NavigationHeader */}
-      <header className="border-b border-primary/20 backdrop-blur-sm bg-background/80 sticky top-16 z-40">
+      <header className="border-b border-primary/20 backdrop-blur-sm bg-background/80 sticky top-16 z-40 mt-16">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-3">

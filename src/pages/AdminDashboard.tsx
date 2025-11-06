@@ -50,7 +50,6 @@ import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import AdminWhatsAppAnalytics from '@/components/AdminWhatsAppAnalytics';
 import AdminCallAnalytics from '@/components/AdminCallAnalytics';
 import AdminExpiredSubscriptions from '@/components/AdminExpiredSubscriptions';
-import AdminReviewManagement from '@/components/AdminReviewManagement';
 
 // Data Interfaces
 interface PaymentRecord {
@@ -569,13 +568,6 @@ const AdminDashboard = () => {
 
           {activeTab === 'paypal' && (
             <AdminPayPalManagement />
-          )}
-
-          {activeTab === 'reviews' && (
-            <div className="space-y-4 sm:space-y-6">
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">Review Management</h1>
-              <AdminReviewManagement />
-            </div>
           )}
 
           {activeTab === 'users' && (

@@ -13,7 +13,6 @@ import {
 import { getBadgeInfo } from '@/lib/subscription-features';
 import ReadMoreText from './ReadMoreText';
 import ServicesList from './ServicesList';
-import StarRating from './StarRating';
 
 interface CelebrityCardProps {
   celebrity: (PublicCelebrityProfile | PrivateCelebrityProfile) & {
@@ -30,8 +29,6 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
   const [hasVideos, setHasVideos] = useState(false);
   const [isVIP, setIsVIP] = useState(false);
   const [services, setServices] = useState<any[]>([]);
-  const [averageRating, setAverageRating] = useState<number>(0);
-  const [totalReviews, setTotalReviews] = useState<number>(0);
 
   useEffect(() => {
     fetchProfileImage();
@@ -39,24 +36,7 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
     checkForVideos();
     checkVIPStatus();
     fetchServices();
-    fetchRating();
   }, [celebrity.id]);
-
-  const fetchRating = async () => {
-    try {
-      const { data, error } = await supabase
-        .rpc('get_celebrity_rating', { celebrity_profile_id: celebrity.id });
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        setAverageRating(Number(data[0].average_rating) || 0);
-        setTotalReviews(Number(data[0].total_reviews) || 0);
-      }
-    } catch (error) {
-      // Error silently handled
-    }
-  };
 
   const fetchProfileImage = async () => {
     try {
@@ -220,20 +200,6 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
           {isPrivateProfile(celebrity) && celebrity.real_name && (
             <p className="text-sm text-muted-foreground">({celebrity.real_name})</p>
           )}
-          
-          {/* Star Rating */}
-          {totalReviews > 0 && (
-            <div className="flex justify-center">
-              <StarRating 
-                rating={averageRating} 
-                readonly 
-                size="sm"
-                showValue
-                totalReviews={totalReviews}
-              />
-            </div>
-          )}
-          
           <div className="flex items-center justify-center space-x-2 flex-wrap gap-1">
             <Badge variant={celebrity.is_available ? "default" : "secondary"} className="text-xs">
               {celebrity.is_available ? "Available" : "Busy"}

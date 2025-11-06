@@ -32,9 +32,3 @@ verify_jwt = false
 
 [functions.activate-promotional-offer]
 verify_jwt = true
-
-[functions.notify-review-submission]
-verify_jwt = false
-
-[functions.review-action]
-verify_jwt = false
