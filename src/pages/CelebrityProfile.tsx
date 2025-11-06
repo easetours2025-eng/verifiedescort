@@ -6,6 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import MessagingModal from '@/components/MessagingModal';
@@ -46,7 +54,8 @@ import {
   Music,
   Calendar,
   X,
-  Users
+  Users,
+  Home
 } from 'lucide-react';
 
 
@@ -691,7 +700,35 @@ const CelebrityProfile = () => {
       {/* Navigation Header */}
       <NavigationHeader sticky={true} showBackButton={true} />
       
-      <div className="container mx-auto px-4 py-6 md:py-8 pt-20">
+      {/* Breadcrumb Navigation */}
+      <div className="container mx-auto px-4 pt-20 pb-2">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/" className="flex items-center gap-1">
+                  <Home className="h-4 w-4" />
+                  <span className="hidden sm:inline">Home</span>
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/">Celebrities</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="max-w-[200px] truncate">
+                {profile?.stage_name || 'Profile'}
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+      
+      <div className="container mx-auto px-4 py-6 md:py-8">
         <div className="space-y-6 md:space-y-8">
           {/* Celebrity Profile and Info */}
           <Card className="p-4 md:p-6">
