@@ -819,6 +819,44 @@ export type Database = {
           },
         ]
       }
+      review_action_tokens: {
+        Row: {
+          action_type: string
+          created_at: string
+          expires_at: string
+          id: string
+          review_id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          review_id: string
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          review_id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_action_tokens_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sitemap_cache: {
         Row: {
           created_at: string
