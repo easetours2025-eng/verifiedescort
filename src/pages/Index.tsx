@@ -83,6 +83,73 @@ const Index = () => {
     }
   }, []);
 
+  // Add JSON-LD structured data for homepage SEO
+  useEffect(() => {
+    const organizationData = {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Royal Escorts",
+      "url": "https://royalescortsworld.com",
+      "logo": "https://royalescortsworld.com/favicon.png",
+      "description": "Connect with verified celebrities in Kenya for exclusive meetings, photo sessions, and personal interactions",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "KE"
+      },
+      "sameAs": [
+        "https://royalescortsworld.com"
+      ]
+    };
+
+    const websiteData = {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Royal Escorts",
+      "url": "https://royalescortsworld.com",
+      "description": "Premium celebrity companionship services in Kenya",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://royalescortsworld.com/?search={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    };
+
+    // Add organization structured data
+    const existingOrgScript = document.getElementById('organization-structured-data');
+    if (existingOrgScript) {
+      existingOrgScript.remove();
+    }
+
+    const orgScript = document.createElement('script');
+    orgScript.id = 'organization-structured-data';
+    orgScript.type = 'application/ld+json';
+    orgScript.text = JSON.stringify(organizationData);
+    document.head.appendChild(orgScript);
+
+    // Add website structured data
+    const existingWebsiteScript = document.getElementById('website-structured-data');
+    if (existingWebsiteScript) {
+      existingWebsiteScript.remove();
+    }
+
+    const websiteScript = document.createElement('script');
+    websiteScript.id = 'website-structured-data';
+    websiteScript.type = 'application/ld+json';
+    websiteScript.text = JSON.stringify(websiteData);
+    document.head.appendChild(websiteScript);
+
+    // Cleanup
+    return () => {
+      const orgScript = document.getElementById('organization-structured-data');
+      const webScript = document.getElementById('website-structured-data');
+      if (orgScript) orgScript.remove();
+      if (webScript) webScript.remove();
+    };
+  }, []);
+
   useEffect(() => {
     fetchCelebrities();
     fetchCountries();

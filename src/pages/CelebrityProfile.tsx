@@ -106,6 +106,126 @@ const CelebrityProfile = () => {
     }
   }, [id]);
 
+  // Generate JSON-LD structured data for SEO
+  useEffect(() => {
+    if (profile) {
+      const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": profile.stage_name,
+        "description": profile.bio || `Professional companion ${profile.stage_name} available in ${profile.location || 'Kenya'}`,
+        "image": profile.profile_picture_path 
+          ? getMediaUrl(profile.profile_picture_path, 'image')
+          : undefined,
+        "url": `https://royalescortsworld.com/celebrity/${profile.id}`,
+        "jobTitle": "Celebrity Companion",
+        "address": profile.location ? {
+          "@type": "PostalAddress",
+          "addressLocality": profile.location,
+          "addressCountry": "KE"
+        } : undefined,
+        "gender": profile.gender?.[0] || undefined,
+        "sameAs": [
+          profile.social_instagram ? `https://instagram.com/${profile.social_instagram.replace('@', '')}` : null,
+          profile.social_twitter ? `https://twitter.com/${profile.social_twitter.replace('@', '')}` : null,
+          profile.social_tiktok ? `https://tiktok.com/@${profile.social_tiktok.replace('@', '')}` : null,
+        ].filter(Boolean),
+        "offers": services.length > 0 ? services.map(service => ({
+          "@type": "Offer",
+          "name": service.service_name,
+          "description": service.description,
+          "price": service.price,
+          "priceCurrency": "KES"
+        })) : profile.base_price > 0 ? {
+          "@type": "Offer",
+          "price": profile.base_price,
+          "priceCurrency": "KES",
+          "availability": "https://schema.org/InStock"
+        } : undefined,
+        "priceRange": profile.base_price > 0 && profile.hourly_rate > 0
+          ? `KES ${profile.base_price} - ${profile.hourly_rate}`
+          : profile.base_price > 0 
+            ? `KES ${profile.base_price}`
+            : undefined,
+      };
+
+      // Remove undefined properties
+      Object.keys(structuredData).forEach(key => 
+        structuredData[key as keyof typeof structuredData] === undefined && delete structuredData[key as keyof typeof structuredData]
+      );
+
+      // Add or update script tag
+      const existingScript = document.getElementById('celebrity-structured-data');
+      if (existingScript) {
+        existingScript.remove();
+      }
+
+      const script = document.createElement('script');
+      script.id = 'celebrity-structured-data';
+      script.type = 'application/ld+json';
+      script.text = JSON.stringify(structuredData);
+      document.head.appendChild(script);
+
+      // Update page title and meta description
+      document.title = `${profile.stage_name} - Royal Escorts | Premium Companion in ${profile.location || 'Kenya'}`;
+      
+      let metaDescription = document.querySelector('meta[name="description"]');
+      if (!metaDescription) {
+        metaDescription = document.createElement('meta');
+        metaDescription.setAttribute('name', 'description');
+        document.head.appendChild(metaDescription);
+      }
+      metaDescription.setAttribute('content', 
+        profile.bio?.substring(0, 155) || 
+        `Meet ${profile.stage_name}, a verified celebrity companion in ${profile.location || 'Kenya'}. Available for exclusive meetings and premium companionship services.`
+      );
+
+      // Update OG tags
+      let ogTitle = document.querySelector('meta[property="og:title"]');
+      if (!ogTitle) {
+        ogTitle = document.createElement('meta');
+        ogTitle.setAttribute('property', 'og:title');
+        document.head.appendChild(ogTitle);
+      }
+      ogTitle.setAttribute('content', `${profile.stage_name} - Royal Escorts`);
+
+      let ogDescription = document.querySelector('meta[property="og:description"]');
+      if (!ogDescription) {
+        ogDescription = document.createElement('meta');
+        ogDescription.setAttribute('property', 'og:description');
+        document.head.appendChild(ogDescription);
+      }
+      ogDescription.setAttribute('content', 
+        profile.bio?.substring(0, 155) || 
+        `Meet ${profile.stage_name}, a verified celebrity companion in ${profile.location || 'Kenya'}.`
+      );
+
+      let ogImage = document.querySelector('meta[property="og:image"]');
+      if (!ogImage) {
+        ogImage = document.createElement('meta');
+        ogImage.setAttribute('property', 'og:image');
+        document.head.appendChild(ogImage);
+      }
+      if (profile.profile_picture_path) {
+        ogImage.setAttribute('content', getMediaUrl(profile.profile_picture_path, 'image'));
+      }
+
+      let ogUrl = document.querySelector('meta[property="og:url"]');
+      if (!ogUrl) {
+        ogUrl = document.createElement('meta');
+        ogUrl.setAttribute('property', 'og:url');
+        document.head.appendChild(ogUrl);
+      }
+      ogUrl.setAttribute('content', `https://royalescortsworld.com/celebrity/${profile.id}`);
+
+      // Cleanup
+      return () => {
+        const script = document.getElementById('celebrity-structured-data');
+        if (script) script.remove();
+      };
+    }
+  }, [profile, services]);
+
   const recordProfileView = async () => {
     if (!id) return;
     

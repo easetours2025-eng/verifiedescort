@@ -59,6 +59,49 @@ const Videos = () => {
     fetchAdminVideos();
   }, []);
 
+  // Add JSON-LD structured data for videos page SEO
+  useEffect(() => {
+    const itemListData = {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Royal Escorts Celebrity Videos",
+      "description": "Exclusive video content from verified celebrity companions",
+      "url": "https://royalescortsworld.com/videos",
+      "numberOfItems": videos.length + adminVideos.length
+    };
+
+    // Add item list structured data
+    const existingScript = document.getElementById('videos-structured-data');
+    if (existingScript) {
+      existingScript.remove();
+    }
+
+    const script = document.createElement('script');
+    script.id = 'videos-structured-data';
+    script.type = 'application/ld+json';
+    script.text = JSON.stringify(itemListData);
+    document.head.appendChild(script);
+
+    // Update page title and meta
+    document.title = "Celebrity Videos - Royal Escorts | Exclusive Video Content";
+    
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute('content', 
+      `Watch exclusive videos from verified celebrity companions. Browse ${videos.length + adminVideos.length}+ premium video content from Royal Escorts.`
+    );
+
+    // Cleanup
+    return () => {
+      const script = document.getElementById('videos-structured-data');
+      if (script) script.remove();
+    };
+  }, [videos.length, adminVideos.length]);
+
   const fetchVideos = async () => {
     try {
       // First get the media data

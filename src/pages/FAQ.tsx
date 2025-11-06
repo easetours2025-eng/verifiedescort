@@ -28,6 +28,55 @@ export default function FAQ() {
     fetchFAQs();
   }, []);
 
+  // Add JSON-LD structured data for FAQ page SEO
+  useEffect(() => {
+    if (faqs.length > 0) {
+      const faqPageData = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": faqs.map(faq => ({
+          "@type": "Question",
+          "name": faq.question,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": faq.answer
+          }
+        }))
+      };
+
+      // Add FAQ structured data
+      const existingScript = document.getElementById('faq-structured-data');
+      if (existingScript) {
+        existingScript.remove();
+      }
+
+      const script = document.createElement('script');
+      script.id = 'faq-structured-data';
+      script.type = 'application/ld+json';
+      script.text = JSON.stringify(faqPageData);
+      document.head.appendChild(script);
+
+      // Update page title and meta
+      document.title = "FAQ - Royal Escorts | Frequently Asked Questions";
+      
+      let metaDescription = document.querySelector('meta[name="description"]');
+      if (!metaDescription) {
+        metaDescription = document.createElement('meta');
+        metaDescription.setAttribute('name', 'description');
+        document.head.appendChild(metaDescription);
+      }
+      metaDescription.setAttribute('content', 
+        `Find answers to frequently asked questions about Royal Escorts. Learn about subscriptions, verification, safety, and how to connect with verified celebrity companions in Kenya.`
+      );
+
+      // Cleanup
+      return () => {
+        const script = document.getElementById('faq-structured-data');
+        if (script) script.remove();
+      };
+    }
+  }, [faqs]);
+
   const fetchFAQs = async () => {
     try {
       const { data, error } = await supabase
