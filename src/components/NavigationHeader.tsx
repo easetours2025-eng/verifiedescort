@@ -1,9 +1,8 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Crown, Video, LogOut, Download } from 'lucide-react';
+import { Crown, Video, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 
 interface NavigationHeaderProps {
   showBackButton?: boolean;
@@ -16,7 +15,6 @@ const NavigationHeader = ({ showBackButton = true, sticky = false, showNavigatio
   const location = useLocation();
   const isHomePage = location.pathname === '/';
   const { user, signOut } = useAuth();
-  const { isInstallable, isInstalled, promptInstall } = useInstallPrompt();
 
   const goHome = () => {
     navigate('/');
@@ -25,14 +23,6 @@ const NavigationHeader = ({ showBackButton = true, sticky = false, showNavigatio
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
-  };
-
-  const handleInstallClick = async () => {
-    if (isInstallable) {
-      await promptInstall();
-    } else {
-      navigate('/install');
-    }
   };
 
   return (
@@ -69,17 +59,6 @@ const NavigationHeader = ({ showBackButton = true, sticky = false, showNavigatio
               <Video className="h-4 w-4" />
               <span className="hidden sm:inline">Videos</span>
             </Button>
-            {!isInstalled && (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={handleInstallClick}
-                className="hover:bg-accent/10 flex items-center gap-1.5"
-              >
-                <Download className="h-4 w-4" />
-                <span className="hidden sm:inline">Install</span>
-              </Button>
-            )}
             {user && (
               <>
                 <Button 
