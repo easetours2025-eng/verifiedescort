@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { Crown, Gem, Sparkles, Star, Search, Calendar, CheckCircle, XCircle, Edit2, Trash2 } from "lucide-react";
+import { Crown, Gem, Sparkles, Star, Search, Calendar, CheckCircle, XCircle, Edit2, Trash2, Download } from "lucide-react";
 import { toast } from "sonner";
 import {
   Table,
@@ -198,6 +198,33 @@ export default function AdminActiveSubscriptions() {
     return diff;
   };
 
+  const handleDownloadData = () => {
+    const csvData = [
+      ['Celebrity', 'Email', 'Tier', 'Duration', 'Amount', 'Start Date', 'End Date', 'Status', 'Days Remaining'],
+      ...filteredSubscriptions.map(sub => [
+        sub.celebrity?.stage_name || 'N/A',
+        sub.celebrity?.email || 'N/A',
+        tierLabels[sub.subscription_tier as keyof typeof tierLabels],
+        sub.duration_type === '1_week' ? '1 Week' : sub.duration_type === '2_weeks' ? '2 Weeks' : '1 Month',
+        sub.amount_paid?.toString() || '0',
+        sub.subscription_start ? formatDate(sub.subscription_start) : 'N/A',
+        sub.subscription_end ? formatDate(sub.subscription_end) : 'N/A',
+        sub.is_active ? 'Active' : 'Inactive',
+        sub.subscription_end ? getDaysRemaining(sub.subscription_end).toString() : 'N/A'
+      ])
+    ];
+
+    const csv = csvData.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `active-subscriptions-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success("Data downloaded successfully");
+  };
+
   const stats = {
     total: subscriptions.length,
     active: subscriptions.filter(s => s.is_active).length,
@@ -216,6 +243,10 @@ export default function AdminActiveSubscriptions() {
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold">Active Subscriptions</h2>
           <p className="text-xs sm:text-sm text-muted-foreground">Manage celebrity subscription status and features</p>
         </div>
+        <Button onClick={handleDownloadData} variant="outline" size="sm">
+          <Download className="w-4 h-4 mr-2" />
+          Download Data
+        </Button>
       </div>
 
       {/* Stats Cards */}

@@ -12,7 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { AlertCircle, MessageCircle, Clock, Gift, DollarSign } from 'lucide-react';
+import { AlertCircle, MessageCircle, Clock, Gift, DollarSign, Download } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -32,6 +33,7 @@ const AdminExpiredSubscriptions = () => {
   const [loading, setLoading] = useState(true);
   const [totalOfferRevenue, setTotalOfferRevenue] = useState(0);
   const [activatingOffer, setActivatingOffer] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("all");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -143,22 +145,65 @@ const AdminExpiredSubscriptions = () => {
     }
   };
 
-  const handleWhatsAppContact = (subscription: ExpiredSubscription) => {
+  const handleWhatsAppContact = (subscription: ExpiredSubscription, daysUntilExpiry?: number) => {
     const phoneNumber = subscription.phone_number.replace(/\D/g, '');
-    const message = encodeURIComponent(
-      `Hi ${subscription.stage_name}! 👋\n\n` +
-      `This is Royal Escorts Admin. We noticed that your subscription has expired ${subscription.days_expired} days ago.\n\n` +
-      `Your profile is currently not displayed on our homepage because your ${subscription.subscription_tier} subscription ended on ${format(new Date(subscription.subscription_end), 'MMM dd, yyyy')}.\n\n` +
-      `To reactivate your profile and continue enjoying our premium services, please renew your subscription.\n\n` +
-      `If you've already made a payment, please send us your M-PESA confirmation code and we'll verify it immediately.\n\n` +
-      `Thank you for being part of Royal Escorts! 💎`
-    );
+    
+    let message = '';
+    
+    if (daysUntilExpiry !== undefined) {
+      // For expiring soon subscriptions
+      message = encodeURIComponent(
+        `Hi ${subscription.stage_name}! 👋\n\n` +
+        `This is Royal Escorts Admin. We wanted to remind you that your subscription is expiring in ${daysUntilExpiry} ${daysUntilExpiry === 1 ? 'day' : 'days'}!\n\n` +
+        `Your ${subscription.subscription_tier} subscription will end on ${format(new Date(subscription.subscription_end), 'MMM dd, yyyy')}.\n\n` +
+        `To avoid any interruption in your profile visibility, please renew your subscription before it expires.\n\n` +
+        `If you've already made a payment, please send us your M-PESA confirmation code and we'll verify it immediately.\n\n` +
+        `Thank you for being part of Royal Escorts! 💎`
+      );
+    } else {
+      // For expired subscriptions
+      message = encodeURIComponent(
+        `Hi ${subscription.stage_name}! 👋\n\n` +
+        `This is Royal Escorts Admin. We noticed that your subscription has expired ${subscription.days_expired} days ago.\n\n` +
+        `Your profile is currently not displayed on our homepage because your ${subscription.subscription_tier} subscription ended on ${format(new Date(subscription.subscription_end), 'MMM dd, yyyy')}.\n\n` +
+        `To reactivate your profile and continue enjoying our premium services, please renew your subscription.\n\n` +
+        `If you've already made a payment, please send us your M-PESA confirmation code and we'll verify it immediately.\n\n` +
+        `Thank you for being part of Royal Escorts! 💎`
+      );
+    }
     
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
     
     toast({
       title: "WhatsApp Opened",
       description: `Message prepared for ${subscription.stage_name}`,
+    });
+  };
+
+  const handleDownloadData = (subscriptions: ExpiredSubscription[]) => {
+    const csvData = [
+      ['Celebrity', 'Email', 'Phone', 'Tier', 'Expired Date', 'Days Expired'],
+      ...subscriptions.map(sub => [
+        sub.stage_name,
+        sub.email,
+        sub.phone_number,
+        getTierLabel(sub.subscription_tier),
+        format(new Date(sub.subscription_end), 'MMM dd, yyyy'),
+        sub.days_expired.toString()
+      ])
+    ];
+
+    const csv = csvData.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `expired-subscriptions-${activeTab}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast({
+      title: "Downloaded",
+      description: "Data downloaded successfully"
     });
   };
 
@@ -193,6 +238,141 @@ const AdminExpiredSubscriptions = () => {
       </div>
     );
   }
+
+  const expiringSoonSubscriptions = expiredSubscriptions.filter(s => {
+    const daysUntilExpiry = -s.days_expired; // Negative because days_expired is positive for expired
+    return daysUntilExpiry >= -2 && daysUntilExpiry < 0;
+  });
+
+  const renderSubscriptionTable = (subscriptions: ExpiredSubscription[], isExpiringSoon = false) => (
+    <>
+      <div className="flex justify-between items-center mb-4">
+        <p className="text-sm text-muted-foreground">
+          {isExpiringSoon 
+            ? "Contact these celebrities to remind them before expiration" 
+            : "Contact these celebrities to remind them about renewal"}
+        </p>
+        <Button 
+          onClick={() => handleDownloadData(subscriptions)} 
+          variant="outline" 
+          size="sm"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Download
+        </Button>
+      </div>
+      {subscriptions.length === 0 ? (
+        <div className="text-center py-12">
+          <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">
+            {isExpiringSoon 
+              ? "No subscriptions expiring soon" 
+              : "No expired subscriptions found"}
+          </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            {isExpiringSoon 
+              ? "All subscriptions are either active or already expired" 
+              : "All celebrities have active subscriptions"}
+          </p>
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Celebrity</TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead>Subscription Tier</TableHead>
+              <TableHead>{isExpiringSoon ? "Expires In" : "Expired Date"}</TableHead>
+              <TableHead>{isExpiringSoon ? "Days Left" : "Days Expired"}</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {subscriptions.map((subscription) => {
+              const daysUntilExpiry = isExpiringSoon ? -subscription.days_expired : null;
+              
+              return (
+                <TableRow key={subscription.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src={getAvatarUrl(subscription.stage_name)} />
+                        <AvatarFallback>
+                          {subscription.stage_name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{subscription.stage_name}</div>
+                        <div className="text-sm text-muted-foreground">{subscription.email}</div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">{subscription.phone_number}</div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getTierColor(subscription.subscription_tier)}>
+                      {getTierLabel(subscription.subscription_tier)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      {format(new Date(subscription.subscription_end), 'MMM dd, yyyy')}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge 
+                      variant={
+                        isExpiringSoon 
+                          ? daysUntilExpiry === 1 ? "destructive" : "default"
+                          : subscription.days_expired <= 7 ? "default" : subscription.days_expired <= 30 ? "secondary" : "destructive"
+                      }
+                    >
+                      {isExpiringSoon ? `${daysUntilExpiry} ${daysUntilExpiry === 1 ? 'day' : 'days'}` : `${subscription.days_expired} days`}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      {!isExpiringSoon && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-purple-50 hover:bg-purple-100 border-purple-200"
+                          onClick={() => handleActivateOffer(subscription)}
+                          disabled={activatingOffer === subscription.id}
+                        >
+                          {activatingOffer === subscription.id ? (
+                            <>
+                              <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-purple-600 border-t-transparent" />
+                              Activating...
+                            </>
+                          ) : (
+                            <>
+                              <Gift className="w-4 h-4 mr-2 text-purple-600" />
+                              VIP Elite 1 Week
+                            </>
+                          )}
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="bg-green-50 hover:bg-green-100 border-green-200"
+                        onClick={() => handleWhatsAppContact(subscription, isExpiringSoon ? daysUntilExpiry! : undefined)}
+                      >
+                        <MessageCircle className="w-4 h-4 mr-2 text-green-600" />
+                        WhatsApp
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      )}
+    </>
+  );
 
   return (
     <div className="space-y-6">
@@ -247,107 +427,35 @@ const AdminExpiredSubscriptions = () => {
         </Card>
       </div>
 
-      {/* Expired Subscriptions Table */}
+      {/* Tabbed Subscriptions View */}
       <Card>
         <CardHeader>
-          <CardTitle>Expired Subscriptions</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Contact these celebrities to remind them about renewal
-          </p>
+          <CardTitle>Subscription Management</CardTitle>
         </CardHeader>
         <CardContent>
-          {expiredSubscriptions.length === 0 ? (
-            <div className="text-center py-12">
-              <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No expired subscriptions found</p>
-              <p className="text-sm text-muted-foreground mt-2">All celebrities have active subscriptions</p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Celebrity</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Subscription Tier</TableHead>
-                  <TableHead>Expired Date</TableHead>
-                  <TableHead>Days Expired</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {expiredSubscriptions.map((subscription) => (
-                  <TableRow key={subscription.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarImage src={getAvatarUrl(subscription.stage_name)} />
-                          <AvatarFallback>
-                            {subscription.stage_name.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{subscription.stage_name}</div>
-                          <div className="text-sm text-muted-foreground">{subscription.email}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">{subscription.phone_number}</div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getTierColor(subscription.subscription_tier)}>
-                        {getTierLabel(subscription.subscription_tier)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {format(new Date(subscription.subscription_end), 'MMM dd, yyyy')}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={subscription.days_expired <= 7 ? "default" : subscription.days_expired <= 30 ? "secondary" : "destructive"}
-                      >
-                        {subscription.days_expired} days
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-purple-50 hover:bg-purple-100 border-purple-200"
-                          onClick={() => handleActivateOffer(subscription)}
-                          disabled={activatingOffer === subscription.id}
-                        >
-                          {activatingOffer === subscription.id ? (
-                            <>
-                              <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-purple-600 border-t-transparent" />
-                              Activating...
-                            </>
-                          ) : (
-                            <>
-                              <Gift className="w-4 h-4 mr-2 text-purple-600" />
-                              Offer
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-green-50 hover:bg-green-100 border-green-200"
-                          onClick={() => handleWhatsAppContact(subscription)}
-                        >
-                          <MessageCircle className="w-4 h-4 mr-2 text-green-600" />
-                          WhatsApp
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="all">
+                All Expired ({expiredSubscriptions.length})
+              </TabsTrigger>
+              <TabsTrigger value="expiring" className="relative">
+                Expiring Soon ({expiringSoonSubscriptions.length})
+                {expiringSoonSubscriptions.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-white text-xs rounded-full flex items-center justify-center">
+                    {expiringSoonSubscriptions.length}
+                  </span>
+                )}
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all" className="mt-6">
+              {renderSubscriptionTable(expiredSubscriptions, false)}
+            </TabsContent>
+            
+            <TabsContent value="expiring" className="mt-6">
+              {renderSubscriptionTable(expiringSoonSubscriptions, true)}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
