@@ -18,7 +18,9 @@ import {
   Mail,
   Phone,
   RefreshCw,
-  CreditCard
+  CreditCard,
+  LayoutGrid,
+  Table as TableIcon
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -39,6 +41,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Switch } from '@/components/ui/switch';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import ImageModal from '@/components/ImageModal';
 import CelebrityProfileEditor from '@/components/CelebrityProfileEditor';
 import { NewSubscriptionModal } from '@/components/NewSubscriptionModal';
@@ -65,6 +75,7 @@ const AllUsersManagement = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'verified' | 'pending'>('all');
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
   const [selectedImage, setSelectedImage] = useState<{ url: string; title: string } | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [subscriptionUserId, setSubscriptionUserId] = useState<string | null>(null);
@@ -327,6 +338,26 @@ const AllUsersManagement = () => {
       <CardContent className="p-2 sm:p-6">
         {/* Filter Tabs */}
         <div className="flex flex-col gap-2 mb-4 sm:mb-6 border-b pb-2">
+          <div className="flex gap-2 mb-2">
+            <Button
+              variant={viewMode === 'card' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('card')}
+              className="flex items-center space-x-2 flex-1"
+            >
+              <LayoutGrid className="h-4 w-4" />
+              <span className="text-xs sm:text-sm">Cards</span>
+            </Button>
+            <Button
+              variant={viewMode === 'table' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('table')}
+              className="flex items-center space-x-2 flex-1"
+            >
+              <TableIcon className="h-4 w-4" />
+              <span className="text-xs sm:text-sm">Table</span>
+            </Button>
+          </div>
           <Button
             variant={filterStatus === 'all' ? 'default' : 'ghost'}
             size="default"
@@ -364,9 +395,10 @@ const AllUsersManagement = () => {
           </div>
         ) : (
           <>
-            {/* Mobile Card View */}
-            <div className="sm:hidden space-y-3">
-              {filteredUsers.map((user) => (
+            {/* Card View */}
+            {viewMode === 'card' && (
+              <div className="space-y-3">
+                {filteredUsers.map((user) => (
                 <Card key={user.id} className="p-3">
                   <div className="flex items-start gap-3 mb-3">
                     <Avatar 
@@ -469,135 +501,152 @@ const AllUsersManagement = () => {
                     </div>
                   </div>
                 </Card>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
-            {/* Desktop Table View */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full border-collapse min-w-[550px]">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm">User</th>
-                    <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm hidden md:table-cell">Contact</th>
-                    <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm">Status</th>
-                    <th className="text-left p-2 sm:p-3 font-medium text-xs sm:text-sm hidden lg:table-cell">Dates</th>
-                    <th className="text-right p-2 sm:p-3 font-medium text-xs sm:text-sm">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.map((user) => (
-                    <tr key={user.id} className="border-b hover:bg-muted/50">
-                      <td className="p-2 sm:p-3">
-                        <div className="flex items-center space-x-2 sm:space-x-3">
-                          <Avatar 
-                            className="h-8 w-8 sm:h-10 sm:w-10 cursor-pointer hover:opacity-80 transition-opacity shrink-0"
-                            onClick={() => handleProfilePictureClick(user)}
-                          >
-                            <AvatarImage 
-                              src={getProfileImageUrl(user.profile_picture_path)} 
-                              alt={user.stage_name || 'User'}
-                            />
-                            <AvatarFallback className="text-xs">
-                              {(user.stage_name || user.real_name || 'U').charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="space-y-0.5 min-w-0">
-                            <p className="font-medium text-xs sm:text-sm truncate">{user.stage_name || 'No stage name'}</p>
-                            {user.real_name && (
-                              <p className="text-xs text-muted-foreground truncate">{user.real_name}</p>
+            {/* Table View */}
+            {viewMode === 'table' && (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead className="hidden md:table-cell">Contact</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="hidden lg:table-cell">Subscription</TableHead>
+                      <TableHead className="hidden lg:table-cell">Dates</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <Avatar 
+                              className="h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity"
+                              onClick={() => handleProfilePictureClick(user)}
+                            >
+                              <AvatarImage 
+                                src={getProfileImageUrl(user.profile_picture_path)} 
+                                alt={user.stage_name || 'User'}
+                              />
+                              <AvatarFallback>
+                                {(user.stage_name || user.real_name || 'U').charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="space-y-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{user.stage_name || 'No stage name'}</p>
+                              {user.real_name && (
+                                <p className="text-xs text-muted-foreground truncate">{user.real_name}</p>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <div className="space-y-1">
+                            {user.email && (
+                              <div className="flex items-center space-x-2">
+                                <Mail className="h-3 w-3 shrink-0" />
+                                <span className="text-sm truncate max-w-[200px]">{user.email}</span>
+                              </div>
                             )}
-                            <p className="text-xs text-muted-foreground font-mono truncate md:hidden">{user.email}</p>
+                            {user.phone && (
+                              <div className="flex items-center space-x-2">
+                                <Phone className="h-3 w-3 shrink-0" />
+                                <span className="text-sm">{user.phone}</span>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      </td>
-                      <td className="p-2 sm:p-3 hidden md:table-cell">
-                        <div className="space-y-1">
-                          {user.email && (
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-2">
                             <div className="flex items-center space-x-2">
-                              <Mail className="h-3 w-3 shrink-0" />
-                              <span className="text-xs sm:text-sm truncate max-w-[200px]">{user.email}</span>
+                              <Badge variant={user.is_verified ? "default" : "secondary"} className="text-xs">
+                                {user.is_verified ? <UserCheck className="h-3 w-3 mr-1" /> : <UserX className="h-3 w-3 mr-1" />}
+                                {user.is_verified ? "Verified" : "Pending"}
+                              </Badge>
+                              <Switch
+                                checked={user.is_verified || false}
+                                onCheckedChange={(checked) => toggleUserVerification(user.user_id || user.id, checked)}
+                                title={user.is_verified ? "Unverify user" : "Verify user"}
+                              />
                             </div>
-                          )}
-                          {user.phone && (
-                            <div className="flex items-center space-x-2">
-                              <Phone className="h-3 w-3 shrink-0" />
-                              <span className="text-xs sm:text-sm">{user.phone}</span>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                       <td className="p-2 sm:p-3">
-                        <div className="space-y-1 sm:space-y-2">
-                          <div className="flex items-center space-x-1 sm:space-x-2">
-                            <Badge variant={user.is_verified ? "default" : "secondary"} className="text-xs">
-                              {user.is_verified ? <UserCheck className="h-3 w-3 sm:mr-1" /> : <UserX className="h-3 w-3 sm:mr-1" />}
-                              <span className="hidden sm:inline">{user.is_verified ? "Verified" : "Pending"}</span>
+                            <Badge variant={user.is_available ? "outline" : "destructive"} className="text-xs">
+                              {user.is_available ? "Available" : "Unavailable"}
                             </Badge>
-                            <Switch
-                              checked={user.is_verified || false}
-                              onCheckedChange={(checked) => toggleUserVerification(user.user_id || user.id, checked)}
-                              title={user.is_verified ? "Unverify user" : "Verify user"}
-                              className="scale-75 sm:scale-100"
-                            />
                           </div>
-                          <Badge variant={user.is_available ? "outline" : "destructive"} className="text-xs hidden sm:inline-flex">
-                            {user.is_available ? "Available" : "Unavailable"}
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <Badge variant={getSubscriptionVariant(user.subscription_tier)} className="text-xs">
+                            <CreditCard className="h-3 w-3 mr-1" />
+                            {getSubscriptionLabel(user.subscription_tier)}
                           </Badge>
-                        </div>
-                      </td>
-                      <td className="p-2 sm:p-3 hidden lg:table-cell">
-                        <div className="space-y-1 text-xs text-muted-foreground">
-                          <div className="flex items-center space-x-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>Created: {formatDate(user.created_at)}</span>
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <div className="space-y-1 text-xs text-muted-foreground">
+                            <div className="flex items-center space-x-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>Created: {formatDate(user.created_at)}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Eye className="h-3 w-3" />
+                              <span>Last: {formatDate(user.last_sign_in_at)}</span>
+                            </div>
                           </div>
-                          <div className="flex items-center space-x-1">
-                            <Eye className="h-3 w-3" />
-                            <span>Last: {formatDate(user.last_sign_in_at)}</span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end space-x-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => setSubscriptionUserId(user.id)}
+                              title="Manage subscription"
+                            >
+                              <CreditCard className="h-4 w-4 text-blue-500" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => setEditingUserId(user.id)}
+                              title="Edit profile"
+                            >
+                              <Edit className="h-4 w-4 text-primary" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="sm" title="Delete user">
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete User</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete user "{user.stage_name || user.email}"? 
+                                    This will permanently delete their account and all associated data. This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteUser(user.user_id || user.id, user.email || '')}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete User
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
-                        </div>
-                      </td>
-                      <td className="p-2 sm:p-3">
-                        <div className="flex items-center justify-end space-x-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => setEditingUserId(user.id)}
-                          >
-                            <Edit className="h-4 w-4 text-primary" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete User</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete user "{user.stage_name || user.email}"? 
-                                  This will permanently delete their account and all associated data. This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => deleteUser(user.user_id || user.id, user.email || '')}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete User
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </>
         )}
 
