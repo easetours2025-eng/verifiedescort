@@ -20,7 +20,12 @@ import {
   RefreshCw,
   CreditCard,
   LayoutGrid,
-  Table as TableIcon
+  Table as TableIcon,
+  CheckSquare,
+  Square,
+  Trash,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -41,6 +46,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
   TableBody,
@@ -76,6 +82,7 @@ const AllUsersManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'verified' | 'pending'>('all');
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [selectedImage, setSelectedImage] = useState<{ url: string; title: string } | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [subscriptionUserId, setSubscriptionUserId] = useState<string | null>(null);
@@ -227,6 +234,93 @@ const AllUsersManagement = () => {
     }
   };
 
+  const toggleSelectUser = (userId: string) => {
+    setSelectedUsers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedUsers.size === filteredUsers.length) {
+      setSelectedUsers(new Set());
+    } else {
+      setSelectedUsers(new Set(filteredUsers.map(u => u.id)));
+    }
+  };
+
+  const bulkVerify = async () => {
+    const userIds = Array.from(selectedUsers);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const userId of userIds) {
+      try {
+        await toggleUserVerification(userId, true);
+        successCount++;
+      } catch {
+        failCount++;
+      }
+    }
+
+    setSelectedUsers(new Set());
+    toast({
+      title: "Bulk Verification Complete",
+      description: `${successCount} users verified${failCount > 0 ? `, ${failCount} failed` : ''}.`,
+    });
+    fetchUsers();
+  };
+
+  const bulkUnverify = async () => {
+    const userIds = Array.from(selectedUsers);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const userId of userIds) {
+      try {
+        await toggleUserVerification(userId, false);
+        successCount++;
+      } catch {
+        failCount++;
+      }
+    }
+
+    setSelectedUsers(new Set());
+    toast({
+      title: "Bulk Unverification Complete",
+      description: `${successCount} users unverified${failCount > 0 ? `, ${failCount} failed` : ''}.`,
+    });
+    fetchUsers();
+  };
+
+  const bulkDelete = async () => {
+    const userIds = Array.from(selectedUsers);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const userId of userIds) {
+      const user = users.find(u => u.id === userId);
+      try {
+        await deleteUser(user?.user_id || userId, user?.email || '');
+        successCount++;
+      } catch {
+        failCount++;
+      }
+    }
+
+    setSelectedUsers(new Set());
+    toast({
+      title: "Bulk Deletion Complete",
+      description: `${successCount} users deleted${failCount > 0 ? `, ${failCount} failed` : ''}.`,
+    });
+    fetchUsers();
+  };
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.stage_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -336,6 +430,104 @@ const AllUsersManagement = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-2 sm:p-6">
+        {/* Bulk Actions Bar */}
+        {selectedUsers.size > 0 && (
+          <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-lg">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <CheckSquare className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">
+                  {selectedUsers.size} user{selectedUsers.size > 1 ? 's' : ''} selected
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="default" size="sm" className="flex-1 sm:flex-none">
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Verify All
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Verify Selected Users</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to verify {selectedUsers.size} user{selectedUsers.size > 1 ? 's' : ''}? 
+                        This will make them visible on the platform.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={bulkVerify}>
+                        Verify Users
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Unverify All
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Unverify Selected Users</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to unverify {selectedUsers.size} user{selectedUsers.size > 1 ? 's' : ''}? 
+                        This will hide them from the platform.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={bulkUnverify}>
+                        Unverify Users
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" className="flex-1 sm:flex-none">
+                      <Trash className="h-4 w-4 mr-2" />
+                      Delete All
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Selected Users</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete {selectedUsers.size} user{selectedUsers.size > 1 ? 's' : ''}? 
+                        This action cannot be undone and will permanently delete their accounts and all associated data.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={bulkDelete}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Delete Users
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setSelectedUsers(new Set())}
+                >
+                  Clear Selection
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Filter Tabs */}
         <div className="flex flex-col gap-2 mb-4 sm:mb-6 border-b pb-2">
           <div className="flex gap-2 mb-2">
@@ -399,27 +591,32 @@ const AllUsersManagement = () => {
             {viewMode === 'card' && (
               <div className="space-y-3">
                 {filteredUsers.map((user) => (
-                <Card key={user.id} className="p-3">
-                  <div className="flex items-start gap-3 mb-3">
-                    <Avatar 
-                      className="h-12 w-12 cursor-pointer hover:opacity-80 transition-opacity shrink-0"
-                      onClick={() => handleProfilePictureClick(user)}
-                    >
-                      <AvatarImage 
-                        src={getProfileImageUrl(user.profile_picture_path)} 
-                        alt={user.stage_name || 'User'}
+                  <Card key={user.id} className="p-3">
+                    <div className="flex items-start gap-3 mb-3">
+                      <Checkbox
+                        checked={selectedUsers.has(user.id)}
+                        onCheckedChange={() => toggleSelectUser(user.id)}
+                        className="mt-1"
                       />
-                      <AvatarFallback className="text-sm">
-                        {(user.stage_name || user.real_name || 'U').charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{user.stage_name || 'No stage name'}</p>
-                      {user.real_name && (
-                        <p className="text-xs text-muted-foreground truncate">{user.real_name}</p>
-                      )}
+                      <Avatar 
+                        className="h-12 w-12 cursor-pointer hover:opacity-80 transition-opacity shrink-0"
+                        onClick={() => handleProfilePictureClick(user)}
+                      >
+                        <AvatarImage 
+                          src={getProfileImageUrl(user.profile_picture_path)} 
+                          alt={user.stage_name || 'User'}
+                        />
+                        <AvatarFallback className="text-sm">
+                          {(user.stage_name || user.real_name || 'U').charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{user.stage_name || 'No stage name'}</p>
+                        {user.real_name && (
+                          <p className="text-xs text-muted-foreground truncate">{user.real_name}</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
                   
                   <div className="space-y-2 text-xs">
                     {user.email && (
@@ -511,6 +708,12 @@ const AllUsersManagement = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={selectedUsers.size === filteredUsers.length && filteredUsers.length > 0}
+                          onCheckedChange={toggleSelectAll}
+                        />
+                      </TableHead>
                       <TableHead>User</TableHead>
                       <TableHead className="hidden md:table-cell">Contact</TableHead>
                       <TableHead>Status</TableHead>
@@ -522,6 +725,12 @@ const AllUsersManagement = () => {
                   <TableBody>
                     {filteredUsers.map((user) => (
                       <TableRow key={user.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedUsers.has(user.id)}
+                            onCheckedChange={() => toggleSelectUser(user.id)}
+                          />
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-3">
                             <Avatar 
