@@ -733,7 +733,7 @@ const Index = () => {
                           size="sm"
                           onClick={() => {
                             setCurrentPage(prev => Math.max(1, prev - 1));
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            document.getElementById('search-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                           }}
                           disabled={currentPage === 1}
                           className="gap-2 border-2 hover:border-primary hover:bg-primary/5 disabled:opacity-50 hover-scale"
@@ -755,7 +755,7 @@ const Index = () => {
                           size="sm"
                           onClick={() => {
                             setCurrentPage(prev => Math.min(totalPages, prev + 1));
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            document.getElementById('search-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                           }}
                           disabled={currentPage === totalPages}
                           className="gap-2 border-2 hover:border-primary hover:bg-primary/5 disabled:opacity-50 hover-scale"
