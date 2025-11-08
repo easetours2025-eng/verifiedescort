@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserPlus, Users } from "lucide-react";
 import { GenderSelect } from "@/components/GenderSelect";
+import { CountrySelect } from "@/components/CountrySelect";
 
 interface UserManagementProps {
   onUserCreated: () => void;
@@ -25,10 +26,16 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
     real_name: "",
     bio: "",
     location: "",
+    country: "",
+    phone_number: "",
+    date_of_birth: "",
     gender: [] as string[],
     age: "",
     base_price: "0",
     hourly_rate: "",
+    social_instagram: "",
+    social_twitter: "",
+    social_tiktok: "",
   });
   const { toast } = useToast();
 
@@ -40,10 +47,16 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
       real_name: "",
       bio: "",
       location: "",
+      country: "",
+      phone_number: "",
+      date_of_birth: "",
       gender: [],
       age: "",
       base_price: "0",
       hourly_rate: "",
+      social_instagram: "",
+      social_twitter: "",
+      social_tiktok: "",
     });
   };
 
@@ -81,12 +94,18 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
           stage_name: formData.stage_name,
           real_name: formData.real_name || null,
           email: formData.email,
+          phone_number: formData.phone_number || null,
           bio: formData.bio || null,
           location: formData.location || null,
+          country: formData.country || null,
+          date_of_birth: formData.date_of_birth || null,
           gender: formData.gender.length > 0 ? formData.gender : null,
           age: formData.age ? parseInt(formData.age) : null,
           base_price: parseFloat(formData.base_price) || 0,
           hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
+          social_instagram: formData.social_instagram || null,
+          social_twitter: formData.social_twitter || null,
+          social_tiktok: formData.social_tiktok || null,
           is_verified: false,
           is_available: true,
         });
@@ -175,12 +194,29 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="phone_number">Phone Number</Label>
+              <Input
+                id="phone_number"
+                value={formData.phone_number}
+                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                placeholder="254XXXXXXXXX"
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="location">Location</Label>
               <Input
                 id="location"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="e.g., Los Angeles, CA"
+                placeholder="e.g., Nairobi"
+              />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <CountrySelect
+                value={formData.country}
+                onChange={(country) => setFormData({ ...formData, country })}
               />
             </div>
 
@@ -200,6 +236,16 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
                 onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                 min="18"
                 max="100"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="date_of_birth">Date of Birth</Label>
+              <Input
+                id="date_of_birth"
+                type="date"
+                value={formData.date_of_birth}
+                onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
               />
             </div>
 
@@ -237,6 +283,39 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
               placeholder="Tell us about this celebrity..."
               rows={3}
             />
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="font-semibold text-sm">Social Media Links (Optional)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="social_instagram">Instagram</Label>
+                <Input
+                  id="social_instagram"
+                  value={formData.social_instagram}
+                  onChange={(e) => setFormData({ ...formData, social_instagram: e.target.value })}
+                  placeholder="@username"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="social_twitter">Twitter</Label>
+                <Input
+                  id="social_twitter"
+                  value={formData.social_twitter}
+                  onChange={(e) => setFormData({ ...formData, social_twitter: e.target.value })}
+                  placeholder="@username"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="social_tiktok">TikTok</Label>
+                <Input
+                  id="social_tiktok"
+                  value={formData.social_tiktok}
+                  onChange={(e) => setFormData({ ...formData, social_tiktok: e.target.value })}
+                  placeholder="@username"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">

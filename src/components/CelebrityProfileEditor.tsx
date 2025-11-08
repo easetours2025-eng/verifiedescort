@@ -190,6 +190,7 @@ const CelebrityProfileEditor = ({ open, onOpenChange, celebrityId, onSave }: Cel
             email: profile.email,
             phone_number: profile.phone_number,
             location: profile.location,
+            country: profile.country,
             age: profile.age,
             date_of_birth: profile.date_of_birth,
             gender: profile.gender,
