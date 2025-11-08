@@ -50,6 +50,9 @@ import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import AdminWhatsAppAnalytics from '@/components/AdminWhatsAppAnalytics';
 import AdminCallAnalytics from '@/components/AdminCallAnalytics';
 import AdminExpiredSubscriptions from '@/components/AdminExpiredSubscriptions';
+import ChurchManagement from '@/components/ChurchManagement';
+import ChurchMembersManagement from '@/components/ChurchMembersManagement';
+import ChurchResourcesManagement from '@/components/ChurchResourcesManagement';
 
 // Data Interfaces
 interface PaymentRecord {
@@ -913,6 +916,28 @@ const AdminDashboard = () => {
             <div className="space-y-4 sm:space-y-6">
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">Video Management</h1>
               <AdminVideoSection />
+            </div>
+          )}
+
+          {/* Church Management Tabs */}
+          {activeTab === 'churches' && (
+            <div className="space-y-4 sm:space-y-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">Church Management</h1>
+              <ChurchManagement />
+            </div>
+          )}
+
+          {activeTab === 'church-members' && (
+            <div className="space-y-4 sm:space-y-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">Church Members</h1>
+              <ChurchMembersManagement />
+            </div>
+          )}
+
+          {activeTab === 'church-resources' && (
+            <div className="space-y-4 sm:space-y-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">Church Resources</h1>
+              <ChurchResourcesManagement />
             </div>
           )}
         </main>
