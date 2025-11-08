@@ -350,7 +350,7 @@ const AdminExpiredSubscriptions = () => {
   }
 
   const expiringSoonSubscriptions = expiredSubscriptions.filter(s => s.days_expired < 0 && s.days_expired >= -2);
-  const actuallyExpiredSubscriptions = expiredSubscriptions.filter(s => s.days_expired > 0);
+  const actuallyExpiredSubscriptions = expiredSubscriptions.filter(s => s.days_expired >= 0);
 
   const renderSubscriptionTable = (subscriptions: ExpiredSubscription[], isExpiringSoon = false) => (
     <>
