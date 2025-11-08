@@ -1055,6 +1055,7 @@ export type Database = {
         Args: { admin_email_param: string }
         Returns: Json
       }
+      deactivate_expired_subscriptions: { Args: never; Returns: undefined }
       get_admin_video_like_count: {
         Args: { video_uuid: string }
         Returns: number
