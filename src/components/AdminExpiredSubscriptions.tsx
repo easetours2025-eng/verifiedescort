@@ -239,17 +239,15 @@ const AdminExpiredSubscriptions = () => {
     );
   }
 
-  const expiringSoonSubscriptions = expiredSubscriptions.filter(s => {
-    const daysUntilExpiry = -s.days_expired; // Negative because days_expired is positive for expired
-    return daysUntilExpiry >= -2 && daysUntilExpiry < 0;
-  });
+  const expiringSoonSubscriptions = expiredSubscriptions.filter(s => s.days_expired < 0 && s.days_expired >= -2);
+  const actuallyExpiredSubscriptions = expiredSubscriptions.filter(s => s.days_expired > 0);
 
   const renderSubscriptionTable = (subscriptions: ExpiredSubscription[], isExpiringSoon = false) => (
     <>
       <div className="flex justify-between items-center mb-4">
         <p className="text-sm text-muted-foreground">
           {isExpiringSoon 
-            ? "Contact these celebrities to remind them before expiration" 
+            ? "Contact these celebrities to remind them before their subscription expires" 
             : "Contact these celebrities to remind them about renewal"}
         </p>
         <Button 
@@ -289,7 +287,7 @@ const AdminExpiredSubscriptions = () => {
           </TableHeader>
           <TableBody>
             {subscriptions.map((subscription) => {
-              const daysUntilExpiry = isExpiringSoon ? -subscription.days_expired : null;
+              const daysUntilExpiry = isExpiringSoon ? Math.abs(subscription.days_expired) : null;
               
               return (
                 <TableRow key={subscription.id}>
@@ -380,23 +378,23 @@ const AdminExpiredSubscriptions = () => {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Expired</CardTitle>
-            <AlertCircle className="h-4 w-4 text-destructive" />
+            <CardTitle className="text-sm font-medium">Expiring Soon</CardTitle>
+            <Clock className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{expiredSubscriptions.length}</div>
-            <p className="text-xs text-muted-foreground">Celebrities with expired subscriptions</p>
+            <div className="text-2xl font-bold">{expiringSoonSubscriptions.length}</div>
+            <p className="text-xs text-muted-foreground">Expiring in next 2 days</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Recently Expired</CardTitle>
-            <Clock className="h-4 w-4 text-orange-500" />
+            <AlertCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {expiredSubscriptions.filter(s => s.days_expired <= 7).length}
+              {actuallyExpiredSubscriptions.filter(s => s.days_expired <= 7).length}
             </div>
             <p className="text-xs text-muted-foreground">Expired in last 7 days</p>
           </CardContent>
@@ -409,7 +407,7 @@ const AdminExpiredSubscriptions = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {expiredSubscriptions.filter(s => s.days_expired > 30).length}
+              {actuallyExpiredSubscriptions.filter(s => s.days_expired > 30).length}
             </div>
             <p className="text-xs text-muted-foreground">Expired over 30 days</p>
           </CardContent>
@@ -436,7 +434,7 @@ const AdminExpiredSubscriptions = () => {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="all">
-                All Expired ({expiredSubscriptions.length})
+                Expired ({actuallyExpiredSubscriptions.length})
               </TabsTrigger>
               <TabsTrigger value="expiring" className="relative">
                 Expiring Soon ({expiringSoonSubscriptions.length})
@@ -449,7 +447,7 @@ const AdminExpiredSubscriptions = () => {
             </TabsList>
             
             <TabsContent value="all" className="mt-6">
-              {renderSubscriptionTable(expiredSubscriptions, false)}
+              {renderSubscriptionTable(actuallyExpiredSubscriptions, false)}
             </TabsContent>
             
             <TabsContent value="expiring" className="mt-6">
