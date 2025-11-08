@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
   TableBody,
@@ -34,6 +35,8 @@ const AdminExpiredSubscriptions = () => {
   const [totalOfferRevenue, setTotalOfferRevenue] = useState(0);
   const [activatingOffer, setActivatingOffer] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkActivating, setIsBulkActivating] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -41,6 +44,11 @@ const AdminExpiredSubscriptions = () => {
     fetchOfferRevenue();
     setupRealtimeSubscription();
   }, []);
+
+  // Clear selection when switching tabs
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [activeTab]);
 
   const fetchExpiredSubscriptions = async () => {
     try {
@@ -207,6 +215,108 @@ const AdminExpiredSubscriptions = () => {
     });
   };
 
+  const toggleSelection = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const toggleSelectAll = (subscriptions: ExpiredSubscription[]) => {
+    if (selectedIds.size === subscriptions.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(subscriptions.map(s => s.id)));
+    }
+  };
+
+  const handleBulkWhatsApp = (subscriptions: ExpiredSubscription[], isExpiringSoon = false) => {
+    const selected = subscriptions.filter(s => selectedIds.has(s.id));
+    if (selected.length === 0) {
+      toast({
+        title: "No Selection",
+        description: "Please select celebrities to contact",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    selected.forEach(subscription => {
+      const daysUntilExpiry = isExpiringSoon ? Math.abs(subscription.days_expired) : undefined;
+      handleWhatsAppContact(subscription, daysUntilExpiry);
+    });
+
+    toast({
+      title: "WhatsApp Messages Opened",
+      description: `Prepared messages for ${selected.length} ${selected.length === 1 ? 'celebrity' : 'celebrities'}`
+    });
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkActivateOffers = async (subscriptions: ExpiredSubscription[]) => {
+    const selected = subscriptions.filter(s => selectedIds.has(s.id));
+    if (selected.length === 0) {
+      toast({
+        title: "No Selection",
+        description: "Please select celebrities to activate offers",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsBulkActivating(true);
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const subscription of selected) {
+        try {
+          const { error } = await supabase.functions.invoke('activate-promotional-offer', {
+            body: {
+              celebrityId: subscription.id,
+              offerAmount: 500,
+            },
+          });
+
+          if (error) throw error;
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to activate offer for ${subscription.stage_name}:`, error);
+          failCount++;
+        }
+      }
+
+      toast({
+        title: "Bulk Activation Complete",
+        description: `Successfully activated ${successCount} offers${failCount > 0 ? `, ${failCount} failed` : ''}`,
+      });
+
+      await fetchExpiredSubscriptions();
+      await fetchOfferRevenue();
+      setSelectedIds(new Set());
+
+    } catch (error) {
+      console.error('Error in bulk activation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to complete bulk activation",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBulkActivating(false);
+    }
+  };
+
   const getAvatarUrl = (stageName: string) => {
     return undefined; // No profile picture path in this view
   };
@@ -259,6 +369,56 @@ const AdminExpiredSubscriptions = () => {
           Download
         </Button>
       </div>
+      
+      {/* Bulk Actions Toolbar */}
+      {selectedIds.size > 0 && (
+        <div className="mb-4 p-4 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-base px-3 py-1">
+              {selectedIds.size} Selected
+            </Badge>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedIds(new Set())}
+            >
+              Clear Selection
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-green-50 hover:bg-green-100 border-green-200"
+              onClick={() => handleBulkWhatsApp(subscriptions, isExpiringSoon)}
+            >
+              <MessageCircle className="w-4 h-4 mr-2 text-green-600" />
+              Send {selectedIds.size} WhatsApp {selectedIds.size === 1 ? 'Message' : 'Messages'}
+            </Button>
+            {!isExpiringSoon && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-purple-50 hover:bg-purple-100 border-purple-200"
+                onClick={() => handleBulkActivateOffers(subscriptions)}
+                disabled={isBulkActivating}
+              >
+                {isBulkActivating ? (
+                  <>
+                    <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-purple-600 border-t-transparent" />
+                    Activating...
+                  </>
+                ) : (
+                  <>
+                    <Gift className="w-4 h-4 mr-2 text-purple-600" />
+                    Activate {selectedIds.size} VIP Elite {selectedIds.size === 1 ? 'Offer' : 'Offers'}
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
       {subscriptions.length === 0 ? (
         <div className="text-center py-12">
           <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -277,6 +437,12 @@ const AdminExpiredSubscriptions = () => {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-12">
+                <Checkbox
+                  checked={subscriptions.length > 0 && selectedIds.size === subscriptions.length}
+                  onCheckedChange={() => toggleSelectAll(subscriptions)}
+                />
+              </TableHead>
               <TableHead>Celebrity</TableHead>
               <TableHead>Contact</TableHead>
               <TableHead>Subscription Tier</TableHead>
@@ -291,6 +457,12 @@ const AdminExpiredSubscriptions = () => {
               
               return (
                 <TableRow key={subscription.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds.has(subscription.id)}
+                      onCheckedChange={() => toggleSelection(subscription.id)}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
