@@ -33,7 +33,7 @@ const HeroSection = ({ user, celebrityCount }: HeroSectionProps) => {
           {/* Main Heading */}
           <div className="space-y-3 sm:space-y-4">
             <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent leading-tight">
-              Royal Escorts Kenya
+              Royal Escorts Africa
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
               Connect with verified celebrities for exclusive meetings, photo sessions, and personal interactions
