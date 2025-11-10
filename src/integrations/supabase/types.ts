@@ -1264,6 +1264,10 @@ export type Database = {
         Returns: Json
       }
       deactivate_expired_subscriptions: { Args: never; Returns: undefined }
+      force_expire_celebrity_subscription: {
+        Args: { celebrity_profile_id: string }
+        Returns: Json
+      }
       get_admin_video_like_count: {
         Args: { video_uuid: string }
         Returns: number

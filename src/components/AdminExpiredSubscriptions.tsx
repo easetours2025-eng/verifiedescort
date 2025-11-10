@@ -37,6 +37,7 @@ const AdminExpiredSubscriptions = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkActivating, setIsBulkActivating] = useState(false);
+  const [forcingExpiry, setForcingExpiry] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -186,6 +187,37 @@ const AdminExpiredSubscriptions = () => {
       title: "WhatsApp Opened",
       description: `Message prepared for ${subscription.stage_name}`,
     });
+  };
+
+  const handleForceExpire = async (subscription: ExpiredSubscription) => {
+    setForcingExpiry(subscription.id);
+    
+    try {
+      const { error } = await supabase
+        .rpc('force_expire_celebrity_subscription', {
+          celebrity_profile_id: subscription.id
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Subscription Expired",
+        description: `${subscription.stage_name}'s subscription has been expired and they are now unverified`,
+      });
+
+      // Refresh data
+      await fetchExpiredSubscriptions();
+
+    } catch (error) {
+      console.error('Error forcing expiry:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to expire subscription",
+        variant: "destructive",
+      });
+    } finally {
+      setForcingExpiry(null);
+    }
   };
 
   const handleDownloadData = (subscriptions: ExpiredSubscription[]) => {
@@ -503,6 +535,26 @@ const AdminExpiredSubscriptions = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
+                      {isExpiringSoon && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleForceExpire(subscription)}
+                          disabled={forcingExpiry === subscription.id}
+                        >
+                          {forcingExpiry === subscription.id ? (
+                            <>
+                              <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                              Expiring...
+                            </>
+                          ) : (
+                            <>
+                              <Clock className="w-4 h-4 mr-2" />
+                              Force Expire Now
+                            </>
+                          )}
+                        </Button>
+                      )}
                       {!isExpiringSoon && (
                         <Button
                           size="sm"
