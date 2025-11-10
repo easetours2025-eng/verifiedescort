@@ -37,6 +37,13 @@ const AdminSitemapMonitoring = () => {
 
   useEffect(() => {
     fetchData();
+    
+    // Auto-refresh every 5 seconds
+    const interval = setInterval(() => {
+      fetchData();
+    }, 5000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const fetchData = async () => {
