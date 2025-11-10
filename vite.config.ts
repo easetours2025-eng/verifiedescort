@@ -9,6 +9,18 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      '/sitemap.xml': {
+        target: 'https://kpjqcrhoablsllkgonbl.supabase.co/functions/v1/sitemap',
+        changeOrigin: true,
+        rewrite: () => '',
+        configure: (proxy, _options) => {
+          proxy.on('proxyRes', (proxyRes) => {
+            proxyRes.headers['content-type'] = 'application/xml';
+          });
+        }
+      }
+    }
   },
   plugins: [
     react(),
