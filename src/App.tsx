@@ -16,6 +16,7 @@ import Videos from "./pages/Videos";
 import FAQ from "./pages/FAQ";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
+import Sitemap from "./pages/Sitemap";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/videos" element={<Videos />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/install" element={<Install />} />
+            <Route path="/sitemap.xml" element={<Sitemap />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin-auth" element={<AdminAuth />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
