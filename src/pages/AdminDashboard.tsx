@@ -50,6 +50,7 @@ import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import AdminWhatsAppAnalytics from '@/components/AdminWhatsAppAnalytics';
 import AdminCallAnalytics from '@/components/AdminCallAnalytics';
 import AdminExpiredSubscriptions from '@/components/AdminExpiredSubscriptions';
+import AdminSitemapMonitoring from '@/components/AdminSitemapMonitoring';
 
 // Data Interfaces
 interface PaymentRecord {
@@ -903,6 +904,10 @@ const AdminDashboard = () => {
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">Expired Subscriptions</h1>
               <AdminExpiredSubscriptions />
             </div>
+          )}
+
+          {activeTab === 'sitemap-monitoring' && (
+            <AdminSitemapMonitoring />
           )}
 
           {activeTab === 'premium-support' && (
