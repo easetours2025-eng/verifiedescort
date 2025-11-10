@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.activate-promotional-offer]
 verify_jwt = true
+
+[functions.send-subscription-reminders]
+verify_jwt = false

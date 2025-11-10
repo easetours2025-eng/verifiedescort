@@ -1119,6 +1119,50 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_reminder_logs: {
+        Row: {
+          celebrity_id: string
+          id: string
+          message_sent: string
+          phone_number: string
+          reminder_type: string
+          sent_at: string
+          status: string
+          subscription_id: string
+          twilio_message_sid: string | null
+        }
+        Insert: {
+          celebrity_id: string
+          id?: string
+          message_sent: string
+          phone_number: string
+          reminder_type: string
+          sent_at?: string
+          status?: string
+          subscription_id: string
+          twilio_message_sid?: string | null
+        }
+        Update: {
+          celebrity_id?: string
+          id?: string
+          message_sent?: string
+          phone_number?: string
+          reminder_type?: string
+          sent_at?: string
+          status?: string
+          subscription_id?: string
+          twilio_message_sid?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_reminder_logs_celebrity_id_fkey"
+            columns: ["celebrity_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_config: {
         Row: {
           config_key: string
@@ -1453,6 +1497,19 @@ export type Database = {
           social_tiktok: string
           social_twitter: string
           stage_name: string
+        }[]
+      }
+      get_subscriptions_needing_reminders: {
+        Args: never
+        Returns: {
+          celebrity_id: string
+          celebrity_name: string
+          days_until_expiry: number
+          phone_number: string
+          reminder_type: string
+          subscription_end: string
+          subscription_id: string
+          subscription_tier: string
         }[]
       }
       get_video_like_count: { Args: { video_uuid: string }; Returns: number }

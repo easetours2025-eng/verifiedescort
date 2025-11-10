@@ -15,7 +15,8 @@ import {
   ChevronLeft,
   Phone,
   Clock,
-  Globe
+  Globe,
+  Bell
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -39,6 +40,7 @@ const AdminSidebar = ({ activeTab, onTabChange, isOpen = true, onClose, collapse
     { id: 'whatsapp-analytics', label: 'WhatsApp Analytics', icon: MessageSquare },
     { id: 'call-analytics', label: 'Call Analytics', icon: Phone },
     { id: 'expired-subscriptions', label: 'Expired Subscriptions', icon: Clock },
+    { id: 'subscription-reminders', label: 'Auto Reminders', icon: Bell },
     { id: 'sitemap-monitoring', label: 'Sitemap Health', icon: Globe },
     { id: 'users', label: 'Users', icon: Users },
     { id: 'celebrities', label: 'Celebrities', icon: Users },

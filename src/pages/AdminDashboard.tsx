@@ -51,6 +51,7 @@ import AdminWhatsAppAnalytics from '@/components/AdminWhatsAppAnalytics';
 import AdminCallAnalytics from '@/components/AdminCallAnalytics';
 import AdminExpiredSubscriptions from '@/components/AdminExpiredSubscriptions';
 import AdminSitemapMonitoring from '@/components/AdminSitemapMonitoring';
+import AdminSubscriptionReminders from '@/components/AdminSubscriptionReminders';
 
 // Data Interfaces
 interface PaymentRecord {
@@ -908,6 +909,10 @@ const AdminDashboard = () => {
 
           {activeTab === 'sitemap-monitoring' && (
             <AdminSitemapMonitoring />
+          )}
+
+          {activeTab === 'subscription-reminders' && (
+            <AdminSubscriptionReminders />
           )}
 
           {activeTab === 'premium-support' && (
