@@ -28,12 +28,20 @@ interface SitemapLog {
   created_at: string;
 }
 
+interface AutoUnverifyLog {
+  id: string;
+  executed_at: string;
+  subscriptions_deactivated: number;
+  celebrities_unverified: number;
+}
+
 const AdminSitemapMonitoring = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [sitemapCache, setSitemapCache] = useState<SitemapCache | null>(null);
   const [searchEnginePing, setSearchEnginePing] = useState<SearchEnginePing | null>(null);
   const [sitemapLogs, setSitemapLogs] = useState<SitemapLog[]>([]);
+  const [autoUnverifyLogs, setAutoUnverifyLogs] = useState<AutoUnverifyLog[]>([]);
 
   useEffect(() => {
     fetchData();
@@ -87,6 +95,19 @@ const AdminSitemapMonitoring = () => {
         console.error('Error fetching sitemap logs:', logsError);
       } else {
         setSitemapLogs(logsData || []);
+      }
+
+      // Fetch recent auto-unverify logs (last 20)
+      const { data: unverifyLogsData, error: unverifyLogsError } = await supabase
+        .from('auto_unverify_logs')
+        .select('*')
+        .order('executed_at', { ascending: false })
+        .limit(20);
+
+      if (unverifyLogsError) {
+        console.error('Error fetching auto-unverify logs:', unverifyLogsError);
+      } else {
+        setAutoUnverifyLogs(unverifyLogsData || []);
       }
     } catch (error) {
       console.error('Error fetching sitemap data:', error);
@@ -305,6 +326,73 @@ const AdminSitemapMonitoring = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Auto-Unverify Logs Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Automatic Subscription Expiry Logs
+          </CardTitle>
+          <CardDescription>
+            Hourly automated checks for expired subscriptions and unverified celebrities
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {autoUnverifyLogs.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No auto-unverify logs yet</p>
+              <p className="text-sm mt-2">Cron job runs every hour to check for expired subscriptions</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Execution Time</TableHead>
+                    <TableHead>Subscriptions Deactivated</TableHead>
+                    <TableHead>Celebrities Unverified</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {autoUnverifyLogs.map((log) => (
+                    <TableRow key={log.id}>
+                      <TableCell>
+                        <span className="text-sm">
+                          {formatDistanceToNow(new Date(log.executed_at), { addSuffix: true })}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={log.subscriptions_deactivated > 0 ? "destructive" : "secondary"}>
+                          {log.subscriptions_deactivated}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={log.celebrities_unverified > 0 ? "destructive" : "secondary"}>
+                          {log.celebrities_unverified}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {log.subscriptions_deactivated > 0 || log.celebrities_unverified > 0 ? (
+                          <Badge variant="outline" className="gap-1">
+                            <AlertCircle className="h-3 w-3" /> Changes Made
+                          </Badge>
+                        ) : (
+                          <Badge variant="default" className="gap-1">
+                            <CheckCircle className="h-3 w-3" /> All Active
+                          </Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Sitemap Logs Table */}
       <Card>

@@ -144,6 +144,27 @@ export type Database = {
         }
         Relationships: []
       }
+      auto_unverify_logs: {
+        Row: {
+          celebrities_unverified: number | null
+          executed_at: string | null
+          id: string
+          subscriptions_deactivated: number | null
+        }
+        Insert: {
+          celebrities_unverified?: number | null
+          executed_at?: string | null
+          id?: string
+          subscriptions_deactivated?: number | null
+        }
+        Update: {
+          celebrities_unverified?: number | null
+          executed_at?: string | null
+          id?: string
+          subscriptions_deactivated?: number | null
+        }
+        Relationships: []
+      }
       available_countries: {
         Row: {
           country_name: string
