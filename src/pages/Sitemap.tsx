@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 
 const Sitemap = () => {
   const [sitemapXml, setSitemapXml] = useState<string>('');
@@ -8,18 +7,18 @@ const Sitemap = () => {
   useEffect(() => {
     const fetchSitemap = async () => {
       try {
-        // Fetch sitemap from edge function
-        const { data, error } = await supabase.functions.invoke('sitemap', {
-          method: 'GET'
-        });
-
-        if (error) throw error;
-
-        // The response should be XML text
-        const xmlText = typeof data === 'string' ? data : new XMLSerializer().serializeToString(data);
+        // Fetch sitemap directly from edge function URL
+        const response = await fetch('https://kpjqcrhoablsllkgonbl.supabase.co/functions/v1/sitemap');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const xmlText = await response.text();
         setSitemapXml(xmlText);
       } catch (error) {
         console.error('Error fetching sitemap:', error);
+        // Fallback sitemap
         setSitemapXml(`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
@@ -37,15 +36,28 @@ const Sitemap = () => {
     fetchSitemap();
   }, []);
 
+  useEffect(() => {
+    // Set content type for XML
+    if (sitemapXml && !loading) {
+      const meta = document.querySelector('meta[http-equiv="Content-Type"]');
+      if (!meta) {
+        const newMeta = document.createElement('meta');
+        newMeta.httpEquiv = 'Content-Type';
+        newMeta.content = 'application/xml; charset=utf-8';
+        document.head.appendChild(newMeta);
+      }
+    }
+  }, [sitemapXml, loading]);
+
   if (loading) {
     return (
-      <div style={{ fontFamily: 'monospace', padding: '20px' }}>
+      <div style={{ fontFamily: 'monospace', padding: '20px', color: '#333' }}>
         Loading sitemap...
       </div>
     );
   }
 
-  // Render XML as plain text with proper formatting
+  // Render XML as plain text
   return (
     <pre
       style={{
@@ -54,11 +66,13 @@ const Sitemap = () => {
         whiteSpace: 'pre-wrap',
         wordWrap: 'break-word',
         margin: 0,
-        padding: '20px',
-        backgroundColor: '#f5f5f5'
+        padding: 0,
+        backgroundColor: '#fff',
+        color: '#000'
       }}
-      dangerouslySetInnerHTML={{ __html: sitemapXml }}
-    />
+    >
+      {sitemapXml}
+    </pre>
   );
 };
 
