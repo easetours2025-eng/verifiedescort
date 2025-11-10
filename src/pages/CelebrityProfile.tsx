@@ -20,6 +20,7 @@ import {
   CelebrityProfile as FullCelebrityProfile,
   isPrivateProfile 
 } from '@/lib/celebrity-utils';
+import { generateCelebrityProfileKeywords, updateMetaKeywords } from '@/lib/seo-utils';
 import NavigationHeader from '@/components/NavigationHeader';
 import PayPalPayment from '@/components/PayPalPayment';
 import Footer from '@/components/Footer';
@@ -117,6 +118,17 @@ const CelebrityProfile = () => {
         ? getMediaUrl(profile.profile_picture_path, 'image')
         : 'https://royalescortsworld.com/icon-512.png';
 
+      // Generate dynamic keywords
+      const keywords = generateCelebrityProfileKeywords({
+        stageName: profile.stage_name,
+        location: profile.location || undefined,
+        country: (profile as any).country || undefined,
+        gender: profile.gender || undefined,
+        services: services.map(s => s.service_name),
+        bio: profile.bio || undefined
+      });
+      updateMetaKeywords(keywords);
+
       // Helper function to update or create meta tag
       const updateMetaTag = (selector: string, attribute: string, attrValue: string, content: string) => {
         let tag = document.querySelector(selector);
@@ -143,18 +155,6 @@ const CelebrityProfile = () => {
       // Primary meta tags
       updateMetaTag('meta[name="description"]', 'name', 'description', pageDescription);
       updateMetaTag('meta[name="title"]', 'name', 'title', pageTitle);
-      
-      // Keywords
-      const keywords = [
-        profile.stage_name,
-        profile.location || 'Kenya',
-        'Royal Escorts',
-        'celebrity companion',
-        'premium escort',
-        'verified companion',
-        ...(profile.gender || []).map(g => `${g} companion`)
-      ].filter(Boolean).join(', ');
-      updateMetaTag('meta[name="keywords"]', 'name', 'keywords', keywords);
 
       // Robots
       updateMetaTag('meta[name="robots"]', 'name', 'robots', 'index, follow, max-image-preview:large');

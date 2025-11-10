@@ -17,6 +17,7 @@ import {
   PrivateCelebrityProfile,
   CelebrityProfile as FullCelebrityProfile
 } from '@/lib/celebrity-utils';
+import { generateHomePageKeywords, updateMetaKeywords } from '@/lib/seo-utils';
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
 
 import NavigationHeader from '@/components/NavigationHeader';
@@ -84,6 +85,31 @@ const Index = () => {
       setShowAgeVerification(true);
     }
   }, []);
+
+  // Generate and update dynamic meta keywords
+  useEffect(() => {
+    if (celebrities.length > 0) {
+      const keywords = generateHomePageKeywords({
+        celebrityCount: celebrities.length,
+        locations: availableLocations,
+        genders: availableGenders,
+        features: [
+          'verified profiles',
+          'premium experience',
+          'top celebrities',
+          'AI smart search',
+          'exclusive meetings',
+          'photo sessions',
+          'personal interactions',
+          '24/7 available',
+          'secure platform',
+          'VIP Elite subscription',
+          'Prime Plus subscription'
+        ]
+      });
+      updateMetaKeywords(keywords);
+    }
+  }, [celebrities, availableLocations, availableGenders]);
 
   // Add JSON-LD structured data for homepage SEO
   useEffect(() => {

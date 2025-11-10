@@ -11,6 +11,7 @@ import VideoCard from '@/components/VideoCard';
 import VideoModal from '@/components/VideoModal';
 import NavigationHeader from '@/components/NavigationHeader';
 import Footer from '@/components/Footer';
+import { generateVideosPageKeywords, updateMetaKeywords } from '@/lib/seo-utils';
 
 console.log("Videos.tsx file is being processed");
 
@@ -58,6 +59,24 @@ const Videos = () => {
     fetchVideos();
     fetchAdminVideos();
   }, []);
+
+  // Generate dynamic keywords for videos page
+  useEffect(() => {
+    if (videos.length > 0 || adminVideos.length > 0) {
+      const celebrityNames = videos.map(v => v.celebrity.stage_name);
+      const locations = [...new Set(videos
+        .map(v => (v.celebrity as any).location)
+        .filter(Boolean)
+      )] as string[];
+
+      const keywords = generateVideosPageKeywords({
+        videoCount: videos.length + adminVideos.length,
+        celebrityNames,
+        locations
+      });
+      updateMetaKeywords(keywords);
+    }
+  }, [videos, adminVideos]);
 
   // Add JSON-LD structured data for videos page SEO
   useEffect(() => {

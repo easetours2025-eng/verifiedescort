@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle, HelpCircle, Shield, Star, ArrowLeft } from "lucide-react";
 import NavigationHeader from "@/components/NavigationHeader";
 import Footer from "@/components/Footer";
+import { generateFAQKeywords, updateMetaKeywords } from "@/lib/seo-utils";
 
 // FAQ Page Component
 interface FAQItem {
@@ -27,6 +28,14 @@ export default function FAQ() {
   useEffect(() => {
     fetchFAQs();
   }, []);
+
+  // Generate dynamic keywords for FAQ page
+  useEffect(() => {
+    if (faqs.length > 0) {
+      const keywords = generateFAQKeywords(faqs);
+      updateMetaKeywords(keywords);
+    }
+  }, [faqs]);
 
   // Add JSON-LD structured data for FAQ page SEO
   useEffect(() => {
