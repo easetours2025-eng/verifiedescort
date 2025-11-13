@@ -25,7 +25,8 @@ import {
   Square,
   Trash,
   CheckCircle2,
-  XCircle
+  XCircle,
+  MessageCircle
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -385,6 +386,29 @@ const AllUsersManagement = () => {
     }
   };
 
+  const sendWhatsAppReminder = (phone?: string, stageName?: string) => {
+    if (!phone) {
+      toast({
+        title: "No phone number",
+        description: "This user doesn't have a phone number on file.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Clean phone number (remove spaces, dashes, etc.)
+    const cleanPhone = phone.replace(/[^0-9+]/g, '');
+    
+    // Create message with link to site
+    const message = `Hi${stageName ? ' ' + stageName : ''}! Complete your registration at ${window.location.origin}`;
+    
+    // Create WhatsApp link
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    
+    // Open WhatsApp in new tab
+    window.open(whatsappUrl, '_blank');
+  };
+
   if (loading) {
     return (
       <Card>
@@ -655,6 +679,16 @@ const AllUsersManagement = () => {
                       />
                     </div>
                     <div className="flex items-center gap-1">
+                      {!user.is_verified && user.phone && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => sendWhatsAppReminder(user.phone, user.stage_name)}
+                          title="Send WhatsApp reminder"
+                        >
+                          <MessageCircle className="h-4 w-4 text-green-500" />
+                        </Button>
+                      )}
                       <Button 
                         variant="ghost" 
                         size="sm"
@@ -807,6 +841,16 @@ const AllUsersManagement = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end space-x-1">
+                            {!user.is_verified && user.phone && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => sendWhatsAppReminder(user.phone, user.stage_name)}
+                                title="Send WhatsApp reminder"
+                              >
+                                <MessageCircle className="h-4 w-4 text-green-500" />
+                              </Button>
+                            )}
                             <Button 
                               variant="ghost" 
                               size="sm"
