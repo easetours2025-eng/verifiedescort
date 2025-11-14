@@ -70,6 +70,17 @@ Deno.serve(async (req) => {
     }
 
     if (action === "get_all_users") {
+      // Get admin emails to exclude them
+      const { data: adminUsers, error: adminUsersError } = await supabaseServiceRole
+        .from('admin_users')
+        .select('email');
+      
+      if (adminUsersError) {
+        console.error("Error fetching admin users:", adminUsersError);
+      }
+      
+      const adminEmails = new Set(adminUsers?.map(a => a.email) || []);
+      
       // Get both auth users and celebrity profiles
       const { data: authUsers, error: authError } = await supabaseServiceRole.auth.admin.listUsers();
       
@@ -98,8 +109,10 @@ Deno.serve(async (req) => {
         console.error("Error fetching subscriptions:", subscriptionError);
       }
 
-      // Merge auth users with their celebrity profiles and subscriptions
-      const users = authUsers.users.map(authUser => {
+      // Merge auth users with their celebrity profiles and subscriptions, excluding admin users
+      const users = authUsers.users
+        .filter(authUser => !adminEmails.has(authUser.email))
+        .map(authUser => {
         const profile = celebrityProfiles?.find(p => p.user_id === authUser.id);
         const subscription = subscriptions?.find(s => s.celebrity_id === profile?.id);
         return {
