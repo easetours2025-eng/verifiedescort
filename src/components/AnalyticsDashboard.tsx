@@ -50,6 +50,11 @@ interface ChartData {
   value: number;
 }
 
+interface TimelineData {
+  date: string;
+  registrations: number;
+}
+
 const chartConfig = {
   celebrities: {
     label: "Celebrities",
@@ -88,6 +93,7 @@ const AnalyticsDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [timelineData, setTimelineData] = useState<TimelineData[]>([]);
 
   // Chart data
   const platformData: ChartData[] = [
@@ -177,6 +183,31 @@ const AnalyticsDashboard = () => {
       const totalVideos = videos?.length || 0;
       const totalViews = videos?.reduce((sum, v) => sum + (v.view_count || 0), 0) || 0;
       const totalMedia = media?.length || 0;
+
+      // Calculate registration timeline for last 30 days
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const registrationsByDay = new Map<string, number>();
+      
+      celebrities?.forEach(celeb => {
+        const createdDate = new Date(celeb.created_at);
+        if (createdDate >= thirtyDaysAgo) {
+          const dateKey = createdDate.toISOString().split('T')[0];
+          registrationsByDay.set(dateKey, (registrationsByDay.get(dateKey) || 0) + 1);
+        }
+      });
+
+      // Create timeline data for last 30 days
+      const timeline: TimelineData[] = [];
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        const dateKey = d.toISOString().split('T')[0];
+        timeline.push({
+          date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          registrations: registrationsByDay.get(dateKey) || 0
+        });
+      }
+
+      setTimelineData(timeline);
 
       setStats({
         totalCelebrities,
@@ -369,6 +400,47 @@ const AnalyticsDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Registration Timeline */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base sm:text-lg">User Registration Timeline</CardTitle>
+          <p className="text-xs text-muted-foreground">New celebrity registrations over the last 30 days</p>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={chartConfig} className="h-[250px] w-full">
+            <AreaChart data={timelineData}>
+              <defs>
+                <linearGradient id="colorRegistrations" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis 
+                dataKey="date" 
+                className="text-xs"
+                tick={{ fill: "hsl(var(--muted-foreground))" }}
+                interval="preserveStartEnd"
+              />
+              <YAxis 
+                className="text-xs"
+                tick={{ fill: "hsl(var(--muted-foreground))" }}
+                allowDecimals={false}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Area 
+                type="monotone" 
+                dataKey="registrations" 
+                stroke="hsl(var(--chart-1))" 
+                strokeWidth={2}
+                fillOpacity={1}
+                fill="url(#colorRegistrations)"
+              />
+            </AreaChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
 
       {/* Content Stats and Calendar */}
       <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
