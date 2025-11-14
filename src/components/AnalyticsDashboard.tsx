@@ -117,10 +117,12 @@ const AnalyticsDashboard = () => {
     try {
       setLoading(true);
 
-      // Fetch celebrities stats
+      // Get admin session to fetch non-admin celebrities
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // Fetch non-admin celebrities stats using the database function
       const { data: celebrities, error: celebError } = await supabase
-        .from('celebrity_profiles')
-        .select('id, is_available, created_at');
+        .rpc('get_non_admin_celebrities');
 
       if (celebError) throw celebError;
 
