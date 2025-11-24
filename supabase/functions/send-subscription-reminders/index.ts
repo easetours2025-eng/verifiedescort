@@ -12,7 +12,7 @@ interface ReminderData {
   phone_number: string;
   subscription_tier: string;
   subscription_end: string;
-  reminder_type: '3_days' | '1_day' | 'expiry_day';
+  reminder_type: '3_days' | '1_day' | 'expiry_day' | '1_day_expired' | '3_days_expired' | '7_days_expired';
   days_until_expiry: number;
 }
 
@@ -175,6 +175,7 @@ function formatReminderMessage(reminder: ReminderData): string {
 
   const tierName = reminder.subscription_tier.replace('_', ' ').toUpperCase();
 
+  // Pre-expiry reminders
   if (reminder.reminder_type === '3_days') {
     return `🔔 Hi ${reminder.celebrity_name}!\n\n` +
       `This is a friendly reminder from Royal Escorts. Your ${tierName} subscription will expire in 3 DAYS on ${formattedDate}.\n\n` +
@@ -187,12 +188,37 @@ function formatReminderMessage(reminder: ReminderData): string {
       `Don't lose your premium profile visibility. Renew today to maintain your position on our homepage.\n\n` +
       `Contact us immediately to renew your subscription.\n\n` +
       `Thank you for being part of Royal Escorts! 💎`;
-  } else { // expiry_day
+  } else if (reminder.reminder_type === 'expiry_day') {
     return `🚨 FINAL NOTICE: Hi ${reminder.celebrity_name}!\n\n` +
       `Your ${tierName} subscription EXPIRES TODAY (${formattedDate})!\n\n` +
       `Your profile will be removed from our homepage at midnight if not renewed.\n\n` +
       `Renew NOW to avoid interruption in your profile visibility.\n\n` +
       `Contact us immediately: [Your Contact Info]\n\n` +
       `Thank you for being part of Royal Escorts! 💎`;
+  }
+  
+  // Post-expiry reminders
+  else if (reminder.reminder_type === '1_day_expired') {
+    return `❌ SUBSCRIPTION EXPIRED: Hi ${reminder.celebrity_name}!\n\n` +
+      `Your ${tierName} subscription EXPIRED yesterday (${formattedDate}).\n\n` +
+      `Your profile has been removed from our homepage and is no longer visible to clients.\n\n` +
+      `RENEW NOW to restore your profile visibility and continue receiving bookings!\n\n` +
+      `Submit your payment and we'll reactivate your profile immediately.\n\n` +
+      `Don't miss out on potential clients! 💎`;
+  } else if (reminder.reminder_type === '3_days_expired') {
+    return `⛔ URGENT RENEWAL REQUIRED: Hi ${reminder.celebrity_name}!\n\n` +
+      `Your ${tierName} subscription expired 3 days ago (${formattedDate}).\n\n` +
+      `Your profile is currently INACTIVE and not receiving any bookings.\n\n` +
+      `Renew TODAY to get back on our platform and start receiving client requests again!\n\n` +
+      `The longer you wait, the more opportunities you're missing.\n\n` +
+      `Contact us NOW to reactivate your subscription! 💎`;
+  } else { // 7_days_expired
+    return `🚫 FINAL REMINDER: Hi ${reminder.celebrity_name}!\n\n` +
+      `Your ${tierName} subscription expired 7 days ago (${formattedDate}).\n\n` +
+      `This is our FINAL reminder. Your profile remains INACTIVE.\n\n` +
+      `You are losing potential clients every day you remain unsubscribed!\n\n` +
+      `Renew IMMEDIATELY to restore your profile and resume bookings.\n\n` +
+      `Don't let your business suffer - reactivate today! 💎\n\n` +
+      `Contact us now or risk permanent profile removal.`;
   }
 }

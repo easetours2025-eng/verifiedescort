@@ -376,6 +376,43 @@ const CelebrityDashboard = () => {
             profile={profile} 
           />
         </div>
+        
+        {/* Expired Subscription Alert */}
+        {subscriptionStatus && !subscriptionStatus.is_active && subscriptionStatus.subscription_end && (
+          <Card className="mb-3 sm:mb-6 border-destructive bg-destructive/10">
+            <CardHeader>
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-6 w-6 text-destructive mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-destructive text-lg sm:text-xl">Subscription Expired</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Your subscription expired on {new Date(subscriptionStatus.subscription_end).toLocaleDateString('en-US', { 
+                      month: 'long', 
+                      day: 'numeric', 
+                      year: 'numeric' 
+                    })}. 
+                    Your profile is currently <strong>not visible</strong> to potential clients.
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <p className="text-sm font-medium">
+                  🚀 Renew now to restore your profile visibility and start receiving bookings again!
+                </p>
+                <Button 
+                  onClick={() => setShowPaymentModal(true)}
+                  className="w-full sm:w-auto"
+                  size="lg"
+                >
+                  <CreditCard className="mr-2 h-5 w-5" />
+                  Renew Subscription Now
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Accordion type="single" collapsible defaultValue="profile" className="space-y-3 max-w-full overflow-x-hidden">
           {/* Profile Section */}
