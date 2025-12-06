@@ -546,23 +546,84 @@ const CelebrityDashboard = () => {
   );
 };
 
-// Profile Requirements Alert Component
+// Profile Requirements Alert Component - Shows fields needed for Welcome Offer activation
 const ProfileRequirementsAlert = ({ profile }: { profile: CelebrityProfile }) => {
-  const { toast } = useToast();
-  const missingRequirements: string[] = [];
+  // Required fields for welcome offer activation (from activate_free_trial_on_profile_completion trigger)
+  const requirements = [
+    { 
+      field: 'stage_name', 
+      label: 'Stage Name', 
+      isMissing: !profile.stage_name || profile.stage_name.trim() === '',
+      hint: 'Add your stage name'
+    },
+    { 
+      field: 'phone_number', 
+      label: 'Phone Number', 
+      isMissing: !profile.phone_number || profile.phone_number.trim() === '',
+      hint: 'Add your phone number'
+    },
+    { 
+      field: 'profile_picture_path', 
+      label: 'Profile Picture', 
+      isMissing: !profile.profile_picture_path || profile.profile_picture_path.trim() === '',
+      hint: 'Upload a profile photo'
+    },
+    { 
+      field: 'age', 
+      label: 'Age', 
+      isMissing: !profile.age,
+      hint: 'Enter your age (18+)'
+    },
+    { 
+      field: 'gender', 
+      label: 'Gender', 
+      isMissing: !profile.gender || profile.gender.length === 0,
+      hint: 'Select your gender'
+    },
+    { 
+      field: 'location', 
+      label: 'Location', 
+      isMissing: !profile.location || profile.location.trim() === '',
+      hint: 'Add your location'
+    },
+    { 
+      field: 'bio', 
+      label: 'Bio', 
+      isMissing: !profile.bio || profile.bio.trim() === '',
+      hint: 'Write a short bio about yourself'
+    },
+  ];
 
-  if (!profile.profile_picture_path) {
-    missingRequirements.push("Profile Picture");
-  }
-  if (!profile.phone_number || profile.phone_number.trim() === '') {
-    missingRequirements.push("Phone Number");
-  }
-  if (!profile.is_verified) {
-    missingRequirements.push("Payment Verification");
-  }
+  const missingRequirements = requirements.filter(req => req.isMissing);
+  const completedCount = requirements.length - missingRequirements.length;
+  const progress = Math.round((completedCount / requirements.length) * 100);
 
-  if (missingRequirements.length === 0) {
+  // If profile is already verified, show nothing (they already have the offer)
+  if (profile.is_verified) {
     return null;
+  }
+
+  // If all requirements are met but not verified yet, show a different message
+  if (missingRequirements.length === 0) {
+    return (
+      <Card className="mb-4 border-2 border-green-500 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/40">
+              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-500" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-green-800 dark:text-green-400 mb-2">
+                🎉 Profile Complete! Activating Your Welcome Offer...
+              </h3>
+              <p className="text-sm text-green-700 dark:text-green-300">
+                All required fields are filled. Click "Save Profile" to activate your <strong>FREE 1-Week VIP Elite</strong> subscription and appear on the homepage!
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -574,25 +635,56 @@ const ProfileRequirementsAlert = ({ profile }: { profile: CelebrityProfile }) =>
           </div>
           <div className="flex-1">
             <h3 className="font-bold text-amber-800 dark:text-amber-400 mb-2">
-              📋 Complete Your Profile to Appear on Homepage
+              🎁 Complete Your Profile for FREE 1-Week VIP Elite!
             </h3>
             <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
-              To be visible to users on the homepage, you need to complete the following:
+              Fill in all required fields to unlock your <strong>welcome offer</strong> and appear on the homepage:
             </p>
+            
+            {/* Progress Bar */}
+            <div className="mb-3">
+              <div className="flex justify-between text-xs text-amber-600 dark:text-amber-400 mb-1">
+                <span>{completedCount} of {requirements.length} completed</span>
+                <span>{progress}%</span>
+              </div>
+              <div className="w-full h-2 bg-amber-200 dark:bg-amber-800 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+            
+            {/* Missing Fields */}
             <ul className="space-y-2">
               {missingRequirements.map((requirement, index) => (
                 <li key={index} className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300">
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  <span className="font-medium">{requirement}</span>
-                  {requirement === "Profile Picture" && <span className="text-xs">(Upload in Profile tab)</span>}
-                  {requirement === "Phone Number" && <span className="text-xs">(Add in Profile tab)</span>}
-                  {requirement === "Payment Verification" && <span className="text-xs">(Subscribe and pay in Subscription tab)</span>}
+                  <div className="w-4 h-4 rounded border-2 border-amber-500 flex items-center justify-center shrink-0">
+                    <span className="text-amber-500 text-xs">✗</span>
+                  </div>
+                  <span className="font-medium">{requirement.label}</span>
+                  <span className="text-xs text-amber-600 dark:text-amber-400">— {requirement.hint}</span>
                 </li>
               ))}
             </ul>
+            
+            {/* Completed Fields */}
+            {completedCount > 0 && (
+              <div className="mt-3 pt-3 border-t border-amber-200 dark:border-amber-800">
+                <p className="text-xs text-green-600 dark:text-green-400 mb-2">✓ Already completed:</p>
+                <div className="flex flex-wrap gap-2">
+                  {requirements.filter(req => !req.isMissing).map((req, index) => (
+                    <Badge key={index} variant="outline" className="text-xs bg-green-50 text-green-700 border-green-300 dark:bg-green-950/30 dark:text-green-400 dark:border-green-700">
+                      ✓ {req.label}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             <div className="mt-3 pt-3 border-t border-amber-200 dark:border-amber-800">
               <p className="text-xs text-amber-600 dark:text-amber-400">
-                💡 Once all requirements are met and verified by admin, your profile will automatically appear on the homepage!
+                💡 Complete all fields and save your profile to automatically activate your VIP Elite subscription!
               </p>
             </div>
           </div>
