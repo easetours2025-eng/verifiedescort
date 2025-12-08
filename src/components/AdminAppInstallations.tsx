@@ -26,6 +26,7 @@ interface AppInstallation {
   is_tablet: boolean | null;
   installed_at: string;
   referral_code: string | null;
+  device_fingerprint: string | null;
 }
 
 export const AdminAppInstallations = () => {
@@ -51,7 +52,8 @@ export const AdminAppInstallations = () => {
       install.device_type?.toLowerCase().includes(searchLower) ||
       install.browser_name?.toLowerCase().includes(searchLower) ||
       install.os_name?.toLowerCase().includes(searchLower) ||
-      install.platform?.toLowerCase().includes(searchLower)
+      install.platform?.toLowerCase().includes(searchLower) ||
+      install.device_fingerprint?.toLowerCase().includes(searchLower)
     );
   });
 
@@ -147,13 +149,12 @@ export const AdminAppInstallations = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Device</TableHead>
+                    <TableHead>Device ID</TableHead>
                     <TableHead>IP Address</TableHead>
                     <TableHead>Browser</TableHead>
                     <TableHead>OS</TableHead>
                     <TableHead>Screen</TableHead>
                     <TableHead>Platform</TableHead>
-                    <TableHead>Language</TableHead>
-                    <TableHead>Timezone</TableHead>
                     <TableHead>Referral</TableHead>
                     <TableHead>Installed At</TableHead>
                   </TableRow>
@@ -166,6 +167,11 @@ export const AdminAppInstallations = () => {
                           {getDeviceIcon(install)}
                           <span className="capitalize">{install.device_type || 'Unknown'}</span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <code className="text-xs bg-primary/10 text-primary px-2 py-1 rounded font-mono">
+                          {install.device_fingerprint || 'N/A'}
+                        </code>
                       </TableCell>
                       <TableCell>
                         <code className="text-xs bg-muted px-2 py-1 rounded">
@@ -200,8 +206,6 @@ export const AdminAppInstallations = () => {
                           {install.platform || 'Unknown'}
                         </Badge>
                       </TableCell>
-                      <TableCell>{install.language || 'N/A'}</TableCell>
-                      <TableCell className="text-xs">{install.timezone || 'N/A'}</TableCell>
                       <TableCell>
                         {install.referral_code ? (
                           <Badge variant="secondary">{install.referral_code}</Badge>

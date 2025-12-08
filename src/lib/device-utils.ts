@@ -10,7 +10,90 @@ export interface DeviceInfo {
   screenWidth: number;
   screenHeight: number;
   userIp: string | null;
+  deviceFingerprint: string;
 }
+
+// Generate a simple hash from a string
+const simpleHash = (str: string): string => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(36);
+};
+
+// Generate canvas fingerprint
+const getCanvasFingerprint = (): string => {
+  try {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return 'no-canvas';
+    
+    canvas.width = 200;
+    canvas.height = 50;
+    
+    // Draw text with specific styling
+    ctx.textBaseline = 'top';
+    ctx.font = '14px Arial';
+    ctx.fillStyle = '#f60';
+    ctx.fillRect(125, 1, 62, 20);
+    ctx.fillStyle = '#069';
+    ctx.fillText('Device ID', 2, 15);
+    ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+    ctx.fillText('Fingerprint', 4, 17);
+    
+    return simpleHash(canvas.toDataURL());
+  } catch {
+    return 'canvas-error';
+  }
+};
+
+// Get WebGL renderer info
+const getWebGLInfo = (): string => {
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if (!gl) return 'no-webgl';
+    
+    const debugInfo = (gl as WebGLRenderingContext).getExtension('WEBGL_debug_renderer_info');
+    if (!debugInfo) return 'no-debug-info';
+    
+    const vendor = (gl as WebGLRenderingContext).getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+    const renderer = (gl as WebGLRenderingContext).getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+    
+    return simpleHash(`${vendor}-${renderer}`);
+  } catch {
+    return 'webgl-error';
+  }
+};
+
+// Generate device fingerprint from multiple signals
+export const generateDeviceFingerprint = (): string => {
+  const nav = navigator as Navigator & { deviceMemory?: number };
+  const signals = [
+    navigator.userAgent,
+    navigator.language,
+    navigator.languages?.join(',') || '',
+    screen.width.toString(),
+    screen.height.toString(),
+    screen.colorDepth.toString(),
+    (window.devicePixelRatio || 1).toString(),
+    new Date().getTimezoneOffset().toString(),
+    navigator.hardwareConcurrency?.toString() || 'unknown',
+    nav.deviceMemory?.toString() || 'unknown',
+    navigator.platform || 'unknown',
+    getCanvasFingerprint(),
+    getWebGLInfo(),
+    // Touch support
+    ('ontouchstart' in window).toString(),
+    navigator.maxTouchPoints?.toString() || '0',
+  ];
+  
+  const combined = signals.join('|');
+  return 'FP-' + simpleHash(combined);
+};
 
 // Parse user agent to extract device info
 export const parseUserAgent = () => {
@@ -80,13 +163,15 @@ export const fetchUserIp = async (): Promise<string | null> => {
   }
 };
 
-// Get complete device info including IP
+// Get complete device info including IP and fingerprint
 export const getDeviceInfo = async (): Promise<DeviceInfo> => {
   const deviceInfo = parseUserAgent();
   const userIp = await fetchUserIp();
+  const deviceFingerprint = generateDeviceFingerprint();
   
   return {
     ...deviceInfo,
     userIp,
+    deviceFingerprint,
   };
 };
