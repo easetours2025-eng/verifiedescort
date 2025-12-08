@@ -25,6 +25,7 @@ import Footer from '@/components/Footer';
 import AISmartSearch from '@/components/AISmartSearch';
 import AgeVerificationDialog from '@/components/AgeVerificationDialog';
 import HeroSection from '@/components/HeroSection';
+import NearbyCelebrities from '@/components/NearbyCelebrities';
 
 
 const Index = () => {
@@ -459,8 +460,9 @@ const Index = () => {
 
       {/* AI Smart Search Section */}
       <section className="py-4 sm:py-6" id="search-section">
-        <div className="container mx-auto px-3 sm:px-4">
+        <div className="container mx-auto px-3 sm:px-4 space-y-4">
           <AISmartSearch />
+          <NearbyCelebrities />
         </div>
       </section>
 
