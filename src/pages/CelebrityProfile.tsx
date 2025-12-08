@@ -497,10 +497,10 @@ const CelebrityProfile = () => {
 
 
   const handleContact = async () => {
-    // Record the call click with device info
+    // Record the call click with device info and location
     if (profile) {
       try {
-        const deviceInfo = await getDeviceInfo();
+        const deviceInfo = await getDeviceInfo(true); // Include geolocation
         await supabase.from('call_clicks').insert({
           celebrity_id: profile.id,
           user_ip: deviceInfo.userIp,
@@ -513,6 +513,11 @@ const CelebrityProfile = () => {
           screen_width: deviceInfo.screenWidth,
           screen_height: deviceInfo.screenHeight,
           device_fingerprint: deviceInfo.deviceFingerprint,
+          user_latitude: deviceInfo.geoLocation?.latitude,
+          user_longitude: deviceInfo.geoLocation?.longitude,
+          user_city: deviceInfo.geoLocation?.city,
+          user_region: deviceInfo.geoLocation?.region,
+          user_country_name: deviceInfo.geoLocation?.countryName,
           clicked_at: new Date().toISOString()
         });
       } catch (error) {
@@ -537,8 +542,9 @@ const CelebrityProfile = () => {
     // Check if profile has a phone number
     if (profile && (profile as any).phone_number) {
       // Record the WhatsApp click with device info
+      // Record the WhatsApp click with device info and location
       try {
-        const deviceInfo = await getDeviceInfo();
+        const deviceInfo = await getDeviceInfo(true); // Include geolocation
         await supabase.from('whatsapp_clicks').insert({
           celebrity_id: profile.id,
           user_ip: deviceInfo.userIp,
@@ -551,6 +557,11 @@ const CelebrityProfile = () => {
           screen_width: deviceInfo.screenWidth,
           screen_height: deviceInfo.screenHeight,
           device_fingerprint: deviceInfo.deviceFingerprint,
+          user_latitude: deviceInfo.geoLocation?.latitude,
+          user_longitude: deviceInfo.geoLocation?.longitude,
+          user_city: deviceInfo.geoLocation?.city,
+          user_region: deviceInfo.geoLocation?.region,
+          user_country_name: deviceInfo.geoLocation?.countryName,
           clicked_at: new Date().toISOString()
         });
       } catch (error) {

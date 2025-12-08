@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Loader2, Sparkles } from 'lucide-react';
+import { Search, Loader2, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -158,9 +158,18 @@ const AISmartSearch: React.FC = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Describe your ideal match (e.g., a girl from Nakuru, 25 years old)"
-            className="pl-10 h-12"
+            className="pl-10 pr-10 h-12"
             disabled={isSearching}
           />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full bg-muted hover:bg-muted-foreground/20 flex items-center justify-center transition-colors"
+            >
+              <X className="h-3 w-3 text-muted-foreground" />
+            </button>
+          )}
         </div>
         <Button type="submit" disabled={isSearching} size="lg" className="h-12 px-6">
           {isSearching ? (

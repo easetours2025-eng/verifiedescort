@@ -155,6 +155,7 @@ export type Database = {
           is_mobile: boolean | null
           is_tablet: boolean | null
           language: string | null
+          location_permission_granted: boolean | null
           os_name: string | null
           os_version: string | null
           platform: string | null
@@ -163,8 +164,13 @@ export type Database = {
           screen_width: number | null
           timezone: string | null
           user_agent: string | null
+          user_city: string | null
+          user_country_name: string | null
           user_id: string | null
           user_ip: string | null
+          user_latitude: number | null
+          user_longitude: number | null
+          user_region: string | null
         }
         Insert: {
           browser_name?: string | null
@@ -176,6 +182,7 @@ export type Database = {
           is_mobile?: boolean | null
           is_tablet?: boolean | null
           language?: string | null
+          location_permission_granted?: boolean | null
           os_name?: string | null
           os_version?: string | null
           platform?: string | null
@@ -184,8 +191,13 @@ export type Database = {
           screen_width?: number | null
           timezone?: string | null
           user_agent?: string | null
+          user_city?: string | null
+          user_country_name?: string | null
           user_id?: string | null
           user_ip?: string | null
+          user_latitude?: number | null
+          user_longitude?: number | null
+          user_region?: string | null
         }
         Update: {
           browser_name?: string | null
@@ -197,6 +209,7 @@ export type Database = {
           is_mobile?: boolean | null
           is_tablet?: boolean | null
           language?: string | null
+          location_permission_granted?: boolean | null
           os_name?: string | null
           os_version?: string | null
           platform?: string | null
@@ -205,8 +218,13 @@ export type Database = {
           screen_width?: number | null
           timezone?: string | null
           user_agent?: string | null
+          user_city?: string | null
+          user_country_name?: string | null
           user_id?: string | null
           user_ip?: string | null
+          user_latitude?: number | null
+          user_longitude?: number | null
+          user_region?: string | null
         }
         Relationships: []
       }
@@ -267,8 +285,13 @@ export type Database = {
           screen_height: number | null
           screen_width: number | null
           user_agent: string | null
+          user_city: string | null
+          user_country_name: string | null
           user_id: string | null
           user_ip: string | null
+          user_latitude: number | null
+          user_longitude: number | null
+          user_region: string | null
         }
         Insert: {
           browser_name?: string | null
@@ -284,8 +307,13 @@ export type Database = {
           screen_height?: number | null
           screen_width?: number | null
           user_agent?: string | null
+          user_city?: string | null
+          user_country_name?: string | null
           user_id?: string | null
           user_ip?: string | null
+          user_latitude?: number | null
+          user_longitude?: number | null
+          user_region?: string | null
         }
         Update: {
           browser_name?: string | null
@@ -301,8 +329,13 @@ export type Database = {
           screen_height?: number | null
           screen_width?: number | null
           user_agent?: string | null
+          user_city?: string | null
+          user_country_name?: string | null
           user_id?: string | null
           user_ip?: string | null
+          user_latitude?: number | null
+          user_longitude?: number | null
+          user_region?: string | null
         }
         Relationships: [
           {
@@ -1304,8 +1337,13 @@ export type Database = {
           screen_height: number | null
           screen_width: number | null
           user_agent: string | null
+          user_city: string | null
+          user_country_name: string | null
           user_id: string | null
           user_ip: string | null
+          user_latitude: number | null
+          user_longitude: number | null
+          user_region: string | null
         }
         Insert: {
           browser_name?: string | null
@@ -1321,8 +1359,13 @@ export type Database = {
           screen_height?: number | null
           screen_width?: number | null
           user_agent?: string | null
+          user_city?: string | null
+          user_country_name?: string | null
           user_id?: string | null
           user_ip?: string | null
+          user_latitude?: number | null
+          user_longitude?: number | null
+          user_region?: string | null
         }
         Update: {
           browser_name?: string | null
@@ -1338,8 +1381,13 @@ export type Database = {
           screen_height?: number | null
           screen_width?: number | null
           user_agent?: string | null
+          user_city?: string | null
+          user_country_name?: string | null
           user_id?: string | null
           user_ip?: string | null
+          user_latitude?: number | null
+          user_longitude?: number | null
+          user_region?: string | null
         }
         Relationships: []
       }
