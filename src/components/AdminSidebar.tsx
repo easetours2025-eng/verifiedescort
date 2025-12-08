@@ -16,7 +16,8 @@ import {
   Phone,
   Clock,
   Globe,
-  Bell
+  Bell,
+  Share2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -42,6 +43,7 @@ const AdminSidebar = ({ activeTab, onTabChange, isOpen = true, onClose, collapse
     { id: 'expired-subscriptions', label: 'Expired Subscriptions', icon: Clock },
     { id: 'subscription-reminders', label: 'Auto Reminders', icon: Bell },
     { id: 'sitemap-monitoring', label: 'Sitemap Health', icon: Globe },
+    { id: 'referrals', label: 'Referral Marketing', icon: Share2 },
     { id: 'users', label: 'Users', icon: Users },
     { id: 'celebrities', label: 'Celebrities', icon: Users },
     { id: 'payments', label: 'M-Pesa Payments', icon: CreditCard },

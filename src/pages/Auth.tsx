@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import Footer from '@/components/Footer';
 
 const Auth = () => {
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [stageName, setStageName] = useState('');
@@ -24,6 +25,15 @@ const Auth = () => {
   const { login, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Get referral code from URL and store it
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      localStorage.setItem('referral_code', refCode);
+      console.log('Referral code stored:', refCode);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (user) {
@@ -85,6 +95,9 @@ const Auth = () => {
     setLoading(true);
     
     try {
+      // Get referral code from localStorage
+      const referralCode = localStorage.getItem('referral_code');
+      
       // Create user account with metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -110,6 +123,46 @@ const Auth = () => {
           .eq('user_id', authData.user.id);
 
         if (profileError) throw profileError;
+
+        // Track the referral if a valid code exists
+        if (referralCode) {
+          try {
+            // Get the marketer by referral code
+            const { data: marketer } = await supabase
+              .from('marketers')
+              .select('id')
+              .eq('referral_code', referralCode)
+              .eq('is_active', true)
+              .single();
+
+            if (marketer) {
+              // Get the celebrity profile ID
+              const { data: profile } = await supabase
+                .from('celebrity_profiles')
+                .select('id')
+                .eq('user_id', authData.user.id)
+                .single();
+
+              // Record the referral
+              await supabase
+                .from('referred_users')
+                .insert({
+                  user_email: email,
+                  user_id: authData.user.id,
+                  marketer_id: marketer.id,
+                  celebrity_profile_id: profile?.id
+                });
+
+              console.log('Referral tracked successfully for marketer:', marketer.id);
+            }
+          } catch (refError) {
+            console.error('Error tracking referral:', refError);
+            // Don't fail registration if referral tracking fails
+          } finally {
+            // Clear the referral code from storage
+            localStorage.removeItem('referral_code');
+          }
+        }
 
         setRegisteredEmail(email);
         setShowVerificationModal(true);
