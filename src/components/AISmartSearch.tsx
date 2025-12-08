@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +38,39 @@ const AISmartSearch: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<SearchResult | null>(null);
   const [celebrities, setCelebrities] = useState<Celebrity[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+
+  // Fetch popular locations on mount
+  useEffect(() => {
+    const fetchPopularLocations = async () => {
+      const { data } = await supabase
+        .from('celebrity_profiles')
+        .select('location')
+        .eq('is_verified', true)
+        .not('location', 'is', null);
+
+      if (data) {
+        // Count occurrences of each location
+        const locationCounts: Record<string, number> = {};
+        data.forEach(({ location }) => {
+          if (location?.trim()) {
+            const loc = location.trim();
+            locationCounts[loc] = (locationCounts[loc] || 0) + 1;
+          }
+        });
+
+        // Sort by count and take top 6
+        const topLocations = Object.entries(locationCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 6)
+          .map(([loc]) => loc);
+
+        setSuggestions(topLocations);
+      }
+    };
+
+    fetchPopularLocations();
+  }, []);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,15 +143,6 @@ const AISmartSearch: React.FC = () => {
     return 'bg-gray-500';
   };
 
-  const suggestions = [
-    'Nairobi girl',
-    '25 years old',
-    'Available now',
-    'Mombasa',
-    'Nakuru area',
-    'Slim figure',
-    'Curvy lady',
-  ];
 
   const handleSuggestionClick = (suggestion: string) => {
     setQuery(prev => prev ? `${prev}, ${suggestion}` : suggestion);
