@@ -151,32 +151,32 @@ const AISmartSearch: React.FC = () => {
   return (
     <div className="space-y-3">
       {/* Simple Search Bar */}
-      <form onSubmit={handleSearch} className="flex gap-2">
+      <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-5 w-5 sm:h-5 sm:w-5 text-muted-foreground" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Describe your ideal match (e.g., a girl from Nakuru, 25 years old)"
-            className="pl-10 pr-10 h-12"
+            placeholder="Describe your ideal match..."
+            className="pl-10 sm:pl-12 pr-10 sm:pr-12 h-14 sm:h-14 md:h-16 text-base sm:text-lg rounded-xl"
             disabled={isSearching}
           />
           {query && (
             <button
               type="button"
               onClick={() => setQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full bg-muted hover:bg-muted-foreground/20 flex items-center justify-center transition-colors"
+              className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-muted hover:bg-muted-foreground/20 flex items-center justify-center transition-colors"
             >
-              <X className="h-3 w-3 text-muted-foreground" />
+              <X className="h-4 w-4 text-muted-foreground" />
             </button>
           )}
         </div>
-        <Button type="submit" disabled={isSearching} size="lg" className="h-12 px-6">
+        <Button type="submit" disabled={isSearching} size="lg" className="h-14 sm:h-14 md:h-16 px-6 sm:px-8 text-base sm:text-lg rounded-xl shrink-0">
           {isSearching ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <>
-              <Sparkles className="h-4 w-4 mr-2" />
+              <Sparkles className="h-5 w-5 mr-2" />
               AI Search
             </>
           )}
