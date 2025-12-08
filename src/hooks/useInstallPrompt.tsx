@@ -80,15 +80,33 @@ export const useInstallPrompt = () => {
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
 
+  const fetchUserIp = useCallback(async (): Promise<string | null> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('get-user-ip');
+      if (error) {
+        console.error('Error fetching IP:', error);
+        return null;
+      }
+      return data?.ip || null;
+    } catch (error) {
+      console.error('Failed to fetch IP:', error);
+      return null;
+    }
+  }, []);
+
   const trackInstallation = useCallback(async () => {
     try {
       const deviceInfo = parseUserAgent();
       const referralCode = localStorage.getItem('referralCode');
       
+      // Fetch user IP from edge function
+      const userIp = await fetchUserIp();
+      
       // Get user session if available
       const { data: { session } } = await supabase.auth.getSession();
       
       await supabase.from('app_installations').insert({
+        user_ip: userIp,
         user_agent: deviceInfo.userAgent,
         device_type: deviceInfo.deviceType,
         browser_name: deviceInfo.browserName,
@@ -106,11 +124,11 @@ export const useInstallPrompt = () => {
         referral_code: referralCode || null,
       });
       
-      console.log('App installation tracked successfully');
+      console.log('App installation tracked successfully with IP:', userIp);
     } catch (error) {
       console.error('Failed to track installation:', error);
     }
-  }, []);
+  }, [fetchUserIp]);
 
   useEffect(() => {
     // Check if already installed
