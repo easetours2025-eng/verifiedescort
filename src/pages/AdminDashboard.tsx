@@ -53,6 +53,7 @@ import AdminExpiredSubscriptions from '@/components/AdminExpiredSubscriptions';
 import AdminSitemapMonitoring from '@/components/AdminSitemapMonitoring';
 import AdminSubscriptionReminders from '@/components/AdminSubscriptionReminders';
 import AdminReferralManagement from '@/components/AdminReferralManagement';
+import { AdminAppInstallations } from '@/components/AdminAppInstallations';
 
 // Data Interfaces
 interface PaymentRecord {
@@ -921,6 +922,10 @@ const AdminDashboard = () => {
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">Referral Marketing</h1>
               <AdminReferralManagement />
             </div>
+          )}
+
+          {activeTab === 'app-installs' && (
+            <AdminAppInstallations />
           )}
 
           {activeTab === 'premium-support' && (
