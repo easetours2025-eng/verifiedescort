@@ -153,19 +153,28 @@ const AISmartSearch: React.FC = () => {
       {/* Simple Search Bar */}
       <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-5 w-5 sm:h-5 sm:w-5 text-muted-foreground" />
+          <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-5 w-5 sm:h-5 sm:w-5 text-muted-foreground z-10" />
+          {/* Mobile placeholder - shorter */}
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Describe your ideal match..."
-            className="pl-10 sm:pl-12 pr-10 sm:pr-12 h-14 sm:h-14 md:h-16 text-base sm:text-lg rounded-xl"
+            className="md:hidden pl-10 sm:pl-12 pr-10 sm:pr-12 h-14 sm:h-14 text-base sm:text-lg rounded-xl"
+            disabled={isSearching}
+          />
+          {/* Desktop placeholder - more detailed */}
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Describe your ideal match (e.g., a girl from Nakuru, 25 years old)"
+            className="hidden md:block pl-12 pr-12 h-16 text-lg rounded-xl"
             disabled={isSearching}
           />
           {query && (
             <button
               type="button"
               onClick={() => setQuery('')}
-              className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-muted hover:bg-muted-foreground/20 flex items-center justify-center transition-colors"
+              className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-muted hover:bg-muted-foreground/20 flex items-center justify-center transition-colors z-10"
             >
               <X className="h-4 w-4 text-muted-foreground" />
             </button>
