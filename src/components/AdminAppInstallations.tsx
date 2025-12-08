@@ -27,6 +27,12 @@ interface AppInstallation {
   installed_at: string;
   referral_code: string | null;
   device_fingerprint: string | null;
+  user_latitude: number | null;
+  user_longitude: number | null;
+  user_city: string | null;
+  user_region: string | null;
+  user_country_name: string | null;
+  location_permission_granted: boolean | null;
 }
 
 export const AdminAppInstallations = () => {
@@ -150,11 +156,11 @@ export const AdminAppInstallations = () => {
                   <TableRow>
                     <TableHead>Device</TableHead>
                     <TableHead>Device ID</TableHead>
+                    <TableHead>Location</TableHead>
                     <TableHead>IP Address</TableHead>
                     <TableHead>Browser</TableHead>
                     <TableHead>OS</TableHead>
                     <TableHead>Screen</TableHead>
-                    <TableHead>Platform</TableHead>
                     <TableHead>Referral</TableHead>
                     <TableHead>Installed At</TableHead>
                   </TableRow>
@@ -172,6 +178,20 @@ export const AdminAppInstallations = () => {
                         <code className="text-xs bg-primary/10 text-primary px-2 py-1 rounded font-mono">
                           {install.device_fingerprint || 'N/A'}
                         </code>
+                      </TableCell>
+                      <TableCell>
+                        {install.user_city || install.user_region ? (
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">{install.user_city || 'Unknown'}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {[install.user_region, install.user_country_name].filter(Boolean).join(', ')}
+                            </span>
+                          </div>
+                        ) : (
+                          <Badge variant={install.location_permission_granted ? "secondary" : "outline"} className="text-xs">
+                            {install.location_permission_granted ? 'No data' : 'Denied'}
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell>
                         <code className="text-xs bg-muted px-2 py-1 rounded">

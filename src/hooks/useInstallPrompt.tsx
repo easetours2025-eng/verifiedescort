@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { generateDeviceFingerprint, fetchUserIp } from '@/lib/device-utils';
+import { generateDeviceFingerprint, fetchUserIp, requestGeolocation } from '@/lib/device-utils';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -90,6 +90,9 @@ export const useInstallPrompt = () => {
       const userIp = await fetchUserIp();
       const deviceFingerprint = generateDeviceFingerprint();
       
+      // Request user location (user can deny)
+      const geoLocation = await requestGeolocation();
+      
       // Get user session if available
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -111,9 +114,15 @@ export const useInstallPrompt = () => {
         user_id: session?.user?.id || null,
         referral_code: referralCode || null,
         device_fingerprint: deviceFingerprint,
+        user_latitude: geoLocation.latitude,
+        user_longitude: geoLocation.longitude,
+        user_city: geoLocation.city,
+        user_region: geoLocation.region,
+        user_country_name: geoLocation.countryName,
+        location_permission_granted: geoLocation.permissionGranted,
       });
       
-      console.log('App installation tracked with fingerprint:', deviceFingerprint);
+      console.log('App installation tracked with location:', geoLocation.city);
     } catch (error) {
       console.error('Failed to track installation:', error);
     }

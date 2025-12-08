@@ -1,5 +1,14 @@
 import { supabase } from '@/integrations/supabase/client';
 
+export interface GeoLocation {
+  latitude: number | null;
+  longitude: number | null;
+  city: string | null;
+  region: string | null;
+  countryName: string | null;
+  permissionGranted: boolean;
+}
+
 export interface DeviceInfo {
   userAgent: string;
   deviceType: string;
@@ -11,6 +20,7 @@ export interface DeviceInfo {
   screenHeight: number;
   userIp: string | null;
   deviceFingerprint: string;
+  geoLocation: GeoLocation | null;
 }
 
 // Generate a simple hash from a string
@@ -163,15 +173,79 @@ export const fetchUserIp = async (): Promise<string | null> => {
   }
 };
 
-// Get complete device info including IP and fingerprint
-export const getDeviceInfo = async (): Promise<DeviceInfo> => {
+// Request geolocation permission and get coordinates
+export const requestGeolocation = (): Promise<GeoLocation> => {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve({
+        latitude: null,
+        longitude: null,
+        city: null,
+        region: null,
+        countryName: null,
+        permissionGranted: false,
+      });
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        // Try to reverse geocode using a free service
+        let city = null;
+        let region = null;
+        let countryName = null;
+        
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`,
+            { headers: { 'Accept-Language': 'en' } }
+          );
+          const data = await response.json();
+          city = data.address?.city || data.address?.town || data.address?.village || null;
+          region = data.address?.state || data.address?.county || null;
+          countryName = data.address?.country || null;
+        } catch (error) {
+          console.error('Reverse geocoding failed:', error);
+        }
+        
+        resolve({
+          latitude,
+          longitude,
+          city,
+          region,
+          countryName,
+          permissionGranted: true,
+        });
+      },
+      () => {
+        // User denied or error occurred
+        resolve({
+          latitude: null,
+          longitude: null,
+          city: null,
+          region: null,
+          countryName: null,
+          permissionGranted: false,
+        });
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+    );
+  });
+};
+
+// Get complete device info including IP, fingerprint, and optional geolocation
+export const getDeviceInfo = async (includeGeoLocation = false): Promise<DeviceInfo> => {
   const deviceInfo = parseUserAgent();
   const userIp = await fetchUserIp();
   const deviceFingerprint = generateDeviceFingerprint();
+  const geoLocation = includeGeoLocation ? await requestGeolocation() : null;
   
   return {
     ...deviceInfo,
     userIp,
     deviceFingerprint,
+    geoLocation,
   };
 };

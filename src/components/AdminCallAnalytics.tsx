@@ -33,6 +33,11 @@ interface CallClick {
   screen_width?: number;
   screen_height?: number;
   device_fingerprint?: string;
+  user_latitude?: number;
+  user_longitude?: number;
+  user_city?: string;
+  user_region?: string;
+  user_country_name?: string;
   celebrity?: {
     stage_name: string;
     profile_picture_path?: string;
@@ -493,11 +498,11 @@ const AdminCallAnalytics = () => {
                 <TableRow>
                   <TableHead>Celebrity</TableHead>
                   <TableHead>Click Date & Time</TableHead>
+                  <TableHead>Location</TableHead>
                   <TableHead>Device ID</TableHead>
                   <TableHead>User IP</TableHead>
                   <TableHead>Device</TableHead>
                   <TableHead>Browser/OS</TableHead>
-                  <TableHead>Screen</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -528,6 +533,18 @@ const AdminCallAnalytics = () => {
                             {format(new Date(click.clicked_at), 'hh:mm a')}
                           </span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {click.user_city || click.user_region ? (
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">{click.user_city || 'Unknown'}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {[click.user_region, click.user_country_name].filter(Boolean).join(', ')}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">No location</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <code className="text-xs bg-primary/10 text-primary px-2 py-1 rounded font-mono">
