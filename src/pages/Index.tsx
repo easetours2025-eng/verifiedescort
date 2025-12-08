@@ -25,7 +25,7 @@ import Footer from '@/components/Footer';
 import AISmartSearch from '@/components/AISmartSearch';
 import AgeVerificationDialog from '@/components/AgeVerificationDialog';
 import HeroSection from '@/components/HeroSection';
-import FeaturesSection from '@/components/FeaturesSection';
+
 
 const Index = () => {
   const [celebrities, setCelebrities] = useState<PublicCelebrityProfile[]>([]);
@@ -457,11 +457,8 @@ const Index = () => {
       {/* Hero Section */}
       <HeroSection user={user} celebrityCount={celebrities.length} />
 
-      {/* Features Section */}
-      <FeaturesSection />
-
       {/* AI Smart Search Section */}
-      <section className="py-6 sm:py-8" id="search-section">
+      <section className="py-4 sm:py-6" id="search-section">
         <div className="container mx-auto px-3 sm:px-4">
           <AISmartSearch />
         </div>
