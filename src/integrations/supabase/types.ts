@@ -148,6 +148,7 @@ export type Database = {
         Row: {
           browser_name: string | null
           browser_version: string | null
+          device_fingerprint: string | null
           device_type: string | null
           id: string
           installed_at: string
@@ -168,6 +169,7 @@ export type Database = {
         Insert: {
           browser_name?: string | null
           browser_version?: string | null
+          device_fingerprint?: string | null
           device_type?: string | null
           id?: string
           installed_at?: string
@@ -188,6 +190,7 @@ export type Database = {
         Update: {
           browser_name?: string | null
           browser_version?: string | null
+          device_fingerprint?: string | null
           device_type?: string | null
           id?: string
           installed_at?: string
@@ -255,6 +258,7 @@ export type Database = {
           celebrity_id: string
           clicked_at: string
           created_at: string
+          device_fingerprint: string | null
           device_type: string | null
           id: string
           is_mobile: boolean | null
@@ -271,6 +275,7 @@ export type Database = {
           celebrity_id: string
           clicked_at?: string
           created_at?: string
+          device_fingerprint?: string | null
           device_type?: string | null
           id?: string
           is_mobile?: boolean | null
@@ -287,6 +292,7 @@ export type Database = {
           celebrity_id?: string
           clicked_at?: string
           created_at?: string
+          device_fingerprint?: string | null
           device_type?: string | null
           id?: string
           is_mobile?: boolean | null
@@ -1289,6 +1295,7 @@ export type Database = {
           celebrity_id: string
           clicked_at: string
           created_at: string
+          device_fingerprint: string | null
           device_type: string | null
           id: string
           is_mobile: boolean | null
@@ -1305,6 +1312,7 @@ export type Database = {
           celebrity_id: string
           clicked_at?: string
           created_at?: string
+          device_fingerprint?: string | null
           device_type?: string | null
           id?: string
           is_mobile?: boolean | null
@@ -1321,6 +1329,7 @@ export type Database = {
           celebrity_id?: string
           clicked_at?: string
           created_at?: string
+          device_fingerprint?: string | null
           device_type?: string | null
           id?: string
           is_mobile?: boolean | null

@@ -512,6 +512,7 @@ const CelebrityProfile = () => {
           is_mobile: deviceInfo.isMobile,
           screen_width: deviceInfo.screenWidth,
           screen_height: deviceInfo.screenHeight,
+          device_fingerprint: deviceInfo.deviceFingerprint,
           clicked_at: new Date().toISOString()
         });
       } catch (error) {
@@ -549,6 +550,7 @@ const CelebrityProfile = () => {
           is_mobile: deviceInfo.isMobile,
           screen_width: deviceInfo.screenWidth,
           screen_height: deviceInfo.screenHeight,
+          device_fingerprint: deviceInfo.deviceFingerprint,
           clicked_at: new Date().toISOString()
         });
       } catch (error) {

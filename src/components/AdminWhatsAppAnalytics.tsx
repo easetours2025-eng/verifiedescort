@@ -32,6 +32,7 @@ interface WhatsAppClick {
   is_mobile?: boolean;
   screen_width?: number;
   screen_height?: number;
+  device_fingerprint?: string;
   celebrity?: {
     stage_name: string;
     profile_picture_path?: string;
@@ -492,6 +493,7 @@ const AdminWhatsAppAnalytics = () => {
                 <TableRow>
                   <TableHead>Celebrity</TableHead>
                   <TableHead>Click Date & Time</TableHead>
+                  <TableHead>Device ID</TableHead>
                   <TableHead>User IP</TableHead>
                   <TableHead>Device</TableHead>
                   <TableHead>Browser/OS</TableHead>
@@ -501,7 +503,7 @@ const AdminWhatsAppAnalytics = () => {
               <TableBody>
                 {paginatedClicks.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                       No clicks found
                     </TableCell>
                   </TableRow>
@@ -526,6 +528,11 @@ const AdminWhatsAppAnalytics = () => {
                             {format(new Date(click.clicked_at), 'hh:mm a')}
                           </span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <code className="text-xs bg-primary/10 text-primary px-2 py-1 rounded font-mono">
+                          {click.device_fingerprint || 'N/A'}
+                        </code>
                       </TableCell>
                       <TableCell>
                         <span className="text-sm font-mono">

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { generateDeviceFingerprint, fetchUserIp } from '@/lib/device-utils';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -80,27 +81,14 @@ export const useInstallPrompt = () => {
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
 
-  const fetchUserIp = useCallback(async (): Promise<string | null> => {
-    try {
-      const { data, error } = await supabase.functions.invoke('get-user-ip');
-      if (error) {
-        console.error('Error fetching IP:', error);
-        return null;
-      }
-      return data?.ip || null;
-    } catch (error) {
-      console.error('Failed to fetch IP:', error);
-      return null;
-    }
-  }, []);
-
   const trackInstallation = useCallback(async () => {
     try {
       const deviceInfo = parseUserAgent();
       const referralCode = localStorage.getItem('referralCode');
       
-      // Fetch user IP from edge function
+      // Fetch user IP from edge function and generate fingerprint
       const userIp = await fetchUserIp();
+      const deviceFingerprint = generateDeviceFingerprint();
       
       // Get user session if available
       const { data: { session } } = await supabase.auth.getSession();
@@ -122,13 +110,14 @@ export const useInstallPrompt = () => {
         is_tablet: deviceInfo.isTablet,
         user_id: session?.user?.id || null,
         referral_code: referralCode || null,
+        device_fingerprint: deviceFingerprint,
       });
       
-      console.log('App installation tracked successfully with IP:', userIp);
+      console.log('App installation tracked with fingerprint:', deviceFingerprint);
     } catch (error) {
       console.error('Failed to track installation:', error);
     }
-  }, [fetchUserIp]);
+  }, []);
 
   useEffect(() => {
     // Check if already installed
