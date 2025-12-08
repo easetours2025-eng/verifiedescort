@@ -110,8 +110,22 @@ const AISmartSearch: React.FC = () => {
     return 'bg-gray-500';
   };
 
+  const suggestions = [
+    'Nairobi girl',
+    '25 years old',
+    'Available now',
+    'Mombasa',
+    'Nakuru area',
+    'Slim figure',
+    'Curvy lady',
+  ];
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setQuery(prev => prev ? `${prev}, ${suggestion}` : suggestion);
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Simple Search Bar */}
       <form onSubmit={handleSearch} className="flex gap-2">
         <div className="relative flex-1">
@@ -135,6 +149,20 @@ const AISmartSearch: React.FC = () => {
           )}
         </Button>
       </form>
+
+      {/* Quick Suggestion Chips */}
+      <div className="flex flex-wrap gap-2">
+        {suggestions.map((suggestion) => (
+          <button
+            key={suggestion}
+            type="button"
+            onClick={() => handleSuggestionClick(suggestion)}
+            className="px-3 py-1.5 text-sm rounded-full border border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/50 transition-colors"
+          >
+            {suggestion}
+          </button>
+        ))}
+      </div>
 
       {/* Search Summary */}
       {results?.searchSummary && (
