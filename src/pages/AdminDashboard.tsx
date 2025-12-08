@@ -52,6 +52,7 @@ import AdminCallAnalytics from '@/components/AdminCallAnalytics';
 import AdminExpiredSubscriptions from '@/components/AdminExpiredSubscriptions';
 import AdminSitemapMonitoring from '@/components/AdminSitemapMonitoring';
 import AdminSubscriptionReminders from '@/components/AdminSubscriptionReminders';
+import AdminReferralManagement from '@/components/AdminReferralManagement';
 
 // Data Interfaces
 interface PaymentRecord {
@@ -913,6 +914,13 @@ const AdminDashboard = () => {
 
           {activeTab === 'subscription-reminders' && (
             <AdminSubscriptionReminders />
+          )}
+
+          {activeTab === 'referrals' && (
+            <div className="space-y-4 sm:space-y-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">Referral Marketing</h1>
+              <AdminReferralManagement />
+            </div>
           )}
 
           {activeTab === 'premium-support' && (

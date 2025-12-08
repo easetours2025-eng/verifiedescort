@@ -572,6 +572,36 @@ export type Database = {
         }
         Relationships: []
       }
+      marketers: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          is_active: boolean | null
+          name: string
+          referral_code: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          referral_code: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          referral_code?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       media_likes: {
         Row: {
           created_at: string
@@ -836,6 +866,51 @@ export type Database = {
             columns: ["celebrity_id"]
             isOneToOne: false
             referencedRelation: "celebrity_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referred_users: {
+        Row: {
+          celebrity_profile_id: string | null
+          created_at: string | null
+          id: string
+          joined_at: string | null
+          marketer_id: string
+          user_email: string
+          user_id: string | null
+        }
+        Insert: {
+          celebrity_profile_id?: string | null
+          created_at?: string | null
+          id?: string
+          joined_at?: string | null
+          marketer_id: string
+          user_email: string
+          user_id?: string | null
+        }
+        Update: {
+          celebrity_profile_id?: string | null
+          created_at?: string | null
+          id?: string
+          joined_at?: string | null
+          marketer_id?: string
+          user_email?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referred_users_celebrity_profile_id_fkey"
+            columns: ["celebrity_profile_id"]
+            isOneToOne: false
+            referencedRelation: "celebrity_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referred_users_marketer_id_fkey"
+            columns: ["marketer_id"]
+            isOneToOne: false
+            referencedRelation: "marketers"
             referencedColumns: ["id"]
           },
         ]
@@ -1167,6 +1242,10 @@ export type Database = {
         Args: { celebrity_profile_id: string }
         Returns: Json
       }
+      generate_referral_code: {
+        Args: { marketer_name: string }
+        Returns: string
+      }
       get_admin_video_like_count: {
         Args: { video_uuid: string }
         Returns: number
@@ -1240,6 +1319,18 @@ export type Database = {
         Returns: {
           average_rating: number
           total_reviews: number
+        }[]
+      }
+      get_marketer_referral_stats: {
+        Args: never
+        Returns: {
+          created_at: string
+          is_active: boolean
+          marketer_email: string
+          marketer_id: string
+          marketer_name: string
+          referral_code: string
+          total_referrals: number
         }[]
       }
       get_media_like_count: { Args: { media_uuid: string }; Returns: number }
