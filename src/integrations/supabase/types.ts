@@ -144,6 +144,69 @@ export type Database = {
         }
         Relationships: []
       }
+      app_installations: {
+        Row: {
+          browser_name: string | null
+          browser_version: string | null
+          device_type: string | null
+          id: string
+          installed_at: string
+          is_mobile: boolean | null
+          is_tablet: boolean | null
+          language: string | null
+          os_name: string | null
+          os_version: string | null
+          platform: string | null
+          referral_code: string | null
+          screen_height: number | null
+          screen_width: number | null
+          timezone: string | null
+          user_agent: string | null
+          user_id: string | null
+          user_ip: string | null
+        }
+        Insert: {
+          browser_name?: string | null
+          browser_version?: string | null
+          device_type?: string | null
+          id?: string
+          installed_at?: string
+          is_mobile?: boolean | null
+          is_tablet?: boolean | null
+          language?: string | null
+          os_name?: string | null
+          os_version?: string | null
+          platform?: string | null
+          referral_code?: string | null
+          screen_height?: number | null
+          screen_width?: number | null
+          timezone?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          user_ip?: string | null
+        }
+        Update: {
+          browser_name?: string | null
+          browser_version?: string | null
+          device_type?: string | null
+          id?: string
+          installed_at?: string
+          is_mobile?: boolean | null
+          is_tablet?: boolean | null
+          language?: string | null
+          os_name?: string | null
+          os_version?: string | null
+          platform?: string | null
+          referral_code?: string | null
+          screen_height?: number | null
+          screen_width?: number | null
+          timezone?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          user_ip?: string | null
+        }
+        Relationships: []
+      }
       auto_unverify_logs: {
         Row: {
           celebrities_unverified: number | null
