@@ -21,6 +21,7 @@ import {
   isPrivateProfile 
 } from '@/lib/celebrity-utils';
 import { generateCelebrityProfileKeywords, updateMetaKeywords } from '@/lib/seo-utils';
+import { getDeviceInfo } from '@/lib/device-utils';
 import NavigationHeader from '@/components/NavigationHeader';
 import PayPalPayment from '@/components/PayPalPayment';
 import Footer from '@/components/Footer';
@@ -496,12 +497,21 @@ const CelebrityProfile = () => {
 
 
   const handleContact = async () => {
-    // Record the call click
+    // Record the call click with device info
     if (profile) {
       try {
+        const deviceInfo = await getDeviceInfo();
         await supabase.from('call_clicks').insert({
           celebrity_id: profile.id,
-          user_ip: null,
+          user_ip: deviceInfo.userIp,
+          user_agent: deviceInfo.userAgent,
+          device_type: deviceInfo.deviceType,
+          browser_name: deviceInfo.browserName,
+          os_name: deviceInfo.osName,
+          platform: deviceInfo.platform,
+          is_mobile: deviceInfo.isMobile,
+          screen_width: deviceInfo.screenWidth,
+          screen_height: deviceInfo.screenHeight,
           clicked_at: new Date().toISOString()
         });
       } catch (error) {
@@ -525,11 +535,20 @@ const CelebrityProfile = () => {
   const handleWhatsApp = async () => {
     // Check if profile has a phone number
     if (profile && (profile as any).phone_number) {
-      // Record the WhatsApp click
+      // Record the WhatsApp click with device info
       try {
+        const deviceInfo = await getDeviceInfo();
         await supabase.from('whatsapp_clicks').insert({
           celebrity_id: profile.id,
-          user_ip: null, // Will be handled by backend if needed
+          user_ip: deviceInfo.userIp,
+          user_agent: deviceInfo.userAgent,
+          device_type: deviceInfo.deviceType,
+          browser_name: deviceInfo.browserName,
+          os_name: deviceInfo.osName,
+          platform: deviceInfo.platform,
+          is_mobile: deviceInfo.isMobile,
+          screen_width: deviceInfo.screenWidth,
+          screen_height: deviceInfo.screenHeight,
           clicked_at: new Date().toISOString()
         });
       } catch (error) {

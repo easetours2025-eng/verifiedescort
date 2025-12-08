@@ -251,26 +251,50 @@ export type Database = {
       }
       call_clicks: {
         Row: {
+          browser_name: string | null
           celebrity_id: string
           clicked_at: string
           created_at: string
+          device_type: string | null
           id: string
+          is_mobile: boolean | null
+          os_name: string | null
+          platform: string | null
+          screen_height: number | null
+          screen_width: number | null
+          user_agent: string | null
           user_id: string | null
           user_ip: string | null
         }
         Insert: {
+          browser_name?: string | null
           celebrity_id: string
           clicked_at?: string
           created_at?: string
+          device_type?: string | null
           id?: string
+          is_mobile?: boolean | null
+          os_name?: string | null
+          platform?: string | null
+          screen_height?: number | null
+          screen_width?: number | null
+          user_agent?: string | null
           user_id?: string | null
           user_ip?: string | null
         }
         Update: {
+          browser_name?: string | null
           celebrity_id?: string
           clicked_at?: string
           created_at?: string
+          device_type?: string | null
           id?: string
+          is_mobile?: boolean | null
+          os_name?: string | null
+          platform?: string | null
+          screen_height?: number | null
+          screen_width?: number | null
+          user_agent?: string | null
           user_id?: string | null
           user_ip?: string | null
         }
@@ -1261,26 +1285,50 @@ export type Database = {
       }
       whatsapp_clicks: {
         Row: {
+          browser_name: string | null
           celebrity_id: string
           clicked_at: string
           created_at: string
+          device_type: string | null
           id: string
+          is_mobile: boolean | null
+          os_name: string | null
+          platform: string | null
+          screen_height: number | null
+          screen_width: number | null
+          user_agent: string | null
           user_id: string | null
           user_ip: string | null
         }
         Insert: {
+          browser_name?: string | null
           celebrity_id: string
           clicked_at?: string
           created_at?: string
+          device_type?: string | null
           id?: string
+          is_mobile?: boolean | null
+          os_name?: string | null
+          platform?: string | null
+          screen_height?: number | null
+          screen_width?: number | null
+          user_agent?: string | null
           user_id?: string | null
           user_ip?: string | null
         }
         Update: {
+          browser_name?: string | null
           celebrity_id?: string
           clicked_at?: string
           created_at?: string
+          device_type?: string | null
           id?: string
+          is_mobile?: boolean | null
+          os_name?: string | null
+          platform?: string | null
+          screen_height?: number | null
+          screen_width?: number | null
+          user_agent?: string | null
           user_id?: string | null
           user_ip?: string | null
         }

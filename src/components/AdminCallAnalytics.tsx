@@ -24,6 +24,14 @@ interface CallClick {
   clicked_at: string;
   user_id?: string;
   user_ip?: string;
+  user_agent?: string;
+  device_type?: string;
+  browser_name?: string;
+  os_name?: string;
+  platform?: string;
+  is_mobile?: boolean;
+  screen_width?: number;
+  screen_height?: number;
   celebrity?: {
     stage_name: string;
     profile_picture_path?: string;
@@ -485,13 +493,15 @@ const AdminCallAnalytics = () => {
                   <TableHead>Celebrity</TableHead>
                   <TableHead>Click Date & Time</TableHead>
                   <TableHead>User IP</TableHead>
-                  <TableHead>User ID</TableHead>
+                  <TableHead>Device</TableHead>
+                  <TableHead>Browser/OS</TableHead>
+                  <TableHead>Screen</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedClicks.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       No clicks found
                     </TableCell>
                   </TableRow>
@@ -523,12 +533,30 @@ const AdminCallAnalytics = () => {
                         </span>
                       </TableCell>
                       <TableCell>
-                        {click.user_id ? (
-                          <span className="text-xs font-mono text-muted-foreground">
-                            {click.user_id.substring(0, 8)}...
+                        <div className="flex flex-col">
+                          <Badge variant={click.is_mobile ? "default" : "secondary"} className="w-fit text-xs">
+                            {click.device_type || 'Unknown'}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground mt-1">
+                            {click.platform || 'N/A'}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col text-sm">
+                          <span>{click.browser_name || 'N/A'}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {click.os_name || 'N/A'}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {click.screen_width && click.screen_height ? (
+                          <span className="text-xs font-mono">
+                            {click.screen_width}×{click.screen_height}
                           </span>
                         ) : (
-                          <span className="text-muted-foreground text-sm">Anonymous</span>
+                          <span className="text-muted-foreground text-sm">N/A</span>
                         )}
                       </TableCell>
                     </TableRow>
