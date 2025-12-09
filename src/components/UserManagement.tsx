@@ -4,13 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { UserPlus, Users } from "lucide-react";
+import { 
+  UserPlus, 
+  User, 
+  Phone, 
+  Mail, 
+  MapPin, 
+  Calendar, 
+  DollarSign, 
+  Instagram, 
+  Twitter,
+  Save,
+  X,
+  Lock
+} from "lucide-react";
 import { GenderSelect } from "@/components/GenderSelect";
 import { CountrySelect } from "@/components/CountrySelect";
+import AIBioGenerator from "@/components/AIBioGenerator";
 
 interface UserManagementProps {
   onUserCreated: () => void;
@@ -140,192 +153,273 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
           <span>Create New User</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <Users className="h-5 w-5" />
+          <DialogTitle className="flex items-center justify-between">
             <span>Create New Celebrity User</span>
+            <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
+              <X className="h-4 w-4" />
+            </Button>
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleCreateUser} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Required Fields */}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-            </div>
+        <form onSubmit={handleCreateUser}>
+          {/* Profile Information Card - Same layout as CelebrityProfileEditor */}
+          <Card className="max-w-full overflow-hidden">
+            <CardHeader className="pb-3 sm:pb-6 px-4 sm:px-6 pt-4 sm:pt-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-xl">
+                <User className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+                <span className="truncate">Profile Information</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 max-w-full overflow-hidden">
+              <div className="space-y-4 sm:space-y-6 max-w-full">
+                {/* Account Credentials */}
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardHeader className="py-3">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      <Lock className="h-4 w-4" />
+                      Account Credentials
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="py-0 pb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                        <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                          <Mail className="h-4 w-4 shrink-0" />
+                          <span>Email *</span>
+                        </Label>
+                        <Input
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          placeholder="email@example.com"
+                          required
+                          className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                        />
+                      </div>
+                      <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                        <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                          <Lock className="h-4 w-4 shrink-0" />
+                          <span>Password *</span>
+                        </Label>
+                        <Input
+                          type="password"
+                          value={formData.password}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                          placeholder="Min 6 characters"
+                          required
+                          minLength={6}
+                          className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password *</Label>
-              <Input
-                id="password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-                minLength={6}
-              />
-            </div>
+                {/* Stage Name and Real Name */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
+                  <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                    <Label className="text-sm sm:text-sm font-medium">Stage Name *</Label>
+                    <Input
+                      value={formData.stage_name}
+                      onChange={(e) => setFormData({ ...formData, stage_name: e.target.value })}
+                      required
+                      className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                    <Label className="text-sm sm:text-sm font-medium">Real Name</Label>
+                    <Input
+                      value={formData.real_name}
+                      onChange={(e) => setFormData({ ...formData, real_name: e.target.value })}
+                      className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                    />
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="stage_name">Stage Name *</Label>
-              <Input
-                id="stage_name"
-                value={formData.stage_name}
-                onChange={(e) => setFormData({ ...formData, stage_name: e.target.value })}
-                required
-              />
-            </div>
+                {/* Bio */}
+                <div className="space-y-1.5 sm:space-y-2 max-w-full">
+                  <Label className="text-sm sm:text-sm font-medium">Bio</Label>
+                  <Textarea
+                    value={formData.bio}
+                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    rows={3}
+                    placeholder="Tell people about yourself..."
+                    className="text-sm sm:text-base resize-none min-h-[80px] w-full"
+                  />
+                  <p className="text-xs sm:text-xs text-muted-foreground break-words">
+                    Write an engaging bio or use AI to generate one below.
+                  </p>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="real_name">Real Name</Label>
-              <Input
-                id="real_name"
-                value={formData.real_name}
-                onChange={(e) => setFormData({ ...formData, real_name: e.target.value })}
-              />
-            </div>
+                {/* AI Bio Generator */}
+                <div className="max-w-full">
+                  <AIBioGenerator 
+                    onBioGenerated={(bio) => setFormData({ ...formData, bio })}
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone_number">Phone Number</Label>
-              <Input
-                id="phone_number"
-                value={formData.phone_number}
-                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                placeholder="254XXXXXXXXX"
-              />
-            </div>
+                {/* Location and Country */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
+                  <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                    <Label className="text-sm sm:text-sm font-medium">Location (City)</Label>
+                    <Input
+                      value={formData.location}
+                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                      placeholder="City"
+                      className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                    <CountrySelect
+                      value={formData.country}
+                      onChange={(country) => setFormData({ ...formData, country })}
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:space-y-2 min-w-0 sm:col-span-2">
+                    <GenderSelect
+                      value={formData.gender}
+                      onChange={(genders) => setFormData({ ...formData, gender: genders })}
+                    />
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="e.g., Nairobi"
-              />
-            </div>
+                {/* Age and Phone Number */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
+                  <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                    <Label className="text-sm sm:text-sm font-medium">Age *</Label>
+                    <Input
+                      type="number"
+                      min="18"
+                      max="100"
+                      value={formData.age}
+                      onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                      placeholder="25"
+                      className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                    />
+                    <p className="text-xs sm:text-xs text-muted-foreground">18+ only</p>
+                  </div>
+                  <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                    <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                      <Phone className="h-4 w-4 shrink-0" />
+                      <span>Phone Number</span>
+                    </Label>
+                    <Input
+                      type="tel"
+                      value={formData.phone_number}
+                      onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                      placeholder="+254..."
+                      className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                    />
+                  </div>
+                </div>
 
-            <div className="space-y-2 md:col-span-2">
-              <CountrySelect
-                value={formData.country}
-                onChange={(country) => setFormData({ ...formData, country })}
-              />
-            </div>
+                {/* Date of Birth */}
+                <div className="space-y-1.5 sm:space-y-2 max-w-full">
+                  <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                    <Calendar className="h-4 w-4 shrink-0" />
+                    <span>Date of Birth</span>
+                  </Label>
+                  <Input
+                    type="date"
+                    value={formData.date_of_birth}
+                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                    className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                  />
+                </div>
 
-            <div className="space-y-2 md:col-span-2">
-              <GenderSelect
-                value={formData.gender}
-                onChange={(genders) => setFormData({ ...formData, gender: genders })}
-              />
-            </div>
+                {/* Base Price and Hourly Rate */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
+                  <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                    <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                      <DollarSign className="h-4 w-4 shrink-0" />
+                      <span>Base Price (KSH)</span>
+                    </Label>
+                    <Input
+                      type="number"
+                      value={formData.base_price}
+                      onChange={(e) => setFormData({ ...formData, base_price: e.target.value })}
+                      min="0"
+                      className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                    <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                      <DollarSign className="h-4 w-4 shrink-0" />
+                      <span>Hourly Rate (KSH)</span>
+                    </Label>
+                    <Input
+                      type="number"
+                      value={formData.hourly_rate}
+                      onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
+                      min="0"
+                      className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                    />
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="age">Age</Label>
-              <Input
-                id="age"
-                type="number"
-                value={formData.age}
-                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                min="18"
-                max="100"
-              />
-            </div>
+                {/* Social Media */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
+                  <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                    <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                      <Instagram className="h-4 w-4 shrink-0" />
+                      <span>Instagram</span>
+                    </Label>
+                    <Input
+                      value={formData.social_instagram}
+                      onChange={(e) => setFormData({ ...formData, social_instagram: e.target.value })}
+                      placeholder="@username"
+                      className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                    <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                      <Twitter className="h-4 w-4 shrink-0" />
+                      <span>Twitter</span>
+                    </Label>
+                    <Input
+                      value={formData.social_twitter}
+                      onChange={(e) => setFormData({ ...formData, social_twitter: e.target.value })}
+                      placeholder="@username"
+                      className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                    />
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="date_of_birth">Date of Birth</Label>
-              <Input
-                id="date_of_birth"
-                type="date"
-                value={formData.date_of_birth}
-                onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
-              />
-            </div>
+                {/* TikTok */}
+                <div className="space-y-1.5 sm:space-y-2 max-w-full">
+                  <Label className="text-sm sm:text-sm font-medium">TikTok</Label>
+                  <Input
+                    value={formData.social_tiktok}
+                    onChange={(e) => setFormData({ ...formData, social_tiktok: e.target.value })}
+                    placeholder="@username"
+                    className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="base_price">Base Price ($)</Label>
-              <Input
-                id="base_price"
-                type="number"
-                value={formData.base_price}
-                onChange={(e) => setFormData({ ...formData, base_price: e.target.value })}
-                min="0"
-                step="0.01"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="hourly_rate">Hourly Rate ($)</Label>
-              <Input
-                id="hourly_rate"
-                type="number"
-                value={formData.hourly_rate}
-                onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
-                min="0"
-                step="0.01"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
-            <Textarea
-              id="bio"
-              value={formData.bio}
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              placeholder="Tell us about this celebrity..."
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="font-semibold text-sm">Social Media Links (Optional)</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="social_instagram">Instagram</Label>
-                <Input
-                  id="social_instagram"
-                  value={formData.social_instagram}
-                  onChange={(e) => setFormData({ ...formData, social_instagram: e.target.value })}
-                  placeholder="@username"
-                />
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsOpen(false)}
+                    className="w-full sm:w-auto"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={loading} 
+                    className="w-full sm:flex-1 h-10 sm:h-11 text-sm sm:text-base"
+                  >
+                    <Save className="h-4 w-4 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                    {loading ? 'Creating...' : 'Create User'}
+                  </Button>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="social_twitter">Twitter</Label>
-                <Input
-                  id="social_twitter"
-                  value={formData.social_twitter}
-                  onChange={(e) => setFormData({ ...formData, social_twitter: e.target.value })}
-                  placeholder="@username"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="social_tiktok">TikTok</Label>
-                <Input
-                  id="social_tiktok"
-                  value={formData.social_tiktok}
-                  onChange={(e) => setFormData({ ...formData, social_tiktok: e.target.value })}
-                  placeholder="@username"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create User"}
-            </Button>
-          </div>
+            </CardContent>
+          </Card>
         </form>
       </DialogContent>
     </Dialog>
