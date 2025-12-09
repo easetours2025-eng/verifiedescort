@@ -79,20 +79,25 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
           // Update progress
           setUploadProgress(prev => ({ ...prev, [fileId]: 10 }));
 
-          // Generate unique file name
+          // Generate unique file name - just the filename, no folder path since bucket handles it
           const fileExt = file.name.split('.').pop();
           const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-          const filePath = `admin-videos/${fileName}`;
 
           // Update progress
           setUploadProgress(prev => ({ ...prev, [fileId]: 30 }));
 
-          // Upload video to storage
+          // Upload video to storage - use just fileName, not a nested path
           const { data: uploadData, error: uploadError } = await supabase.storage
             .from('admin-videos')
-            .upload(filePath, file);
+            .upload(fileName, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
 
-          if (uploadError) throw uploadError;
+          if (uploadError) {
+            console.error('Storage upload error:', uploadError);
+            throw new Error(uploadError.message || 'Failed to upload to storage');
+          }
 
           // Update progress
           setUploadProgress(prev => ({ ...prev, [fileId]: 70 }));
@@ -100,7 +105,7 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
           // Get the public URL for the uploaded video
           const { data: urlData } = supabase.storage
             .from('admin-videos')
-            .getPublicUrl(filePath);
+            .getPublicUrl(fileName);
 
           // Get admin email from localStorage
           const adminSession = localStorage.getItem('admin_session');
