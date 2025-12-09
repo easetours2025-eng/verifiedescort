@@ -191,6 +191,7 @@ const CelebrityProfileEditor = ({ open, onOpenChange, celebrityId, onSave }: Cel
             age: profile.age,
             date_of_birth: profile.date_of_birth,
             gender: profile.gender,
+            profile_picture_path: profile.profile_picture_path,
             social_instagram: profile.social_instagram,
             social_twitter: profile.social_twitter,
             social_tiktok: profile.social_tiktok,
