@@ -116,25 +116,32 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
           const adminEmail = adminData.email;
 
           // Save video metadata via edge function
-          const response = await fetch(
-            `https://kpjqcrhoablsllkgonbl.supabase.co/functions/v1/admin-video-operations`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                action: 'upload',
-                filePath: urlData.publicUrl,
-                isActive: formData.isActive,
-                adminEmail: adminEmail
-              }),
-            }
-          );
+          console.log('Calling edge function with:', {
+            action: 'upload',
+            filePath: urlData.publicUrl,
+            isActive: formData.isActive,
+            adminEmail: adminEmail
+          });
 
-          const result = await response.json();
-          if (!result.success) {
-            throw new Error(result.message || 'Failed to save video metadata');
+          const response = await supabase.functions.invoke('admin-video-operations', {
+            body: {
+              action: 'upload',
+              filePath: urlData.publicUrl,
+              isActive: formData.isActive,
+              adminEmail: adminEmail
+            }
+          });
+
+          console.log('Edge function response:', response);
+
+          if (response.error) {
+            console.error('Edge function error:', response.error);
+            throw new Error(response.error.message || 'Failed to save video metadata');
+          }
+
+          if (!response.data?.success) {
+            console.error('Edge function returned failure:', response.data);
+            throw new Error(response.data?.message || 'Failed to save video metadata');
           }
 
           // Update progress to complete
@@ -142,6 +149,7 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
           successCount++;
 
         } catch (error: any) {
+          console.error('Upload error for file:', file.name, error);
           failCount++;
           setUploadProgress(prev => ({ ...prev, [fileId]: -1 })); // Mark as failed
         }
