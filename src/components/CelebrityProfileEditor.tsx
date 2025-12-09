@@ -7,10 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { GenderSelect } from '@/components/GenderSelect';
 import { CountrySelect } from '@/components/CountrySelect';
+import AIBioGenerator from '@/components/AIBioGenerator';
+import ProfilePictureUpload from './ProfilePictureUpload';
 import { 
   Save, 
   Upload, 
@@ -27,7 +30,6 @@ import {
   Twitter,
   X
 } from 'lucide-react';
-import ProfilePictureUpload from './ProfilePictureUpload';
 
 interface CelebrityProfile {
   id: string;
@@ -98,14 +100,12 @@ const CelebrityProfileEditor = ({ open, onOpenChange, celebrityId, onSave }: Cel
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      // First try to fetch by celebrity profile id
       let { data, error } = await supabase
         .from('celebrity_profiles')
         .select('*')
         .eq('id', celebrityId)
         .maybeSingle();
 
-      // If not found by id, try by user_id (in case celebrityId is actually a user_id)
       if (!data && !error) {
         const result = await supabase
           .from('celebrity_profiles')
@@ -167,13 +167,11 @@ const CelebrityProfileEditor = ({ open, onOpenChange, celebrityId, onSave }: Cel
 
     setSaving(true);
     try {
-      // Get admin email
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user?.email) {
         throw new Error("Admin session expired. Please sign in again.");
       }
 
-      // Use admin-data edge function to update profile
       const response = await fetch(`https://kpjqcrhoablsllkgonbl.supabase.co/functions/v1/admin-data`, {
         method: 'POST',
         headers: {
@@ -240,14 +238,12 @@ const CelebrityProfileEditor = ({ open, onOpenChange, celebrityId, onSave }: Cel
         const fileName = `${celebrityId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
         const filePath = fileName;
 
-        // Upload to Supabase Storage
         const { error: uploadError } = await supabase.storage
           .from('celebrity-photos')
           .upload(filePath, file);
 
         if (uploadError) throw uploadError;
 
-        // Create media record
         const { error: insertError } = await supabase
           .from('celebrity_media')
           .insert({
@@ -280,14 +276,12 @@ const CelebrityProfileEditor = ({ open, onOpenChange, celebrityId, onSave }: Cel
 
   const handleDeleteMedia = async (mediaId: string, filePath: string) => {
     try {
-      // Delete from storage
       const { error: storageError } = await supabase.storage
         .from('celebrity-photos')
         .remove([filePath]);
 
       if (storageError) throw storageError;
 
-      // Delete record
       const { error: deleteError } = await supabase
         .from('celebrity_media')
         .delete()
@@ -428,205 +422,259 @@ const CelebrityProfileEditor = ({ open, onOpenChange, celebrityId, onSave }: Cel
           </TabsList>
 
           <TabsContent value="profile" className="space-y-4 mt-4">
-            {/* Profile Picture */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Profile Picture</CardTitle>
+            {/* Profile Information Card - Same layout as user dashboard */}
+            <Card className="max-w-full overflow-hidden">
+              <CardHeader className="pb-3 sm:pb-6 px-4 sm:px-6 pt-4 sm:pt-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-xl">
+                  <User className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+                  <span className="truncate">Profile Information</span>
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <ProfilePictureUpload
-                  profileId={celebrityId}
-                  currentImagePath={profile.profile_picture_path}
-                  onUpload={(imagePath) => {
-                    setProfile({ ...profile, profile_picture_path: imagePath });
-                    fetchProfile();
-                  }}
-                  initials={profile.stage_name.charAt(0).toUpperCase()}
-                />
-              </CardContent>
-            </Card>
+              <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 max-w-full overflow-hidden">
+                <div className="space-y-4 sm:space-y-6 max-w-full">
+                  {/* Stage Name and Real Name */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                      <Label className="text-sm sm:text-sm font-medium">Stage Name *</Label>
+                      <Input
+                        value={profile.stage_name}
+                        onChange={(e) => setProfile({ ...profile, stage_name: e.target.value })}
+                        required
+                        className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                      />
+                    </div>
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                      <Label className="text-sm sm:text-sm font-medium">Real Name</Label>
+                      <Input
+                        value={profile.real_name || ''}
+                        onChange={(e) => setProfile({ ...profile, real_name: e.target.value })}
+                        className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                      />
+                    </div>
+                  </div>
 
-            {/* Basic Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Basic Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Stage Name *</Label>
-                    <Input
-                      value={profile.stage_name}
-                      onChange={(e) => setProfile({ ...profile, stage_name: e.target.value })}
+                  {/* Bio */}
+                  <div className="space-y-1.5 sm:space-y-2 max-w-full">
+                    <Label className="text-sm sm:text-sm font-medium">Bio</Label>
+                    <Textarea
+                      value={profile.bio || ''}
+                      onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                      rows={3}
+                      placeholder="Tell people about yourself..."
+                      className="text-sm sm:text-base resize-none min-h-[80px] w-full"
+                    />
+                    <p className="text-xs sm:text-xs text-muted-foreground break-words">
+                      Write an engaging bio or use AI to generate one below.
+                    </p>
+                  </div>
+
+                  {/* AI Bio Generator */}
+                  <div className="max-w-full">
+                    <AIBioGenerator 
+                      onBioGenerated={(bio) => setProfile({ ...profile, bio })}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Real Name</Label>
-                    <Input
-                      value={profile.real_name || ''}
-                      onChange={(e) => setProfile({ ...profile, real_name: e.target.value })}
-                    />
+
+                  {/* Location and Country */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                      <Label className="text-sm sm:text-sm font-medium">Location (City)</Label>
+                      <Input
+                        value={profile.location || ''}
+                        onChange={(e) => setProfile({ ...profile, location: e.target.value })}
+                        placeholder="City"
+                        className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                      />
+                    </div>
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                      <CountrySelect
+                        value={profile.country || ''}
+                        onChange={(country) => setProfile({ ...profile, country })}
+                      />
+                    </div>
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0 sm:col-span-2">
+                      <GenderSelect
+                        value={profile.gender || []}
+                        onChange={(genders) => setProfile({ ...profile, gender: genders })}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label>Bio</Label>
-                  <Textarea
-                    value={profile.bio || ''}
-                    onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                    rows={4}
-                  />
-                </div>
+                  {/* Age and Profile Picture */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                      <Label className="text-sm sm:text-sm font-medium">Age *</Label>
+                      <Input
+                        type="number"
+                        min="18"
+                        max="100"
+                        value={profile.age || 18}
+                        onChange={(e) => setProfile({ ...profile, age: parseInt(e.target.value) || 18 })}
+                        placeholder="25"
+                        required
+                        className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                      />
+                      <p className="text-xs sm:text-xs text-muted-foreground">18+ only</p>
+                    </div>
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                      <Label className="text-sm sm:text-sm font-medium">Profile Picture</Label>
+                      <ProfilePictureUpload
+                        profileId={profile.id}
+                        currentImagePath={profile.profile_picture_path}
+                        onUpload={(imagePath) => {
+                          setProfile({ ...profile, profile_picture_path: imagePath });
+                          fetchProfile();
+                        }}
+                        initials={profile.stage_name.charAt(0).toUpperCase()}
+                      />
+                    </div>
+                  </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Email</Label>
-                    <div className="flex items-center space-x-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
+                  {/* Email and Phone Number */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                      <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                        <Mail className="h-4 w-4 shrink-0" />
+                        <span>Email</span>
+                      </Label>
                       <Input
                         type="email"
                         value={profile.email || ''}
                         onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                        placeholder="email@example.com"
+                        className="text-sm sm:text-base h-10 sm:h-10 w-full"
                       />
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Phone Number</Label>
-                    <div className="flex items-center space-x-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                      <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                        <Phone className="h-4 w-4 shrink-0" />
+                        <span>Phone Number</span>
+                      </Label>
                       <Input
+                        type="tel"
                         value={profile.phone_number || ''}
                         onChange={(e) => setProfile({ ...profile, phone_number: e.target.value })}
-                        placeholder="254XXXXXXXXX"
+                        placeholder="+254..."
+                        className="text-sm sm:text-base h-10 sm:h-10 w-full"
                       />
                     </div>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Location</Label>
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <Input
-                        value={profile.location || ''}
-                        onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Age</Label>
-                    <Input
-                      type="number"
-                      value={profile.age || ''}
-                      onChange={(e) => setProfile({ ...profile, age: parseInt(e.target.value) || undefined })}
-                      min="18"
-                      max="100"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Date of Birth</Label>
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                  {/* Date of Birth */}
+                  <div className="space-y-1.5 sm:space-y-2 max-w-full">
+                    <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                      <Calendar className="h-4 w-4 shrink-0" />
+                      <span>Date of Birth</span>
+                    </Label>
                     <Input
                       type="date"
                       value={profile.date_of_birth || ''}
                       onChange={(e) => setProfile({ ...profile, date_of_birth: e.target.value })}
+                      className="text-sm sm:text-base h-10 sm:h-10 w-full"
                     />
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <GenderSelect
-                    value={profile.gender || []}
-                    onChange={(genders) => setProfile({ ...profile, gender: genders })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <CountrySelect
-                    value={profile.country || ''}
-                    onChange={(country) => setProfile({ ...profile, country })}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Base Price (KSH)</Label>
-                    <div className="flex items-center space-x-2">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  {/* Base Price and Hourly Rate */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                      <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                        <DollarSign className="h-4 w-4 shrink-0" />
+                        <span>Base Price (KSH)</span>
+                      </Label>
                       <Input
                         type="number"
                         value={profile.base_price || 0}
                         onChange={(e) => setProfile({ ...profile, base_price: parseFloat(e.target.value) || 0 })}
                         min="0"
+                        className="text-sm sm:text-base h-10 sm:h-10 w-full"
                       />
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Hourly Rate (KSH)</Label>
-                    <div className="flex items-center space-x-2">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                      <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                        <DollarSign className="h-4 w-4 shrink-0" />
+                        <span>Hourly Rate (KSH)</span>
+                      </Label>
                       <Input
                         type="number"
                         value={profile.hourly_rate || ''}
                         onChange={(e) => setProfile({ ...profile, hourly_rate: parseFloat(e.target.value) || undefined })}
                         min="0"
+                        className="text-sm sm:text-base h-10 sm:h-10 w-full"
                       />
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Instagram</Label>
-                    <div className="flex items-center space-x-2">
-                      <Instagram className="h-4 w-4 text-muted-foreground" />
+                  {/* Social Media */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                      <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                        <Instagram className="h-4 w-4 shrink-0" />
+                        <span>Instagram</span>
+                      </Label>
                       <Input
                         value={profile.social_instagram || ''}
                         onChange={(e) => setProfile({ ...profile, social_instagram: e.target.value })}
                         placeholder="@username"
+                        className="text-sm sm:text-base h-10 sm:h-10 w-full"
                       />
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Twitter</Label>
-                    <div className="flex items-center space-x-2">
-                      <Twitter className="h-4 w-4 text-muted-foreground" />
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                      <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
+                        <Twitter className="h-4 w-4 shrink-0" />
+                        <span>Twitter</span>
+                      </Label>
                       <Input
                         value={profile.social_twitter || ''}
                         onChange={(e) => setProfile({ ...profile, social_twitter: e.target.value })}
                         placeholder="@username"
+                        className="text-sm sm:text-base h-10 sm:h-10 w-full"
                       />
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <Label>Verified</Label>
-                      <input
-                        type="checkbox"
-                        checked={profile.is_verified || false}
-                        onChange={(e) => setProfile({ ...profile, is_verified: e.target.checked })}
-                        className="h-4 w-4"
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Label>Available</Label>
-                      <input
-                        type="checkbox"
-                        checked={profile.is_available || false}
-                        onChange={(e) => setProfile({ ...profile, is_available: e.target.checked })}
-                        className="h-4 w-4"
-                      />
-                    </div>
+                  {/* TikTok */}
+                  <div className="space-y-1.5 sm:space-y-2 max-w-full">
+                    <Label className="text-sm sm:text-sm font-medium">TikTok</Label>
+                    <Input
+                      value={profile.social_tiktok || ''}
+                      onChange={(e) => setProfile({ ...profile, social_tiktok: e.target.value })}
+                      placeholder="@username"
+                      className="text-sm sm:text-base h-10 sm:h-10 w-full"
+                    />
                   </div>
-                  <Button onClick={handleSaveProfile} disabled={saving}>
-                    <Save className="h-4 w-4 mr-2" />
+
+                  {/* Admin Controls - Verified and Available */}
+                  <Card className="border-primary/20 bg-primary/5">
+                    <CardHeader className="py-3">
+                      <CardTitle className="text-sm font-medium">Admin Controls</CardTitle>
+                    </CardHeader>
+                    <CardContent className="py-0 pb-4">
+                      <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
+                        <div className="flex items-center justify-between sm:justify-start gap-3">
+                          <Label className="text-sm">Verified</Label>
+                          <Switch
+                            checked={profile.is_verified || false}
+                            onCheckedChange={(checked) => setProfile({ ...profile, is_verified: checked })}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between sm:justify-start gap-3">
+                          <Label className="text-sm">Available</Label>
+                          <Switch
+                            checked={profile.is_available || false}
+                            onCheckedChange={(checked) => setProfile({ ...profile, is_available: checked })}
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Save Button */}
+                  <Button 
+                    onClick={handleSaveProfile} 
+                    disabled={saving} 
+                    className="w-full h-10 sm:h-11 text-sm sm:text-base mt-4 sm:mt-6"
+                  >
+                    <Save className="h-4 w-4 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                     {saving ? 'Saving...' : 'Save Profile'}
                   </Button>
                 </div>
@@ -768,11 +816,9 @@ const CelebrityProfileEditor = ({ open, onOpenChange, celebrityId, onSave }: Cel
                               <div className="flex items-end">
                                 <div className="flex items-center space-x-2">
                                   <Label className="text-xs">Active</Label>
-                                  <input
-                                    type="checkbox"
+                                  <Switch
                                     checked={service.is_active}
-                                    onChange={(e) => handleUpdateService(service.id, { is_active: e.target.checked })}
-                                    className="h-4 w-4"
+                                    onCheckedChange={(checked) => handleUpdateService(service.id, { is_active: checked })}
                                   />
                                 </div>
                               </div>
