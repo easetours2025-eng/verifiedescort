@@ -107,13 +107,12 @@ const AdminVideoUpload = ({ onUploadSuccess }: AdminVideoUploadProps) => {
             .from('admin-videos')
             .getPublicUrl(fileName);
 
-          // Get admin email from localStorage
-          const adminSession = localStorage.getItem('admin_session');
-          if (!adminSession) {
+          // Get admin email from Supabase auth session
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.user?.email) {
             throw new Error('Admin session not found. Please log in again.');
           }
-          const adminData = JSON.parse(adminSession);
-          const adminEmail = adminData.email;
+          const adminEmail = session.user.email;
 
           // Save video metadata via edge function
           console.log('Calling edge function with:', {
