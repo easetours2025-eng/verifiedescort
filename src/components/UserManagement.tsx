@@ -13,8 +13,7 @@ import {
   Phone, 
   Mail, 
   MapPin, 
-  Calendar, 
-  DollarSign, 
+  Calendar,
   Instagram, 
   Twitter,
   Save,
@@ -44,8 +43,6 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
     date_of_birth: "",
     gender: [] as string[],
     age: "",
-    base_price: "0",
-    hourly_rate: "",
     social_instagram: "",
     social_twitter: "",
     social_tiktok: "",
@@ -65,8 +62,6 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
       date_of_birth: "",
       gender: [],
       age: "",
-      base_price: "0",
-      hourly_rate: "",
       social_instagram: "",
       social_twitter: "",
       social_tiktok: "",
@@ -114,8 +109,6 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
           date_of_birth: formData.date_of_birth || null,
           gender: formData.gender.length > 0 ? formData.gender : null,
           age: formData.age ? parseInt(formData.age) : null,
-          base_price: parseFloat(formData.base_price) || 0,
-          hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
           social_instagram: formData.social_instagram || null,
           social_twitter: formData.social_twitter || null,
           social_tiktok: formData.social_tiktok || null,
@@ -329,35 +322,6 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
                   />
                 </div>
 
-                {/* Base Price and Hourly Rate */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
-                  <div className="space-y-1.5 sm:space-y-2 min-w-0">
-                    <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
-                      <DollarSign className="h-4 w-4 shrink-0" />
-                      <span>Base Price (KSH)</span>
-                    </Label>
-                    <Input
-                      type="number"
-                      value={formData.base_price}
-                      onChange={(e) => setFormData({ ...formData, base_price: e.target.value })}
-                      min="0"
-                      className="text-sm sm:text-base h-10 sm:h-10 w-full"
-                    />
-                  </div>
-                  <div className="space-y-1.5 sm:space-y-2 min-w-0">
-                    <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
-                      <DollarSign className="h-4 w-4 shrink-0" />
-                      <span>Hourly Rate (KSH)</span>
-                    </Label>
-                    <Input
-                      type="number"
-                      value={formData.hourly_rate}
-                      onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
-                      min="0"
-                      className="text-sm sm:text-base h-10 sm:h-10 w-full"
-                    />
-                  </div>
-                </div>
 
                 {/* Social Media */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">

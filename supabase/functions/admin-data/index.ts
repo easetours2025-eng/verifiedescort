@@ -232,16 +232,32 @@ Deno.serve(async (req) => {
 
       console.log('Updating celebrity profile:', { profileId, profileData });
 
-      // Update celebrity profile
-      const { data: updateData, error: updateError } = await supabaseServiceRole
+      // First try to update by id
+      let { data: updateData, error: updateError } = await supabaseServiceRole
         .from('celebrity_profiles')
         .update(profileData)
         .eq('id', profileId)
         .select();
 
+      // If no rows updated, try by user_id
+      if (!updateData || updateData.length === 0) {
+        console.log('No profile found by id, trying user_id...');
+        const result = await supabaseServiceRole
+          .from('celebrity_profiles')
+          .update(profileData)
+          .eq('user_id', profileId)
+          .select();
+        updateData = result.data;
+        updateError = result.error;
+      }
+
       if (updateError) {
         console.error("Error updating celebrity profile:", updateError);
         throw new Error(`Failed to update celebrity profile: ${updateError.message}`);
+      }
+
+      if (!updateData || updateData.length === 0) {
+        throw new Error("Profile not found");
       }
 
       console.log('Profile update result:', updateData);
