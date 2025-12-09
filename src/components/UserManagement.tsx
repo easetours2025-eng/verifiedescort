@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -18,11 +20,20 @@ import {
   Twitter,
   Save,
   X,
-  Lock
+  Lock,
+  Crown
 } from "lucide-react";
 import { GenderSelect } from "@/components/GenderSelect";
 import { CountrySelect } from "@/components/CountrySelect";
 import AIBioGenerator from "@/components/AIBioGenerator";
+
+interface SubscriptionPackage {
+  id: string;
+  tier_name: string;
+  duration_type: string;
+  price: number;
+  is_active: boolean;
+}
 
 interface UserManagementProps {
   onUserCreated: () => void;
@@ -31,6 +42,8 @@ interface UserManagementProps {
 const UserManagement = ({ onUserCreated }: UserManagementProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [subscriptionPackages, setSubscriptionPackages] = useState<SubscriptionPackage[]>([]);
+  const [enableSubscription, setEnableSubscription] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -46,8 +59,26 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
     social_instagram: "",
     social_twitter: "",
     social_tiktok: "",
+    subscription_tier: "",
+    duration_type: "",
   });
   const { toast } = useToast();
+
+  // Fetch subscription packages
+  useEffect(() => {
+    const fetchPackages = async () => {
+      const { data, error } = await supabase
+        .from('subscription_packages')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order');
+      
+      if (!error && data) {
+        setSubscriptionPackages(data);
+      }
+    };
+    fetchPackages();
+  }, []);
 
   const resetForm = () => {
     setFormData({
@@ -65,7 +96,42 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
       social_instagram: "",
       social_twitter: "",
       social_tiktok: "",
+      subscription_tier: "",
+      duration_type: "",
     });
+    setEnableSubscription(false);
+  };
+
+  // Get unique tiers
+  const uniqueTiers = [...new Set(subscriptionPackages.map(p => p.tier_name))];
+  
+  // Get durations for selected tier
+  const availableDurations = subscriptionPackages.filter(
+    p => p.tier_name === formData.subscription_tier
+  );
+
+  // Get selected package price
+  const selectedPackage = subscriptionPackages.find(
+    p => p.tier_name === formData.subscription_tier && p.duration_type === formData.duration_type
+  );
+
+  // Calculate subscription end date based on duration
+  const getSubscriptionEndDate = (durationType: string): Date => {
+    const now = new Date();
+    switch (durationType) {
+      case '1_week':
+        return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      case '1_month':
+        return new Date(now.setMonth(now.getMonth() + 1));
+      case '3_months':
+        return new Date(now.setMonth(now.getMonth() + 3));
+      case '6_months':
+        return new Date(now.setMonth(now.getMonth() + 6));
+      case '1_year':
+        return new Date(now.setFullYear(now.getFullYear() + 1));
+      default:
+        return new Date(now.setMonth(now.getMonth() + 1));
+    }
   };
 
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -118,9 +184,46 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
 
         if (profileError) throw profileError;
 
+        // Get the celebrity profile ID for subscription
+        const { data: profileData } = await supabase
+          .from('celebrity_profiles')
+          .select('id')
+          .eq('user_id', authData.user.id)
+          .single();
+
+        // Create subscription if enabled
+        if (enableSubscription && formData.subscription_tier && formData.duration_type && profileData) {
+          const subscriptionEnd = getSubscriptionEndDate(formData.duration_type);
+          
+          const { error: subError } = await supabase
+            .from('celebrity_subscriptions')
+            .insert({
+              celebrity_id: profileData.id,
+              subscription_tier: formData.subscription_tier,
+              duration_type: formData.duration_type,
+              subscription_start: new Date().toISOString(),
+              subscription_end: subscriptionEnd.toISOString(),
+              is_active: true,
+              amount_paid: selectedPackage?.price || 0,
+            });
+
+          if (subError) {
+            console.error('Subscription creation error:', subError);
+            // Don't throw, just log - user is already created
+          }
+
+          // Update profile to verified and available
+          await supabase
+            .from('celebrity_profiles')
+            .update({ is_verified: true, is_available: true })
+            .eq('id', profileData.id);
+        }
+
         toast({
           title: "Success",
-          description: "User account and celebrity profile created successfully",
+          description: enableSubscription 
+            ? "User account, profile, and subscription created successfully" 
+            : "User account and celebrity profile created successfully",
         });
 
         resetForm();
@@ -361,6 +464,72 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
                     className="text-sm sm:text-base h-10 sm:h-10 w-full"
                   />
                 </div>
+
+                {/* Subscription Section */}
+                <Card className="border-primary/20 bg-accent/5">
+                  <CardHeader className="py-3">
+                    <CardTitle className="text-sm font-medium flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Crown className="h-4 w-4" />
+                        Initial Subscription
+                      </div>
+                      <Switch
+                        checked={enableSubscription}
+                        onCheckedChange={setEnableSubscription}
+                      />
+                    </CardTitle>
+                  </CardHeader>
+                  {enableSubscription && (
+                    <CardContent className="py-0 pb-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                        <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                          <Label className="text-sm font-medium">Subscription Tier *</Label>
+                          <Select
+                            value={formData.subscription_tier}
+                            onValueChange={(value) => setFormData({ ...formData, subscription_tier: value, duration_type: "" })}
+                          >
+                            <SelectTrigger className="h-10">
+                              <SelectValue placeholder="Select tier" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {uniqueTiers.map((tier) => (
+                                <SelectItem key={tier} value={tier}>
+                                  {tier.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                          <Label className="text-sm font-medium">Duration *</Label>
+                          <Select
+                            value={formData.duration_type}
+                            onValueChange={(value) => setFormData({ ...formData, duration_type: value })}
+                            disabled={!formData.subscription_tier}
+                          >
+                            <SelectTrigger className="h-10">
+                              <SelectValue placeholder="Select duration" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {subscriptionPackages
+                                .filter(p => p.tier_name === formData.subscription_tier)
+                                .map((pkg) => (
+                                  <SelectItem key={pkg.id} value={pkg.duration_type}>
+                                    {pkg.duration_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} - KES {pkg.price.toLocaleString()}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      {selectedPackage && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Selected: {selectedPackage.tier_name.replace(/_/g, ' ')} - {selectedPackage.duration_type.replace(/_/g, ' ')} at KES {selectedPackage.price.toLocaleString()}
+                        </p>
+                      )}
+                    </CardContent>
+                  )}
+                </Card>
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
