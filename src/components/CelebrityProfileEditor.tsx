@@ -25,7 +25,6 @@ import {
   Mail,
   MapPin,
   Calendar,
-  DollarSign,
   Instagram,
   Twitter,
   X
@@ -192,8 +191,6 @@ const CelebrityProfileEditor = ({ open, onOpenChange, celebrityId, onSave }: Cel
             age: profile.age,
             date_of_birth: profile.date_of_birth,
             gender: profile.gender,
-            base_price: profile.base_price,
-            hourly_rate: profile.hourly_rate,
             social_instagram: profile.social_instagram,
             social_twitter: profile.social_twitter,
             social_tiktok: profile.social_tiktok,
@@ -574,35 +571,6 @@ const CelebrityProfileEditor = ({ open, onOpenChange, celebrityId, onSave }: Cel
                     />
                   </div>
 
-                  {/* Base Price and Hourly Rate */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
-                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
-                      <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
-                        <DollarSign className="h-4 w-4 shrink-0" />
-                        <span>Base Price (KSH)</span>
-                      </Label>
-                      <Input
-                        type="number"
-                        value={profile.base_price || 0}
-                        onChange={(e) => setProfile({ ...profile, base_price: parseFloat(e.target.value) || 0 })}
-                        min="0"
-                        className="text-sm sm:text-base h-10 sm:h-10 w-full"
-                      />
-                    </div>
-                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
-                      <Label className="text-sm sm:text-sm font-medium flex items-center gap-1.5">
-                        <DollarSign className="h-4 w-4 shrink-0" />
-                        <span>Hourly Rate (KSH)</span>
-                      </Label>
-                      <Input
-                        type="number"
-                        value={profile.hourly_rate || ''}
-                        onChange={(e) => setProfile({ ...profile, hourly_rate: parseFloat(e.target.value) || undefined })}
-                        min="0"
-                        className="text-sm sm:text-base h-10 sm:h-10 w-full"
-                      />
-                    </div>
-                  </div>
 
                   {/* Social Media */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full">
