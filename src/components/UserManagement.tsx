@@ -21,7 +21,8 @@ import {
   Save,
   X,
   Lock,
-  Crown
+  Crown,
+  Clock
 } from "lucide-react";
 import { GenderSelect } from "@/components/GenderSelect";
 import { CountrySelect } from "@/components/CountrySelect";
@@ -61,6 +62,9 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
     social_tiktok: "",
     subscription_tier: "",
     duration_type: "",
+    is_available_24h: true,
+    availability_start_time: "00:00",
+    availability_end_time: "23:59",
   });
   const { toast } = useToast();
 
@@ -98,6 +102,9 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
       social_tiktok: "",
       subscription_tier: "",
       duration_type: "",
+      is_available_24h: true,
+      availability_start_time: "00:00",
+      availability_end_time: "23:59",
     });
     setEnableSubscription(false);
   };
@@ -180,6 +187,9 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
           social_tiktok: formData.social_tiktok || null,
           is_verified: false,
           is_available: true,
+          is_available_24h: formData.is_available_24h,
+          availability_start_time: formData.is_available_24h ? '00:00:00' : formData.availability_start_time + ':00',
+          availability_end_time: formData.is_available_24h ? '23:59:59' : formData.availability_end_time + ':00',
         });
 
         if (profileError) throw profileError;
@@ -464,6 +474,49 @@ const UserManagement = ({ onUserCreated }: UserManagementProps) => {
                     className="text-sm sm:text-base h-10 sm:h-10 w-full"
                   />
                 </div>
+
+                {/* Availability Section */}
+                <Card className="border-green-500/20 bg-green-500/5">
+                  <CardHeader className="py-3">
+                    <CardTitle className="text-sm font-medium flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        Availability Hours
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">24/7</span>
+                        <Switch
+                          checked={formData.is_available_24h}
+                          onCheckedChange={(checked) => setFormData({ ...formData, is_available_24h: checked })}
+                        />
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  {!formData.is_available_24h && (
+                    <CardContent className="py-0 pb-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label className="text-sm font-medium">Start Time</Label>
+                          <Input
+                            type="time"
+                            value={formData.availability_start_time}
+                            onChange={(e) => setFormData({ ...formData, availability_start_time: e.target.value })}
+                            className="h-10"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-sm font-medium">End Time</Label>
+                          <Input
+                            type="time"
+                            value={formData.availability_end_time}
+                            onChange={(e) => setFormData({ ...formData, availability_end_time: e.target.value })}
+                            className="h-10"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
 
                 {/* Subscription Section */}
                 <Card className="border-primary/20 bg-accent/5">
