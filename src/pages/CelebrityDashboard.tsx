@@ -59,6 +59,9 @@ interface CelebrityProfile {
   is_verified: boolean;
   is_available: boolean;
   credit_balance?: number;
+  is_available_24h?: boolean;
+  availability_start_time?: string;
+  availability_end_time?: string;
 }
 
 interface MediaItem {
@@ -888,6 +891,9 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
     age: profile.age || 18,
     social_instagram: profile.social_instagram || '',
     social_twitter: profile.social_twitter || '',
+    is_available_24h: profile.is_available_24h !== false,
+    availability_start_time: profile.availability_start_time?.slice(0, 5) || '00:00',
+    availability_end_time: profile.availability_end_time?.slice(0, 5) || '23:59',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -897,6 +903,9 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
     const updateData = {
       ...formData,
       gender: formData.gender.length > 0 ? formData.gender : null,
+      is_available_24h: formData.is_available_24h,
+      availability_start_time: formData.is_available_24h ? '00:00:00' : formData.availability_start_time + ':00',
+      availability_end_time: formData.is_available_24h ? '23:59:59' : formData.availability_end_time + ':00',
     };
     
     onUpdate(updateData);
@@ -1043,6 +1052,54 @@ const ProfileTab = ({ profile, onUpdate, saving }: {
               />
             </div>
           </div>
+
+          {/* Availability Hours */}
+          <Card className="border-green-500/20 bg-green-500/5">
+            <CardHeader className="py-3">
+              <CardTitle className="text-sm font-medium flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Availability Hours
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">24/7</span>
+                  <input
+                    type="checkbox"
+                    checked={formData.is_available_24h}
+                    onChange={(e) => setFormData({ ...formData, is_available_24h: e.target.checked })}
+                    className="h-4 w-4 rounded border-input"
+                  />
+                </div>
+              </CardTitle>
+            </CardHeader>
+            {!formData.is_available_24h && (
+              <CardContent className="py-0 pb-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Start Time</label>
+                    <Input
+                      type="time"
+                      value={formData.availability_start_time}
+                      onChange={(e) => setFormData({ ...formData, availability_start_time: e.target.value })}
+                      className="h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">End Time</label>
+                    <Input
+                      type="time"
+                      value={formData.availability_end_time}
+                      onChange={(e) => setFormData({ ...formData, availability_end_time: e.target.value })}
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Set the hours when you're available for bookings
+                </p>
+              </CardContent>
+            )}
+          </Card>
 
           <Button type="submit" disabled={saving} className="w-full h-10 sm:h-11 text-sm sm:text-base mt-4 sm:mt-6">
             <Save className="h-4 w-4 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
