@@ -27,7 +27,8 @@ import {
   Calendar,
   Instagram,
   Twitter,
-  X
+  X,
+  Clock
 } from 'lucide-react';
 
 interface CelebrityProfile {
@@ -51,6 +52,9 @@ interface CelebrityProfile {
   social_tiktok?: string;
   is_verified?: boolean;
   is_available?: boolean;
+  is_available_24h?: boolean;
+  availability_start_time?: string;
+  availability_end_time?: string;
 }
 
 interface Service {
@@ -197,6 +201,9 @@ const CelebrityProfileEditor = ({ open, onOpenChange, celebrityId, onSave }: Cel
             social_tiktok: profile.social_tiktok,
             is_verified: profile.is_verified,
             is_available: profile.is_available,
+            is_available_24h: profile.is_available_24h,
+            availability_start_time: profile.availability_start_time,
+            availability_end_time: profile.availability_end_time,
           },
           adminEmail: session.user.email
         })
@@ -611,6 +618,49 @@ const CelebrityProfileEditor = ({ open, onOpenChange, celebrityId, onSave }: Cel
                       className="text-sm sm:text-base h-10 sm:h-10 w-full"
                     />
                   </div>
+
+                  {/* Availability Hours */}
+                  <Card className="border-green-500/20 bg-green-500/5">
+                    <CardHeader className="py-3">
+                      <CardTitle className="text-sm font-medium flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Availability Hours
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">24/7</span>
+                          <Switch
+                            checked={profile.is_available_24h !== false}
+                            onCheckedChange={(checked) => setProfile({ ...profile, is_available_24h: checked })}
+                          />
+                        </div>
+                      </CardTitle>
+                    </CardHeader>
+                    {profile.is_available_24h === false && (
+                      <CardContent className="py-0 pb-4">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1.5">
+                            <Label className="text-sm font-medium">Start Time</Label>
+                            <Input
+                              type="time"
+                              value={profile.availability_start_time?.slice(0, 5) || '00:00'}
+                              onChange={(e) => setProfile({ ...profile, availability_start_time: e.target.value + ':00' })}
+                              className="h-10"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-sm font-medium">End Time</Label>
+                            <Input
+                              type="time"
+                              value={profile.availability_end_time?.slice(0, 5) || '23:59'}
+                              onChange={(e) => setProfile({ ...profile, availability_end_time: e.target.value + ':00' })}
+                              className="h-10"
+                            />
+                          </div>
+                        </div>
+                      </CardContent>
+                    )}
+                  </Card>
 
                   {/* Admin Controls - Verified and Available */}
                   <Card className="border-primary/20 bg-primary/5">

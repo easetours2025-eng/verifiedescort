@@ -404,6 +404,8 @@ export type Database = {
       celebrity_profiles: {
         Row: {
           age: number | null
+          availability_end_time: string | null
+          availability_start_time: string | null
           base_price: number
           bio: string | null
           country: string | null
@@ -417,6 +419,7 @@ export type Database = {
           hourly_rate: number | null
           id: string
           is_available: boolean | null
+          is_available_24h: boolean | null
           is_special_offer_active: boolean | null
           is_verified: boolean | null
           location: string | null
@@ -433,6 +436,8 @@ export type Database = {
         }
         Insert: {
           age?: number | null
+          availability_end_time?: string | null
+          availability_start_time?: string | null
           base_price?: number
           bio?: string | null
           country?: string | null
@@ -446,6 +451,7 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           is_available?: boolean | null
+          is_available_24h?: boolean | null
           is_special_offer_active?: boolean | null
           is_verified?: boolean | null
           location?: string | null
@@ -462,6 +468,8 @@ export type Database = {
         }
         Update: {
           age?: number | null
+          availability_end_time?: string | null
+          availability_start_time?: string | null
           base_price?: number
           bio?: string | null
           country?: string | null
@@ -475,6 +483,7 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           is_available?: boolean | null
+          is_available_24h?: boolean | null
           is_special_offer_active?: boolean | null
           is_verified?: boolean | null
           location?: string | null

@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Star, Crown, Sparkles, Mail, CheckCircle2 } from 'lucide-react';
+import { Star, Crown, Sparkles, Mail, CheckCircle2, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import Footer from '@/components/Footer';
 
@@ -20,6 +20,9 @@ const Auth = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [age, setAge] = useState<number>(18);
   const [loading, setLoading] = useState(false);
+  const [isAvailable24h, setIsAvailable24h] = useState(true);
+  const [availabilityStartTime, setAvailabilityStartTime] = useState('00:00');
+  const [availabilityEndTime, setAvailabilityEndTime] = useState('23:59');
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
   const { login, user } = useAuth();
@@ -119,6 +122,9 @@ const Auth = () => {
           .update({
             phone_number: phoneNumber,
             age: age,
+            is_available_24h: isAvailable24h,
+            availability_start_time: isAvailable24h ? '00:00:00' : availabilityStartTime + ':00',
+            availability_end_time: isAvailable24h ? '23:59:59' : availabilityEndTime + ':00',
           })
           .eq('user_id', authData.user.id);
 
@@ -314,6 +320,50 @@ const Auth = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                       />
+                    </div>
+                    
+                    {/* Availability Hours */}
+                    <div className="space-y-2 border border-border/50 rounded-lg p-3 bg-muted/20">
+                      <div className="flex items-center justify-between">
+                        <Label className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Availability Hours
+                        </Label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">24/7</span>
+                          <input
+                            type="checkbox"
+                            checked={isAvailable24h}
+                            onChange={(e) => setIsAvailable24h(e.target.checked)}
+                            className="h-4 w-4 rounded border-input"
+                          />
+                        </div>
+                      </div>
+                      {!isAvailable24h && (
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          <div className="space-y-1">
+                            <Label className="text-xs">Start Time</Label>
+                            <Input
+                              type="time"
+                              value={availabilityStartTime}
+                              onChange={(e) => setAvailabilityStartTime(e.target.value)}
+                              className="h-9"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">End Time</Label>
+                            <Input
+                              type="time"
+                              value={availabilityEndTime}
+                              onChange={(e) => setAvailabilityEndTime(e.target.value)}
+                              className="h-9"
+                            />
+                          </div>
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Set when you're available to meet clients
+                      </p>
                     </div>
                     <Button
                       type="submit"

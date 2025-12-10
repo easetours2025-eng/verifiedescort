@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, MapPin, Phone, Instagram, Twitter, Video, Image as ImageIcon, Verified, MessageCircle, Check } from 'lucide-react';
+import { Star, MapPin, Phone, Instagram, Twitter, Video, Image as ImageIcon, Verified, MessageCircle, Check, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   PublicCelebrityProfile, 
@@ -19,6 +19,9 @@ interface CelebrityCardProps {
     subscription_tier?: string | null;
     duration_type?: string | null;
     subscription_end?: string | null;
+    availability_start_time?: string | null;
+    availability_end_time?: string | null;
+    is_available_24h?: boolean | null;
   };
   onViewProfile: (id: string) => void;
 }
@@ -234,6 +237,17 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
               <span>{celebrity.location}</span>
             </div>
           )}
+        </div>
+
+        {/* Availability Time */}
+        <div className="flex items-center justify-center text-sm text-muted-foreground">
+          <Clock className="h-4 w-4 mr-1.5" />
+          <span>
+            {celebrity.is_available_24h !== false 
+              ? "Available 24/7" 
+              : `${celebrity.availability_start_time?.slice(0, 5) || '00:00'} - ${celebrity.availability_end_time?.slice(0, 5) || '23:59'}`
+            }
+          </span>
         </div>
 
         {/* Services List */}
