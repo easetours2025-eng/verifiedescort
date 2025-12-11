@@ -16,6 +16,8 @@ import Videos from "./pages/Videos";
 import FAQ from "./pages/FAQ";
 import Install from "./pages/Install";
 import Sitemap from "./pages/Sitemap";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +36,8 @@ const App = () => (
             <Route path="/celebrity/:id" element={<CelebrityProfile />} />
             <Route path="/videos" element={<Videos />} />
             <Route path="/faq" element={<FAQ />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/install" element={<Install />} />
             <Route path="/sitemap.xml" element={<Sitemap />} />
             <Route path="/admin" element={<AdminDashboard />} />
