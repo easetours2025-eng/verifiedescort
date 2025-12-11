@@ -45,6 +45,14 @@ const NavigationHeader = ({ showBackButton = true, sticky = false, showNavigatio
             <Button 
               variant="ghost" 
               size="sm"
+              onClick={() => navigate('/blog')}
+              className="hover:bg-accent/10"
+            >
+              Blog
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
               onClick={() => navigate('/faq')}
               className="hover:bg-accent/10"
             >

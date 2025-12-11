@@ -270,6 +270,122 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_celebrity_stories: {
+        Row: {
+          blog_post_id: string
+          caption: string | null
+          celebrity_image_path: string | null
+          celebrity_name: string
+          celebrity_page_url: string
+          created_at: string
+          display_order: number
+          id: string
+          image_credit: string | null
+          image_source: string | null
+          story_text: string
+          updated_at: string
+        }
+        Insert: {
+          blog_post_id: string
+          caption?: string | null
+          celebrity_image_path?: string | null
+          celebrity_name: string
+          celebrity_page_url: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_credit?: string | null
+          image_source?: string | null
+          story_text: string
+          updated_at?: string
+        }
+        Update: {
+          blog_post_id?: string
+          caption?: string | null
+          celebrity_image_path?: string | null
+          celebrity_name?: string
+          celebrity_page_url?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_credit?: string | null
+          image_source?: string | null
+          story_text?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_celebrity_stories_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_posts: {
+        Row: {
+          author_name: string | null
+          canonical_url: string | null
+          content: string | null
+          created_at: string
+          created_by: string | null
+          excerpt: string | null
+          featured_image_path: string | null
+          id: string
+          is_published: boolean | null
+          meta_description: string | null
+          meta_title: string | null
+          published_at: string | null
+          read_time_minutes: number | null
+          scheduled_publish_at: string | null
+          slug: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_name?: string | null
+          canonical_url?: string | null
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          excerpt?: string | null
+          featured_image_path?: string | null
+          id?: string
+          is_published?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          read_time_minutes?: number | null
+          scheduled_publish_at?: string | null
+          slug: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string | null
+          canonical_url?: string | null
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          excerpt?: string | null
+          featured_image_path?: string | null
+          id?: string
+          is_published?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          read_time_minutes?: number | null
+          scheduled_publish_at?: string | null
+          slug?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       call_clicks: {
         Row: {
           browser_name: string | null

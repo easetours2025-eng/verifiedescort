@@ -54,7 +54,7 @@ import AdminSitemapMonitoring from '@/components/AdminSitemapMonitoring';
 import AdminSubscriptionReminders from '@/components/AdminSubscriptionReminders';
 import AdminReferralManagement from '@/components/AdminReferralManagement';
 import { AdminAppInstallations } from '@/components/AdminAppInstallations';
-
+import AdminBlogManagement from '@/components/AdminBlogManagement';
 // Data Interfaces
 interface PaymentRecord {
   id: string;
@@ -936,6 +936,13 @@ const AdminDashboard = () => {
             <div className="space-y-4 sm:space-y-6">
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">Video Management</h1>
               <AdminVideoSection />
+            </div>
+          )}
+
+          {activeTab === 'blog' && (
+            <div className="space-y-4 sm:space-y-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">Blog Management</h1>
+              <AdminBlogManagement />
             </div>
           )}
         </main>
