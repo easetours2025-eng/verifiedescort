@@ -1460,6 +1460,8 @@ export type Database = {
         Args: never
         Returns: {
           age: number
+          availability_end_time: string
+          availability_start_time: string
           base_price: number
           bio: string
           country: string
@@ -1472,6 +1474,7 @@ export type Database = {
           hourly_rate: number
           id: string
           is_available: boolean
+          is_available_24h: boolean
           is_featured: boolean
           is_special_offer_active: boolean
           is_verified: boolean

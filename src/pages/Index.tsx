@@ -314,6 +314,9 @@ const Index = () => {
         subscription_tier: celebrity.subscription_tier,
         duration_type: celebrity.duration_type,
         subscription_end: celebrity.subscription_end,
+        is_available_24h: celebrity.is_available_24h,
+        availability_start_time: celebrity.availability_start_time,
+        availability_end_time: celebrity.availability_end_time,
       })) as PublicCelebrityProfile[] || [];
 
       // Filter to only show verified celebrities
