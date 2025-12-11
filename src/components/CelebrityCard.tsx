@@ -245,7 +245,16 @@ const CelebrityCard: React.FC<CelebrityCardProps> = ({ celebrity, onViewProfile 
           <span>
             {celebrity.is_available_24h !== false 
               ? "Available 24/7" 
-              : `${celebrity.availability_start_time?.slice(0, 5) || '00:00'} - ${celebrity.availability_end_time?.slice(0, 5) || '23:59'}`
+              : (() => {
+                  const formatTo12Hour = (time: string | null | undefined) => {
+                    if (!time) return '12:00 AM';
+                    const [hours, minutes] = time.slice(0, 5).split(':').map(Number);
+                    const period = hours >= 12 ? 'PM' : 'AM';
+                    const hour12 = hours % 12 || 12;
+                    return `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`;
+                  };
+                  return `${formatTo12Hour(celebrity.availability_start_time)} - ${formatTo12Hour(celebrity.availability_end_time)}`;
+                })()
             }
           </span>
         </div>
