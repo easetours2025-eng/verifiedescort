@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Crown, Search } from 'lucide-react';
+import VIPEliteSlideshow from './VIPEliteSlideshow';
 
 interface HeroSectionProps {
   user: any;
@@ -80,9 +81,12 @@ const HeroSection = ({ user, celebrityCount }: HeroSectionProps) => {
               <div className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 100%
               </div>
-              <div className="text-xs sm:text-sm text-muted-foreground">Secure</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">Secure</div>
             </div>
           </div>
+
+          {/* VIP Elite Celebrity Slideshow */}
+          <VIPEliteSlideshow />
         </div>
       </div>
     </section>

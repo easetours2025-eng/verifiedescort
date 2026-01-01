@@ -18,7 +18,8 @@ import {
   Globe,
   Bell,
   Share2,
-  Download
+  Download,
+  FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -53,6 +54,7 @@ const AdminSidebar = ({ activeTab, onTabChange, isOpen = true, onClose, collapse
     { id: 'subscriptions', label: 'Subscriptions', icon: Package },
     { id: 'premium-support', label: 'Premium Support', icon: HeadphonesIcon },
     { id: 'videos', label: 'Videos', icon: Video },
+    { id: 'blog', label: 'Blog Management', icon: FileText },
   ];
 
   const handleNavClick = (id: string) => {
