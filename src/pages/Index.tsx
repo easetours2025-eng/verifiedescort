@@ -459,7 +459,7 @@ const Index = () => {
       <NavigationHeader showBackButton={false} showNavigation={true} />
 
       {/* Hero Section */}
-      <HeroSection user={user} celebrityCount={celebrities.length} />
+      <HeroSection />
 
       {/* AI Smart Search Section */}
       <section className="py-4 sm:py-6" id="search-section">
