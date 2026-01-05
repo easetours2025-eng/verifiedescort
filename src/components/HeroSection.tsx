@@ -149,7 +149,7 @@ const HeroSection = () => {
 
   if (loading) {
     return (
-      <section className="relative pt-6 pb-8 sm:pt-8 sm:pb-12 overflow-hidden">
+      <section className="relative pt-20 pb-8 sm:pt-24 sm:pb-12 overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="h-64 flex items-center justify-center">
             <div className="animate-pulse text-muted-foreground">Loading...</div>
@@ -164,7 +164,7 @@ const HeroSection = () => {
   }
 
   return (
-    <section className="relative pt-6 pb-8 sm:pt-8 sm:pb-12 overflow-hidden">
+    <section className="relative pt-20 pb-8 sm:pt-24 sm:pb-12 overflow-hidden">
       {/* Subtle Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
       
