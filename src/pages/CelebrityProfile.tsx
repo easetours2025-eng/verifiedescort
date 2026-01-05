@@ -752,10 +752,10 @@ const CelebrityProfile = () => {
         <div className="space-y-6 md:space-y-8">
           {/* Celebrity Profile and Info */}
           <Card className="p-4 md:p-6">
-            <div className="flex flex-col md:flex-row gap-4 md:gap-6">
-              <div className="flex-shrink-0 mx-auto md:mx-0">
+        <div className="flex flex-row gap-4 md:gap-6">
+              <div className="flex-shrink-0">
                 <div 
-                  className="w-24 h-32 md:w-32 md:h-40 rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-80 transition-opacity"
+                  className="w-28 h-36 sm:w-36 sm:h-44 md:w-40 md:h-52 rounded-md overflow-hidden bg-muted cursor-pointer hover:opacity-80 transition-opacity border-2 border-border"
                   onClick={async () => {
                     if (profile.profile_picture_path) {
                       const imageUrl = profile.profile_picture_path.startsWith('http') ? 
@@ -794,18 +794,18 @@ const CelebrityProfile = () => {
                   )}
                 </div>
               </div>
-              <div className="flex-1 text-center md:text-left">
-                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-2">
-                  <h1 className="text-2xl md:text-3xl font-bold">{profile.stage_name}</h1>
+              <div className="flex-1 text-left">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <h1 className="text-lg sm:text-2xl md:text-3xl font-bold">{profile.stage_name}</h1>
                   {profile.is_verified && (
-                    <Badge variant="secondary" className="w-fit mx-auto md:mx-0">
+                    <Badge variant="secondary" className="w-fit">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       Verified
                     </Badge>
                   )}
                 </div>
-                <p className="text-muted-foreground mb-3 text-sm md:text-base">{profile.bio}</p>
-                <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-4 text-sm text-muted-foreground mb-4">
+                <p className="text-muted-foreground mb-3 text-xs sm:text-sm md:text-base line-clamp-3">{profile.bio}</p>
+                <div className="flex flex-wrap gap-2 md:gap-4 text-xs sm:text-sm text-muted-foreground mb-3">
                   {profile.location && (
                     <span className="flex items-center gap-1">
                       <MapPin className="w-3 h-3" />
@@ -831,7 +831,7 @@ const CelebrityProfile = () => {
                     </span>
                   )}
                 </div>
-                <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
+                <div className="flex flex-wrap gap-2 mb-3">
                 {profile.social_instagram && (
                     <Button variant="outline" size="sm" asChild className="text-xs">
                       <a 
@@ -869,7 +869,7 @@ const CelebrityProfile = () => {
                     </Button>
                   )}
                 </div>
-                <div className="flex flex-col sm:flex-row justify-center md:justify-start gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button 
                     className="flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 text-white" 
                     onClick={handleWhatsApp}

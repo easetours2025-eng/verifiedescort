@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import CelebrityCard from '@/components/CelebrityCard';
-import { Crown, Sparkles, Search, Filter, Star, Users, Trophy, Heart, ChevronDown, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Crown, Sparkles, Search, Filter, Star, Users, Trophy, Heart, ChevronDown, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { 
@@ -18,7 +18,7 @@ import {
   CelebrityProfile as FullCelebrityProfile
 } from '@/lib/celebrity-utils';
 import { generateHomePageKeywords, updateMetaKeywords } from '@/lib/seo-utils';
-import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
+import { useCallback, useRef } from 'react';
 
 import NavigationHeader from '@/components/NavigationHeader';
 import Footer from '@/components/Footer';
@@ -44,7 +44,9 @@ const Index = () => {
   const [genderFilter, setGenderFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [displayedCount, setDisplayedCount] = useState(10);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
   const [deviceType, setDeviceType] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   const [showAgeVerification, setShowAgeVerification] = useState(false);
   const { user } = useAuth();
@@ -399,12 +401,37 @@ const Index = () => {
     return matchesSearch && matchesCountry && matchesLocation && matchesAge && matchesGender;
   });
 
-  // Pagination
-  const totalPages = Math.ceil(filteredCelebrities.length / itemsPerPage);
-  const paginatedCelebrities = filteredCelebrities.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  // Infinite scroll - display celebrities up to displayedCount
+  const displayedCelebrities = filteredCelebrities.slice(0, displayedCount);
+  const hasMore = displayedCount < filteredCelebrities.length;
+
+  // Load more celebrities
+  const loadMore = useCallback(() => {
+    if (isLoadingMore || !hasMore) return;
+    setIsLoadingMore(true);
+    setTimeout(() => {
+      setDisplayedCount(prev => Math.min(prev + 10, filteredCelebrities.length));
+      setIsLoadingMore(false);
+    }, 300);
+  }, [isLoadingMore, hasMore, filteredCelebrities.length]);
+
+  // Intersection observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [loadMore, hasMore, isLoadingMore]);
 
   // Update locations when country filter changes
   useEffect(() => {
@@ -435,9 +462,9 @@ const Index = () => {
     }
   }, [countryFilter, celebrities]);
 
-  // Reset to page 1 when filters change
+  // Reset displayed count when filters change
   useEffect(() => {
-    setCurrentPage(1);
+    setDisplayedCount(10);
   }, [searchTerm, locationFilter, genderFilter, minAge, maxAge, countryFilter]);
 
   const handleViewProfile = (id: string) => {
@@ -741,7 +768,7 @@ const Index = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 animate-fade-in">
-                {paginatedCelebrities.map((celebrity) => (
+                {displayedCelebrities.map((celebrity) => (
                   <CelebrityCard
                     key={celebrity.id}
                     celebrity={celebrity}
@@ -750,50 +777,26 @@ const Index = () => {
                 ))}
               </div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-8 sm:mt-10">
-                  <Pagination>
-                    <PaginationContent className="flex justify-center gap-2 sm:gap-3">
-                      <PaginationItem>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setCurrentPage(prev => Math.max(1, prev - 1));
-                            document.getElementById('search-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                          }}
-                          disabled={currentPage === 1}
-                          className="gap-2 border-2 hover:border-primary hover:bg-primary/5 disabled:opacity-50 hover-scale"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                          <span className="hidden sm:inline">Previous</span>
-                        </Button>
-                      </PaginationItem>
-                      
-                      <PaginationItem>
-                        <div className="flex items-center justify-center min-w-[100px] px-4 py-2 text-sm sm:text-base font-medium bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg">
-                          Page <span className="mx-1 font-bold text-primary">{currentPage}</span> of <span className="ml-1 font-bold text-primary">{totalPages}</span>
-                        </div>
-                      </PaginationItem>
-
-                      <PaginationItem>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setCurrentPage(prev => Math.min(totalPages, prev + 1));
-                            document.getElementById('search-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                          }}
-                          disabled={currentPage === totalPages}
-                          className="gap-2 border-2 hover:border-primary hover:bg-primary/5 disabled:opacity-50 hover-scale"
-                        >
-                          <span className="hidden sm:inline">Next</span>
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
+              {/* Infinite Scroll Loader */}
+              {hasMore && (
+                <div 
+                  ref={loadMoreRef}
+                  className="flex justify-center items-center py-8"
+                >
+                  {isLoadingMore ? (
+                    <div className="flex items-center gap-3">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                      <span className="text-muted-foreground">Loading more...</span>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={loadMore}
+                      className="border-2 hover:border-primary hover:bg-primary/5"
+                    >
+                      Load More
+                    </Button>
+                  )}
                 </div>
               )}
             </>
