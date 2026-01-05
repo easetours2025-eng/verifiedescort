@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Loader2, Sparkles, X } from 'lucide-react';
+import { Search, Loader2, Sparkles, X, MapPin, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { requestGeolocation, GeoLocation } from '@/lib/device-utils';
 
 interface Recommendation {
   celebrityId: string;
@@ -39,6 +40,23 @@ const AISmartSearch: React.FC = () => {
   const [results, setResults] = useState<SearchResult | null>(null);
   const [celebrities, setCelebrities] = useState<Celebrity[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [userLocation, setUserLocation] = useState<GeoLocation | null>(null);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+
+  // Check for cached location on mount
+  useEffect(() => {
+    const cachedLocation = localStorage.getItem('user_geolocation');
+    if (cachedLocation) {
+      try {
+        const parsed = JSON.parse(cachedLocation);
+        if (parsed.permissionGranted) {
+          setUserLocation(parsed);
+        }
+      } catch {
+        // Invalid cache
+      }
+    }
+  }, []);
 
   // Fetch popular locations on mount
   useEffect(() => {
@@ -71,6 +89,92 @@ const AISmartSearch: React.FC = () => {
 
     fetchPopularLocations();
   }, []);
+
+  const handleGetLocation = async () => {
+    setIsGettingLocation(true);
+    try {
+      const location = await requestGeolocation();
+      if (location.permissionGranted) {
+        setUserLocation(location);
+        localStorage.setItem('user_geolocation', JSON.stringify(location));
+        toast({
+          title: "Location enabled",
+          description: `Searching near ${location.city || location.region || 'your location'}`,
+        });
+      } else {
+        toast({
+          title: "Location access denied",
+          description: "You can still search manually",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsGettingLocation(false);
+    }
+  };
+
+  const handleNearbySearch = async () => {
+    if (!userLocation?.city && !userLocation?.region) {
+      toast({
+        title: "Location not available",
+        description: "Please enable location first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const locationQuery = [userLocation.city, userLocation.region]
+      .filter(Boolean)
+      .join(', ');
+    
+    setQuery(`Find escorts near ${locationQuery}`);
+    
+    // Trigger search with location
+    setIsSearching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-smart-search', {
+        body: { query: `Find escorts near ${locationQuery}` }
+      });
+
+      if (error) throw error;
+
+      setResults(data);
+
+      if (data.recommendations && data.recommendations.length > 0) {
+        const celebrityIds = data.recommendations.map((r: Recommendation) => r.celebrityId);
+        
+        const { data: celebData, error: celebError } = await supabase
+          .from('celebrity_profiles')
+          .select('id, stage_name, bio, location, base_price, is_verified, profile_picture_path, gender, age, hourly_rate')
+          .in('id', celebrityIds);
+
+        if (celebError) throw celebError;
+
+        const sortedCelebs = celebData?.sort((a, b) => {
+          const scoreA = data.recommendations.find((r: Recommendation) => r.celebrityId === a.id)?.matchScore || 0;
+          const scoreB = data.recommendations.find((r: Recommendation) => r.celebrityId === b.id)?.matchScore || 0;
+          return scoreB - scoreA;
+        }) || [];
+
+        setCelebrities(sortedCelebs);
+      }
+
+      toast({
+        title: "Nearby escorts found",
+        description: `Found ${data.recommendations?.length || 0} recommendations near you`,
+      });
+
+    } catch (error) {
+      console.error('Search error:', error);
+      toast({
+        title: "Search failed",
+        description: error instanceof Error ? error.message : "Failed to search",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,6 +252,8 @@ const AISmartSearch: React.FC = () => {
     setQuery(prev => prev ? `${prev}, ${suggestion}` : suggestion);
   };
 
+  const locationDisplay = userLocation?.city || userLocation?.region;
+
   return (
     <div className="space-y-3">
       {/* Simple Search Bar */}
@@ -191,6 +297,39 @@ const AISmartSearch: React.FC = () => {
           )}
         </Button>
       </form>
+
+      {/* Location-based Search Row */}
+      <div className="flex flex-wrap items-center gap-2">
+        {userLocation?.permissionGranted ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleNearbySearch}
+            disabled={isSearching}
+            className="gap-2 border-primary/30 bg-primary/5 hover:bg-primary/10"
+          >
+            <MapPin className="h-4 w-4 text-primary" />
+            <span className="text-primary">Find near {locationDisplay}</span>
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleGetLocation}
+            disabled={isGettingLocation}
+            className="gap-2"
+          >
+            {isGettingLocation ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Navigation className="h-4 w-4" />
+            )}
+            Enable location for nearby
+          </Button>
+        )}
+      </div>
 
       {/* Quick Suggestion Chips */}
       <div className="flex flex-wrap gap-2">
@@ -261,7 +400,10 @@ const AISmartSearch: React.FC = () => {
                       {recommendation.matchScore}%
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">{celeb.location}</p>
+                  <p className="text-sm text-muted-foreground truncate flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    {celeb.location}
+                  </p>
                 </div>
               </div>
             );
